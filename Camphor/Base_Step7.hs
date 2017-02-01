@@ -3,7 +3,6 @@
 {- symbolization -}
 module Camphor.Base_Step7
 (step7
-,example7
 
 ,Com7(..)
 ,parser7
@@ -22,8 +21,7 @@ step7::Stream s Identity Char=>s->Either ParseError String
 step7 str=convert7 <$> (parse parser7 "step7" str)  
 
 
-example7::String
-example7 = "mov 0; /*comment +-,.[]><*/ inc; loop; mov 1; output; _input; mov 0; pool;"
+
 
  
 data Com7=INC|DEC|MOV|LOOP|POOL|IN|OUT|NUL deriving(Show)

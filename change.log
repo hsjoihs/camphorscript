@@ -1,5 +1,10 @@
 ﻿
 
+ver 0.1.9  20:30 2014/03/30 (日)
+examplesを別ファイルに
+ccsrc(reverse compiler)を作成(途中)
+
+
 ver 0.1.8  20:15 2014/03/30 (日)
 Step4関連のwarning抜き。
 

@@ -4,13 +4,13 @@ import System.Environment
 import System.IO
 import Control.Monad
 import Text.Parsec
-
 import Camphor.Step1
 import Camphor.Step4
 import Camphor.Step5
 import Camphor.Step6
 import Camphor.Step7
 import Camphor.Step8
+import Camphor.IO
 
 
 foldl1_::(a->a->a)->[a]->a
@@ -18,12 +18,6 @@ foldl1_ _ [] = error "first number of option -C must not be larger than the seco
 foldl1_ f xs = foldl1 f xs
 
 
-at::[a]->Int->Maybe a
-xs `at` n
- | n>=0      = if length xs>n    then Just(xs!!n)          else Nothing
- | otherwise = if length xs+n>=0 then xs `at` (length xs+n)else Nothing
-
- 
 info::[String]
 info=[
  "CHAtsFtD CamphorScript Compiler - Copyright (c) 2014- CHAtsFtD ",
@@ -32,9 +26,7 @@ info=[
  "-Cnum[num]  compile from step 'num' to step 'num'"
  ]
 
- 
-remExt::String->String
-remExt xs=reverse$dropWhile(/='.')(reverse xs)
+
  
 main::IO()
 main=do
