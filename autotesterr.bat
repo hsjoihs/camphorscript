@@ -10,7 +10,7 @@ call bat\makeHaskell ccsc
 call bat\makeHaskell ccsrc
 
 
-call bat\setlogname errresult
+call bat\setlogname terrresult
 echo. > %LOG% 
 
 for /F "usebackq" %%i in (`dir /A-D /s /b examples\error\S*.txt`) do (

@@ -25,31 +25,33 @@ import Control.Monad(join)
 import qualified Data.Map as M
 
 {- C macro  -}
-step1 :: String -> Either ParseError String
-step1 str = join (convert1 <$> parse parser1 "step1" (str ++ "\n"))
+step1 :: FilePath -> String -> Either ParseError String
+step1 file str = join (convert1 file <$> parse parser1 (file ++ "--step1") (str ++ "\n"))
 
 -- PARSING
 
-data Pre7 = IFDEF | IFNDEF | UNDEF | ENDIF | DEFINE | OTHER deriving (Show)
+data Pre7 = IFDEF | IFNDEF | UNDEF | ENDIF | DEFINE | LINE | OTHER deriving (Show)
 type Set = (Pre7,Ident,String)
 
 parser1 :: Stream s m Char => ParsecT s u m [Set]
 parser1 = many line
 
 line :: Stream s m Char => ParsecT s u m Set
-line = ifdef <|> ifndef <|> endif <|> define <|> undef <|> other
+line = ifdef <|> ifndef <|> endif <|> define <|> undef <|> line_dir <|> other
  where
-  ifdef  = (do{ try(do{nbsps;char '#';nbsps;string "ifdef" ;nbsp});nbsps;x<-identifier;nbsps;newline;return(IFDEF ,x,"") })
-  ifndef = (do{ try(do{nbsps;char '#';nbsps;string "ifndef";nbsp});nbsps;x<-identifier;nbsps;newline;return(IFNDEF,x,"") })
-  undef  = (do{ try(do{nbsps;char '#';nbsps;string "undef" ;nbsp});nbsps;x<-identifier;nbsps;newline;return(UNDEF ,x,"") })
-  endif  = (do{ try(do{nbsps;char '#';nbsps;string "endif" });nbsps;newline;return(ENDIF,"","") })
-  other  = do{ xs<-many(noneOf "\n");newline;return(OTHER,"",xs) }
+  ifdef    = (do{ try(do{nbsps;char '#';nbsps;string "ifdef" ;nbsp});nbsps;x<-identifier;nbsps;newline;return(IFDEF ,x,"") })
+  ifndef   = (do{ try(do{nbsps;char '#';nbsps;string "ifndef";nbsp});nbsps;x<-identifier;nbsps;newline;return(IFNDEF,x,"") })
+  undef    = (do{ try(do{nbsps;char '#';nbsps;string "undef" ;nbsp});nbsps;x<-identifier;nbsps;newline;return(UNDEF ,x,"") })
+  endif    = (do{ try(do{nbsps;char '#';nbsps;string "endif" });nbsps;newline;return(ENDIF,"","") })
+  other    = (do{ xs<-many(noneOf "\n");newline;return(OTHER,"",xs) })
+  line_dir = (do{ try(do{nbsps;char '#';nbsps;string "line"  ;nbsp});nbsps;n<-uint;  
+   file' <- option "" (do{nbsp; nbsps; char '"'; file <- many(noneOf "\""); char '"'; return file});
+   return(LINE,n,file')})
   
   
 {-functional not yet-}
 define :: Stream s m Char => ParsecT s u m Set
-define =
- do
+define = do
   try(do{nbsps;char '#';nbsps;string "define";nbsp})
   nbsps
   xs <- identifier'
@@ -70,45 +72,47 @@ type Table=M.Map Ident String
 type CurrentState=(Table,Integer,Int,Bool,Integer){-defined macro, how deep 'if's are, line num, whether to read a line,depth of skipping  -}
 
 
-convert1 :: [Set] -> Either ParseError String
-convert1 xs = convert1' ((M.empty,0,0,True,(-1)) ,xs)
+convert1 :: FilePath -> [Set] -> Either ParseError String
+convert1 file xs = convert1' file ((M.empty,0,0,True,(-1)) ,xs) 
 
 
-convert1' :: (CurrentState,[Set]) -> Either ParseError String
+convert1' :: FilePath -> (CurrentState,[Set]) -> Either ParseError String
 
-convert1' ((_    ,0    ,_,True ,_),[]               ) = Right ""
-convert1' ((_    ,depth,n,_    ,_),[]               )                  
- | depth>0                                            = Left $newErrorMessage (  Expect "#endif")(newPos "step1'" n 1) 
- | otherwise                                          = Left $newErrorMessage (UnExpect "#endif")(newPos "step1'" n 1) 
+convert1' _ ((_    ,0    ,_,True ,_),[]               ) = Right ""
+convert1' f ((_    ,depth,n,_    ,_),[]               )                  
+ | depth>0                                              = Left $newErrorMessage (  Expect "#endif")(newPos (f++"--step1'") n 1) 
+ | otherwise                                            = Left $newErrorMessage (UnExpect "#endif")(newPos (f++"--step1'") n 1) 
  
  
-convert1' ((table,depth,n,False,o),(IFDEF ,_  ,_):xs) = ('\n':)<$>convert1'((table,depth+1,n+1,False,o    ),xs)
-convert1' ((table,depth,n,False,o),(IFNDEF,_  ,_):xs) = ('\n':)<$>convert1'((table,depth+1,n+1,False,o    ),xs)
-convert1' ((table,depth,n,False,o),(UNDEF ,_  ,_):xs) = ('\n':)<$>convert1'((table,depth  ,n+1,False,o    ),xs)
-convert1' ((table,depth,n,False,o),(ENDIF ,_  ,_):xs)
- | depth - 1 == o                                     = ('\n':)<$>convert1'((table,depth-1,n+1,True ,(-1) ),xs)
- | otherwise                                          = ('\n':)<$>convert1'((table,depth-1,n+1,False,o    ),xs)
-convert1' ((table,depth,n,False,o),(DEFINE,_  ,_):xs) = ('\n':)<$>convert1'((table,depth  ,n+1,False,o    ),xs)
-convert1' ((table,depth,n,False,o),(OTHER ,_  ,_):xs) = ('\n':)<$>convert1'((table,depth  ,n+1,False,o    ),xs) 
+convert1' f ((table,depth,n,False,o),(IFDEF ,_  ,_):xs) = ('\n':)<$>convert1' f((table,depth+1,n+1,False,o    ),xs)
+convert1' f ((table,depth,n,False,o),(IFNDEF,_  ,_):xs) = ('\n':)<$>convert1' f((table,depth+1,n+1,False,o    ),xs)
+convert1' f ((table,depth,n,False,o),(UNDEF ,_  ,_):xs) = ('\n':)<$>convert1' f((table,depth  ,n+1,False,o    ),xs)
+convert1' f ((table,depth,n,False,o),(LINE  ,_  ,_):xs) = ('\n':)<$>convert1' f((table,depth  ,n+1,False,o    ),xs) 
+convert1' f ((table,depth,n,False,o),(ENDIF ,_  ,_):xs)
+ | depth - 1 == o                                       = ('\n':)<$>convert1' f((table,depth-1,n+1,True ,(-1) ),xs)
+ | otherwise                                            = ('\n':)<$>convert1' f((table,depth-1,n+1,False,o    ),xs)
+convert1' f ((table,depth,n,False,o),(DEFINE,_  ,_):xs) = ('\n':)<$>convert1' f((table,depth  ,n+1,False,o    ),xs)
+convert1' f ((table,depth,n,False,o),(OTHER ,_  ,_):xs) = ('\n':)<$>convert1' f((table,depth  ,n+1,False,o    ),xs) 
  
- 
-convert1' ((table,depth,n,True ,_),(IFDEF ,ide,_):xs)
- | isJust(M.lookup ide table)                         = ('\n':)<$>convert1'((table,depth+1,n+1,True ,(-1) ),xs)
- | otherwise                                          = ('\n':)<$>convert1'((table,depth+1,n+1,False,depth),xs)
-convert1' ((table,depth,n,True ,_),(IFNDEF,ide,_):xs)
- | isJust(M.lookup ide table)                         = ('\n':)<$>convert1'((table,depth+1,n+1,False,depth),xs)
- | otherwise                                          = ('\n':)<$>convert1'((table,depth+1,n+1,True ,(-1) ),xs)
-convert1' ((table,depth,n,True ,_),(UNDEF ,ide,_):xs)
- | _tabl==table                                       = Left $newErrorMessage (UnExpect$"C macro "++show ide)(newPos "step1'" n 1) 
- | otherwise                                          = ('\n':)<$>convert1'((_tabl,depth  ,n+1,True ,(-1) ),xs)
+convert1' _ ((table,depth,_,True ,_),(LINE  ,num,f):xs) = (lin++)<$>convert1' f((table,depth  ,nm ,True ,(-1) ),xs)
+ where lin = "#line " ++ num ++ " " ++ show f ++ "\n"; nm=read num::Int  
+convert1' f ((table,depth,n,True ,_),(IFDEF ,ide,_):xs)
+ | isJust(M.lookup ide table)                           = ('\n':)<$>convert1' f((table,depth+1,n+1,True ,(-1) ),xs)
+ | otherwise                                            = ('\n':)<$>convert1' f((table,depth+1,n+1,False,depth),xs)
+convert1' f ((table,depth,n,True ,_),(IFNDEF,ide,_):xs)
+ | isJust(M.lookup ide table)                           = ('\n':)<$>convert1' f((table,depth+1,n+1,False,depth),xs)
+ | otherwise                                            = ('\n':)<$>convert1' f((table,depth+1,n+1,True ,(-1) ),xs)
+convert1' f ((table,depth,n,True ,_),(UNDEF ,ide,_):xs)
+ | _tabl==table                                         = Left $newErrorMessage (UnExpect$"C macro "++show ide)(newPos (f++"step1'") n 1) 
+ | otherwise                                            = ('\n':)<$>convert1' f((_tabl,depth  ,n+1,True ,(-1) ),xs)
  where _tabl = M.delete ide table
-convert1' ((table,depth,n,True ,_),(ENDIF ,_  ,_):xs) = ('\n':)<$>convert1'((table,depth-1,n+1,True ,(-1) ),xs)
-convert1' ((table,depth,n,True ,_),(DEFINE,ide,t):xs)
- | isJust(M.lookup ide table)                         = Left $newErrorMessage (Message$"C macro "++show ide++" is already defined")(newPos "step1'" n 1) 
- | otherwise                                          = ('\n':)<$>convert1'((_tabl,depth  ,n+1,True ,(-1) ),xs)
+convert1' f ((table,depth,n,True ,_),(ENDIF ,_  ,_):xs) = ('\n':)<$>convert1' f((table,depth-1,n+1,True ,(-1) ),xs)
+convert1' f ((table,depth,n,True ,_),(DEFINE,ide,t):xs)
+ | isJust(M.lookup ide table)                           = Left $newErrorMessage (Message$"C macro "++show ide++" is already defined")(newPos (f++"step1'") n 1) 
+ | otherwise                                            = ('\n':)<$>convert1' f((_tabl,depth  ,n+1,True ,(-1) ),xs)
  where _tabl = M.insert ide t table
-convert1' ((table,depth,n,True ,_),(OTHER ,_  ,t):xs) = do
- result   <- convert1'((table,depth,n+1,True ,(-1) ),xs)
+convert1' f ((table,depth,n,True ,_),(OTHER ,_  ,t):xs) = do
+ result   <- convert1' f((table,depth,n+1,True ,(-1) ),xs)
  replaced <- replaceBy table t
  return (replaced++"\n"++result)
 

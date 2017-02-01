@@ -27,8 +27,8 @@ main = do
  args <- getArgs
  dispatch4 args
 
-step :: [String -> Either ParseError String]   
-step = [step1,undefined,undefined,step4,step5,step6,step7,step8]
+step :: FilePath -> [String -> Either ParseError String]   
+step file= [step1 file,undefined,undefined,step4,step5,step6,step7,step8]
 
 
 -- starts with xth(1-indexed) and ends with yth(1-indexed)
@@ -58,7 +58,7 @@ dispatch5 (inf:xs)          (_          ,outf,frmTo     ) = dispatch5 xs (Just i
 
 dispatch5 []                (Just infile,outf,Right(a,b)) = do
    contents <- getContentsFrom infile
-   outputParsed (maybe (replaceExtension infile "bf") id outf) (fromTo' a  b step contents)
+   outputParsed (maybe (replaceExtension infile "bf") id outf) (fromTo' a  b (step infile) contents)
    
 dispatch5 []                (Just infile,_   ,Left "X")   = do
    contents <- getContentsFrom infile

@@ -12,7 +12,7 @@ exit
 echo.
 call :delete *.hi
 call :delete *.o
-call :delete testresult*.log
+call :delete te*.log
 pause
 exit
 
