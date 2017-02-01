@@ -1,4 +1,7 @@
 ﻿
+ver 0.1.18 15:25 2014/04/03 (木)
+バグの巣窟Base_Step1のundefinedをEitherモナドでgracefully fail させた
+
 ver 0.1.17 14:22 2014/04/03 (木)
 ccsc -o aaa.txt aaa.bfのみならず
 ccsc aaa.bf -o aaa.txtにも対応

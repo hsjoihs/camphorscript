@@ -107,22 +107,29 @@ convert1' ((table,depth,n,True ,_),(DEFINE,ide,t):xs)
  | isJust(M.lookup ide table)                         = Left $newErrorMessage (Message$"C macro "++show ide++" is already defined")(newPos "step1'" n 1) 
  | otherwise                                          = ('\n':)<$>convert1'((_tabl,depth  ,n+1,True ,(-1) ),xs)
  where _tabl = M.insert ide t table
-convert1' ((table,depth,n,True ,_),(OTHER ,_  ,t):xs) = (\x->replaceBy table t++"\n"++x)<$>convert1'((table,depth,n,True ,(-1) ),xs)    
+convert1' ((table,depth,n,True ,_),(OTHER ,_  ,t):xs) = do
+ result   <- convert1'((table,depth,n,True ,(-1) ),xs)
+ replaced <- replaceBy table t
+ return (replaced++"\n"++result)
 
 {- macro conversion-}
-replaceBy :: Table -> String -> String
-replaceBy table str = case parsed of
- Right xs -> concat$ map (replaceTokenBy table) xs
- Left  e  -> undefined
+replaceBy :: Table -> String -> Either ParseError String
+replaceBy table str = do
+ xs       <- parsed 
+ replaced <- mapM (replaceTokenBy table) xs
+ return $ concat replaced
  where 
   parsed :: Either ParseError [String]
   parsed = parse parser1'5 "" str
 
+
     
-replaceTokenBy :: Table -> String -> String -- maybe is harder to read than case of; thus rewrite
+replaceTokenBy :: Table -> String -> Either ParseError String -- maybe is harder to read than case of; thus rewrite
 replaceTokenBy table x = case M.lookup x table of 
+ Nothing -> Right x -- if not macro, no replacement
  Just t  -> replaceBy (M.delete x table) t -- recursion (macro does not expand itself, to ensure that it terminates)
- Nothing -> x
+
+
 
   
 parser1'5::Stream s m Char=>ParsecT s u m [String]
