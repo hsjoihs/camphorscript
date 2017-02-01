@@ -3,11 +3,13 @@ echo ---Making %1.hs---
 
 if not %errorlevel% == 0 (
 echo ---Failed, retry.---
+echo.
 rem ---pause for a second
 ping -n 2 localhost > nul 
 call :make %1
 )
 if     %errorlevel% == 0 (
 echo ---Successful--- 
+echo.
 )
 exit /b

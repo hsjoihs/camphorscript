@@ -20,6 +20,7 @@ call :compile ccsrc    -C88   examples\xIsNumber__BF_c.txt     bat\R88test.tmp  
 call :compile ccsrc    -C87   examples\xIsNumber__BF_c.txt     bat\R87test.tmp    examples\xIsNumber__ND_rev.txt
 call :compile ccsc     -C78   bat\R87test.tmp                  bat\C78R87test.tmp examples\xIsNumber__BF_c.txt
 
+echo.
 echo %LOG2%:
 type %LOG%
 del bat\*.tmp
@@ -31,8 +32,9 @@ rem #$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$
 rem #$#$#$#$#$#$# MAIN THINGS END HERE $#$#$#$#$#$#$
 rem #$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$
 :compile
+echo testing %1 %2 %3:
 %1 %2 %3 -o %4
-fc /n %4 %5
+fc /n %4 %5 > nul
 call :output %errorlevel% "%1 %2 %3 -o %4"
 exit /b
 :output
