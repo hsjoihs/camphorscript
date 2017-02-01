@@ -44,6 +44,6 @@ dispatch5 (['-','C',x]  :xs)(inf        ,outf,_         ) = dispatch5 xs (inf,ou
 dispatch5 (inf:xs)          (_          ,outf,frmTo     ) = dispatch5 xs (Just inf,outf      ,frmTo)
 dispatch5 []                (Just infile,outf,(a,b)) = do
    contents <- getContentsFrom infile
-   outputParsed (maybe (remExt infile++"bf") id outf) (fromTo' a  b step contents)
+   outputParsed (maybe (replaceExtension infile "bf") id outf) (fromTo' a  b step contents)
 
 dispatch5 []                (Nothing    ,_   ,_        )  = abort "no input files"

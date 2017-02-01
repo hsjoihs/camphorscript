@@ -1,4 +1,15 @@
 ﻿
+ver 0.3.4  23:31 2014/04/11 (金)
+remExtとかいう稚拙な関数の代わりに、
+System.FilePathにあり、かつ仕様と合致するreplaceExtensionという関数を使うことに
+さすが標準ライブラリ
+あとkilljunk.batに注意喚起機能をつけた
+注意が嫌なら 以下のようにすれば良い
+
+C:\>echo y^
+More?
+More? |"!killjunk.bat" > nul 2>&1
+
 ver 0.3.3  23:12 2014/04/11 (金)
 autotestにプリプロセス追加&ccsrc追加
 更にスパゲッティコードをリフォームして開放感溢れるコードに

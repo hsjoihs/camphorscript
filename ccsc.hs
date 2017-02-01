@@ -58,7 +58,7 @@ dispatch5 (inf:xs)          (_          ,outf,frmTo     ) = dispatch5 xs (Just i
 
 dispatch5 []                (Just infile,outf,Right(a,b)) = do
    contents <- getContentsFrom infile
-   outputParsed (maybe (remExt infile++"bf") id outf) (fromTo' a  b step contents)
+   outputParsed (maybe (replaceExtension infile "bf") id outf) (fromTo' a  b step contents)
    
 dispatch5 []                (Just infile,_   ,Left "X")   = do
    contents <- getContentsFrom infile
