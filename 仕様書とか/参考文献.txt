@@ -14,3 +14,8 @@ BrainF*ckでFibonacci
 
 http://www.kmonos.net/alang/etc/brainfuck.php
 大文字を小文字に変換しながら表示するecho
+
+http://ja.wikipedia.org/wiki/Hello_world%E3%83%97%E3%83%AD%E3%82%B0%E3%83%A9%E3%83%A0%E3%81%AE%E4%B8%80%E8%A6%A7
+Hello worldプログラムの一覧 - Wikipedia
+
+http://pc2.2ch.net/test/read.cgi/tech/1036013915/

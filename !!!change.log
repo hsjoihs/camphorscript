@@ -1,4 +1,9 @@
-﻿ver 0.3.10  1:33 2014/04/14 (月)
+﻿ver 0.3.11 11:30 2014/04/16 (水)
+atoi,itoa,helloを追加。
+参考文献も追加したが2chのほうはタイトル取得不可。仕方ないね。
+逆コンパイルは後で。
+
+ver 0.3.10  1:33 2014/04/14 (月)
 examplesにfibonacciとtoLowerを追加し、参考文献も追加。
 toLowerとfibonacciを逆コンパイルするも、fibonacciでaddress error。仕方ないね。
 address errorを出さないで警告をソースコードに埋め込むモード作ろうかな
