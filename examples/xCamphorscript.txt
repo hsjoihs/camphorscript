@@ -3,6 +3,7 @@
 
 #define windows 1
 
+/**a+= ~b**/
 #def(+=~)(char& a;char& b)
   while(b){
    b-=1;a+=1;
@@ -10,7 +11,7 @@
 #end_def
 
 #define_ del(char& x) clear(x); delete x
-char a;
+char a; //temporary * 
 
 #define C 3
 a+=C; 

@@ -141,15 +141,15 @@ token = tIdentifier<|>tOperator<|>tChar<|>tString<|>tSpecial<|>tSpace<|>tNumeral
  where
   tIdentifier = identifier
   tNumeral    = try(many1 digit)
-  tOperator   = try(oneOf "!%&*+,-/:<=>?@^|~" <:> many(oneOf "!%&*+,-/:<=>?@^|~" <|> space ))
+  tOperator   = try(oneOf "!%&*+,-:<=>?@^|~" <:> many(oneOf "!%&*+,-:<=>?@^|~" <|> space ))
   tChar       = try(char '\'' <:> noneOf "'" <:> string "'"   )
   tString     = try(char '"'  <:> many(noneOf "\"")<++> string "\"")
   tSpecial    = strP$oneOf "#$().;{\\}[]"
-  tComment    = try(string"/*" <++> many(noneOf"*") <++>string"*/")
-  tComment2   = try(do{string"//";xs<-many(noneOf"\n");string"\n";return("/*"++(xs>>=esc)++"*/")})
-   where 
-   esc '*' = "_star_"
-   esc x   = [x]
+  tComment    = try(do{string"/*";xs<-manyTill anyChar (try (string "*/"));return$"/*"++(xs>>=esc)++"*/" })
+  tComment2   = try(do{string"//";xs<-manyTill anyChar eof;return$"/*"++(xs>>=esc)++"*/"})
   tSpace      = try(many1 space)
 
+esc :: Char -> String
+esc '*' = "_star_"
+esc x   = [x]
 
