@@ -10,15 +10,29 @@ call bat\makeHaskell ccsc
 call bat\makeHaskell ccsrc
 
 call bat\setlogname testresult
-echo. > %LOG% 
+type nul > %LOG% 
 
 rem  :compile compiler option source                           tmp                judger
 call :compile ccsc     -C48   examples\xIsNumber__CCS.txt      bat\C48test.tmp    examples\xIsNumber__BF_c.txt
+
 call :compile ccsc     -C88   examples\xIsNumber__BF.txt       bat\C88test.tmp    examples\xIsNumber__BF_c.txt
+call :compile ccsc     -C88   examples\xIsNumber__BF_i.txt     bat\C88test2.tmp   examples\xIsNumber__BF_c.txt
+call :compile ccsc     -C88   examples\xAtoI__BF_i.txt         bat\C88test3.tmp   examples\xAtoI__BF_c.txt
+call :compile ccsc     -C88   examples\xEcho__BF_i.txt         bat\C88test4.tmp   examples\xEcho__BF_c.txt
+
+call :compile ccsc     -C78   examples\xIsNumber__ND_rev.txt   bat\C78test.tmp    examples\xIsNumber__BF_c.txt
+call :compile ccsc     -C78   examples\xIsNumber__ND.txt       bat\C78test2.tmp   examples\xIsNumber__BF_c.txt
+call :compile ccsc     -C78   examples\xAtoI__ND_rev.txt       bat\C78test3.tmp   examples\xAtoI__BF_c.txt
+call :compile ccsc     -C78   examples\xEcho__ND.txt           bat\C78test4.tmp   examples\xEcho__BF_c.txt
+call :compile ccsc     -C78   examples\xHello__ND_rev.txt      bat\C78test5.tmp   examples\xHello__BF_c.txt
+call :compile ccsc     -C78   examples\xtoLower__ND_rev.txt    bat\C78test6.tmp   examples\xtoLower__BF_c.txt
+
 call :compile ccsc     -E     examples\xPreProcessTest__CS.txt bat\C11test.tmp    examples\xPreProcessed.txt
+
 call :compile ccsrc    -C88   examples\xIsNumber__BF_c.txt     bat\R88test.tmp    examples\xIsNumber__BF_i.txt
 call :compile ccsrc    -C87   examples\xIsNumber__BF_c.txt     bat\R87test.tmp    examples\xIsNumber__ND_rev.txt
-call :compile ccsc     -C78   bat\R87test.tmp                  bat\C78R87test.tmp examples\xIsNumber__BF_c.txt
+
+
 
 echo.
 echo %LOG2%:
