@@ -1,6 +1,6 @@
 {-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
 {-# OPTIONS -Wall  #-}
-
+{- C macro expansion -}
 module Camphor.Step1
 (step1
 ,example1

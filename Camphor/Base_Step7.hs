@@ -1,5 +1,6 @@
 {-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind   -fno-warn-unused-imports #-}
+{- symbolization -}
 module Camphor.Base_Step7
 (step7
 ,example7
@@ -18,7 +19,7 @@ import Data.Functor.Identity
 
 
 step7::Stream s Identity Char=>s->Either ParseError String
-step7 str=convert7 <$> (parse parser7 "step7" str) {-turn into symbols -}
+step7 str=convert7 <$> (parse parser7 "step7" str)  
 
 
 example7::String

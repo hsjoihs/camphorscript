@@ -1,5 +1,6 @@
 {-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-imports #-}
+{- comment deletion -}
 module Camphor.Base_Step8
 (step8
 

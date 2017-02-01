@@ -1,12 +1,12 @@
 ﻿CamphorScript
-  ↓Step1(C的マクロ展開)
-  ↓Step2(関数的マクロ展開)
-  ↓Step3(糖衣構文プリプロセス)
+ *↓Step1(C的マクロ展開)     			{- C macro expansion -}
+  ↓Step2(関数的マクロ展開)  			{- Functional macro expansion -}
+  ↓Step3(糖衣構文プリプロセス)			{- Desugaring -}
 CompiledCamphorScript
-  ↓Step4(逐語訳)
-  ↓Step5(メモリ割り当て)
-  ↓Step6(インクリメント/デクリメント最適化)
+  ↓Step4(逐語訳)						{- translation -}
+  ↓Step5(メモリ割り当て)				{- memory allocation -}
+  ↓Step6(インクリメント/デクリメント最適化)	{- (in|de)crement optimization -}
 nouDarake
-  ↓Step7(記号化)
-  ↓Step8(空白削除)
+ *↓Step7(記号化)         			{- symbolization -}
+ *↓Step8(空白削除)       			{- comment deletion -}
 Brainf*ck

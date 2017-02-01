@@ -1,5 +1,6 @@
 {-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
 {-# OPTIONS -Wall  #-}
+{- comment deletion -}
 module Camphor.Step8
 (step8
 

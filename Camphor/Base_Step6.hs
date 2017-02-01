@@ -1,7 +1,7 @@
 {-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  -fno-warn-missing-signatures -fno-warn-unused-imports #-}
-{- Functional macro expansion -}
-module Camphor.Base_Step2
+{- (in|de)crement optimization -}
+module Camphor.Base_Step6
 (
 
 ) where
