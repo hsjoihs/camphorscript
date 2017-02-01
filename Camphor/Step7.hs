@@ -1,11 +1,8 @@
 {-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
 {-# OPTIONS -Wall  #-}
-
-module Camphor.Step1
-(step1
-,example1
-,err1
-,example1'
+module Camphor.Step7
+(step7
+,example7
 ) where
 
-import Camphor.Base_Step1
+import Camphor.Base_Step7

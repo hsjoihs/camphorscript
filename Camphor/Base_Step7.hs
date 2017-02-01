@@ -1,16 +1,12 @@
 {-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
-{-# OPTIONS -Wall -fno-warn-unused-do-bind  -fno-warn-missing-signatures -fno-warn-unused-imports #-}
-module Camphor.Base_Step7_8
+{-# OPTIONS -Wall -fno-warn-unused-do-bind   -fno-warn-unused-imports #-}
+module Camphor.Base_Step7
 (step7
-,step8
-,step7_8
 ,example7
 
-,parser8
 ,Com7(..)
 ,parser7
 ,convert7
-,convert8
 ,convert7'
 ) where
 
@@ -18,19 +14,17 @@ import Camphor.Global
 import Text.Parsec hiding(token)
 import Control.Applicative hiding ((<|>),many)
 import Data.List(genericTake)
-import Control.Monad((>=>))
+import Data.Functor.Identity
 
 
+step7::Stream s Identity Char=>s->Either ParseError String
 step7 str=convert7 <$> (parse parser7 "step7" str) {-turn into symbols -}
-step8 str=convert8 <$> (parse parser8 "step8" str) {-removes unnecessary letters-}
-step7_8 = step7>=>step8
+
+
+example7::String
 example7 = "mov 0; /*comment +-,.[]><*/ inc; loop; mov 1; output; _input; mov 0; pool;"
 
-
-
-parser8 = many char'
- where char' = do{x<-oneOf "+-<>[],.";return [x]} <|> do{noneOf "+-<>[],.";return ""}
-
+ 
 data Com7=INC|DEC|MOV|LOOP|POOL|IN|OUT|NUL deriving(Show)
 
 parser7::Stream s m Char=>ParsecT s u m [(Com7,String)]
@@ -60,8 +54,6 @@ parser7 = many sentences
 convert7::[(Com7,String)]->String
 convert7 x=convert7'(0,x)
 
-convert8::[String]->String
-convert8 = concat
   
 convert7'::(Integer,[(Com7,String)])->String
 convert7' (_,[]             )  = ""
