@@ -10,6 +10,23 @@ import Camphor.Step6
 import Camphor.Step7
 import Camphor.Step8
 import Camphor.IO
+import System.Directory
+import Data.List(isPrefixOf)
+import Control.Applicative((<$>))
+
+ioLibs :: IO [FilePath]
+ioLibs = do
+ libs' <- getDirectoryContents "lib"
+ return [ file | file <- libs', not("." `isPrefixOf` file)]
+ 
+  
+getLibs2 :: FilePath -> IO (Maybe String)
+getLibs2 file = do
+  libs <- ioLibs
+  if file `elem` libs
+   then Just<$>getContentsFrom file
+   else return Nothing
+
 
 
 info::[String]
@@ -26,6 +43,7 @@ main :: IO()
 main = do
  args <- getArgs
  dispatch4 args
+
 
 step :: FilePath -> [String -> Either ParseError String]   
 step file= [step1 file,undefined,undefined,step4,step5,step6,step7,step8]
