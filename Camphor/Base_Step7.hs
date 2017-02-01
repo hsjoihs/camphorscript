@@ -17,16 +17,16 @@ import Data.List(genericTake)
 import Data.Functor.Identity
 
 
-step7::Stream s Identity Char=>s->Either ParseError String
+step7 :: Stream s Identity Char => s -> Either ParseError String
 step7 str=convert7 <$> (parse parser7 "step7" str)  
 
 
 
 
  
-data Com7=INC|DEC|MOV|LOOP|POOL|IN|OUT|NUL deriving(Show)
+data Com7 = INC | DEC | MOV | LOOP | POOL | IN | OUT | NUL deriving(Show)
 
-parser7::Stream s m Char=>ParsecT s u m [(Com7,String)]
+parser7 :: Stream s m Char => ParsecT s u m [(Com7,String)]
 parser7 = many sentences
  where
   sentences = inc<|>dec<|>loop<|>pool<|>mov<|>output<|>input<|>nul<|>comm
@@ -63,7 +63,7 @@ convert7' (n,((IN  ,_  ):xs))  = ","                                        ++ c
 convert7' (n,((OUT ,_  ):xs))  = "."                                        ++ convert7'(n,xs)
 convert7' (n,((NUL ,sp ):xs))  = sp                                         ++ convert7'(n,xs)
 convert7' (n,((MOV ,num):xs))  
- |                   n<=num'    = genericTake(num'-n)(repeat '>')           ++ convert7'(num',xs)
- |                   otherwise  = genericTake(n-num')(repeat '<')           ++ convert7'(num',xs)
+ |                  n<=num'    = genericTake(num'-n)(repeat '>')            ++ convert7'(num',xs)
+ |                  otherwise  = genericTake(n-num')(repeat '<')            ++ convert7'(num',xs)
  where num' = read num ::Integer
 

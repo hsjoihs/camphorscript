@@ -24,7 +24,7 @@ info=[
  
 main :: IO()
 main = do
- args<-getArgs
+ args <- getArgs
  dispatch4 args
 
 step :: [String -> Either ParseError String]   

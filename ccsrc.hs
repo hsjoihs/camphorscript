@@ -5,6 +5,7 @@ import Control.Monad
 import Text.Parsec
 import Camphor.IO
 import CamphorR.R_Step8
+import CamphorR.R_Base_Step7
 
 
 info :: [String]
@@ -13,10 +14,11 @@ info = [
  "Usage: ccsrc [options] [-o outfilepath] infile",
  "options: ",
  "-Cnum[num]  reverse compile from step 'num' to step 'num'"
+-- ,"-X debug"
  ]
 
 step :: [String -> Either ParseError String]
-step=[step8_R]
+step=[step8_R,step7_R]
 
 fromTo'::Monad m=>Int->Int->[a->m a]->a->m a
 fromTo' x y xs
@@ -41,8 +43,11 @@ dispatch5 ("-o":outf:xs)    (inf        ,_   ,frmTo     ) = dispatch5 xs (inf,Ju
 dispatch5 ["-o"]             _                            = abort("argument to '-o' is missing")
 dispatch5 (['-','C',x,y]:xs)(inf        ,outf,_         ) = dispatch5 xs (inf,outf      ,(read[x],read[y]))
 dispatch5 (['-','C',x]  :xs)(inf        ,outf,_         ) = dispatch5 xs (inf,outf      ,(read[x],read[x]))
+{-dispatch5 ("-X":_)          (Just inf   ,_   ,_         ) = do
+   contents <- getContentsFrom inf
+   print $ map tokenizeBf $ lines contents -}
 dispatch5 (inf:xs)          (_          ,outf,frmTo     ) = dispatch5 xs (Just inf,outf      ,frmTo)
-dispatch5 []                (Just infile,outf,(a,b)) = do
+dispatch5 []                (Just infile,outf,(a,b)     ) = do
    contents <- getContentsFrom infile
    outputParsed (maybe (replaceExtension infile "bf") id outf) (fromTo' a  b step contents)
 

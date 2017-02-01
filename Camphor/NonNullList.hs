@@ -1,9 +1,16 @@
 module Camphor.NonNullList
-(NNList(..)
+(NonEmpty(..)
 ,toList
+,cons
 )where
 
-data NNList a = (:|)a [a] deriving(Show)
+data NonEmpty a = (:|)a [a] deriving(Show)
 
-toList :: NNList a -> [a]
+infixr 5 :|
+infixr 5 `cons`
+
+toList :: NonEmpty a -> [a]
 toList (x :| xs) = x:xs
+
+cons :: a -> NonEmpty a -> NonEmpty a
+x `cons` (y :| ys) = x :| (y:ys)

@@ -19,8 +19,10 @@ call :compile ccsc     -C48   examples\xIsNumber__CCS.txt      bat\C48test.tmp  
 call :compile ccsc     -C88   examples\xIsNumber__BF.txt       bat\C88test.tmp    examples\xIsNumber__BF_c.txt
 call :compile ccsc     -E     examples\xPreProcessTest__CS.txt bat\C11test.tmp    examples\xPreProcessed.txt
 call :compile ccsrc    -C88   examples\xIsNumber__BF_c.txt     bat\R88test.tmp    examples\xIsNumber__BF_i.txt
+call :compile ccsrc    -C87   examples\xIsNumber__BF_c.txt     bat\R87test.tmp    examples\xIsNumber__ND_rev.txt
+call :compile ccsc     -C78   bat\R87test.tmp                  bat\C78R87test.tmp examples\xIsNumber__BF_c.txt
 
-echo %LOG%:
+echo %LOG2%:
 type %LOG%
 del bat\*.tmp
 echo ---Deleted temporary files.---
@@ -78,6 +80,8 @@ set now_HHmmSS=%time:~0,2%-%time:~3,2%-%time:~6,2%
 )
 
 set today_YYYYMMDD=%date:~0,4%-%date:~5,2%-%date:~8,2%
-set LOG="testresult%today_YYYYMMDD%_%now_HHmmSS%.log"
+set LOG2=testresult%today_YYYYMMDD%_%now_HHmmSS%.log
+set LOG="%LOG2%"
+
 
 exit /b
