@@ -3,7 +3,7 @@
 {- memory allocation -}
 module Camphor.Base_Step5
 (
-
+step5
 ) where
 
 
@@ -11,4 +11,4 @@ import Camphor.Global
 import Text.Parsec hiding(token)
 import Control.Applicative hiding ((<|>),many)
 
-
+step5=Right

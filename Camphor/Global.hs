@@ -10,6 +10,7 @@ module Camphor.Global
 ,strP
 ,uint
 ,Ident
+,isJust
 )where
 
 import Text.Parsec hiding(token)
@@ -21,6 +22,10 @@ import Control.Applicative hiding ((<|>),many)
 infixr 5 <:>
 infixr 5 <++>
 
+
+isJust::Maybe x->Bool
+isJust(Just _)=True
+isJust Nothing=False
 
 identifier=try( (letter<|>char '_') <:> many(alphaNum<|>char '_') )<?>"identifier"
 identifier'=  ( (letter<|>char '_') <:> many(alphaNum<|>char '_') )<?>"identifier"

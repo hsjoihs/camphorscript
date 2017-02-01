@@ -99,9 +99,7 @@ example1=
 example1'::String
 example1' = example1++example1
 
-isJust::Maybe x->Bool
-isJust(Just _)=True
-isJust Nothing=False
+
 
 
 type Table=M.Map Ident String

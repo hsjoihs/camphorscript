@@ -28,7 +28,7 @@ while(e){
 	write(g);
 	g+= 7;write(g);
 	g-= 8;write(g);
-	g+=11;write(g);
+	g-=11;write(g);
 	g+= 3;write(g);
 	g+=13;write(g);
 }

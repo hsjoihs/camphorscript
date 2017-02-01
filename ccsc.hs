@@ -6,6 +6,9 @@ import Control.Monad
 import Text.Parsec
 
 import Camphor.Step1
+import Camphor.Step4
+import Camphor.Step5
+import Camphor.Step6
 import Camphor.Step7
 import Camphor.Step8
 
@@ -49,7 +52,7 @@ main=do
 
 
 step::[String->Either ParseError String]   
-step=[step1,undefined,undefined,undefined,undefined,undefined,step7,step8]
+step=[step1,undefined,undefined,step4,step5,step6,step7,step8]
 
 dispatch::[String]->String->Either ParseError String
 dispatch []                = Right  -- FIXME: no option, no compile
