@@ -1,44 +1,40 @@
-#def (=~)(char& a;char& b)
-	/* a= ~b */
-	clear(a);while(b){a+=1;b-=1;}
-#end_def
+void (+=~)(char& a;char& z){
+	while(z){a+=1;z-=1;}
+}	/* a+= ~z */
 
-#def (=~)(char& a,char& b;char& c)
-	/* (a,b)= ~c*/
-	clear(a);clear(b);while(c){a+=1;b+=1;c-=1;}
-#end_def
+void (+=~)(char& a,char& b;char& z){
+	while(z){a+=1;b+=1;z-=1;}
+}	/* (a,b)+= ~z*/
 
-#def (=~)(char& a,char& a;char& c)
-	/* (a,a)= ~c*/
-	clear(a);while(c){a+=1;a+=1;c-=1;}
-#end_def
-
-#def (=~)(char& a;char& b * constant char N)
-	/* a= ~b*N */
-	clear(a);while(b){a+=N;b-=1;}
-#end_def
+void (+=~)(char& a;char& z * constant char N){
+	while(z){a+=N;z-=1;}
+}	/* a+= ~z*N */
 
 
-#ifdef ALLOW_SELF_APPLY
+void (-=~)(char& a;char& z){
+	while(z){a-=1;z-=1;}
+}	/* a-= ~z */
 
-#def (=~)(char& a;char& a)
-	/* a= ~a */
+void (-=~)(char& a,char& b;char& z){
+	while(z){a-=1;b-=1;z-=1;}
+}	/* (a,b)-= ~z*/
+
+void (-=~)(char& a;char& z * constant char N){
+	while(z){a-=N;z-=1;}
+}	/* a-= ~z*N */
+
+
+void (=~)(char& a;char& z){
 	clear(a);
-#end_def
+	a+= ~z;
+}	/* a= ~z */
 
-#def (=~)(char& a,char& b;char& a)
-	/* (a,b)= ~a*/
-	b= ~a;
-#end_def
+void (=~)(char& a,char& b;char& z){
+	clear(a);clear(b);
+	(a,b)+= ~z;
+}	/* (a,b)= ~z*/
 
-#def (=~)(char& a,char& b;char& b)
-	/* (a,b)= ~b*/
-	a= ~b;
-#end_def
-
-#def (=~)(char& a,char& a;char& a)
-	/* (a,a)+= ~a*/
+void (=~)(char& a;char& z * constant char N){
 	clear(a);
-#end_def
-
-#endif
+	a+= ~z*N;
+}	/* a= ~z*N */

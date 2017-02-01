@@ -1,0 +1,17 @@
+void (+=!~)(char& a;char& z){
+	a+=1;
+	while(z){clear(z);a-=1;}
+}	/* a+= !~z*/
+
+void (+=!~)(char& a,char& b;char& z){
+	a+=1; b+=1;
+	while(z){clear(z);a-=1;b-=1;}
+}	/* (a,b)+= !~z*/
+
+void (=!~)(char& a;char& z){
+	clear(a); a+= !~z;
+}	/* a= !~z*/
+
+void (=!~)(char& a,char& b;char& z){
+	clear(a); clear(b); (a,b)+= !~z;
+}	/* (a,b)= !~z*/
