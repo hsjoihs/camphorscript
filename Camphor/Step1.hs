@@ -8,7 +8,7 @@ module Camphor.Step1
 
 -}
 import Global
-import Text.Parsec
+import Text.Parsec hiding(token)
 import Text.Parsec.Error
 import Text.Parsec.Pos
 import Control.Applicative hiding ((<|>),many)
@@ -17,7 +17,7 @@ import Control.Monad(join)
 import qualified Data.Map as M
 
 {- C macro  -}
-step1 str=join(convert1 <$> (parse parser1 "step1" str))
+step1 str=join(convert1 <$> (parse parser1 "step1"$str++"\n"))
 parser1=sepBy line newline
 
 data Pre7=IFDEF|IFNDEF|UNDEF|ENDIF|DEFINE|OTHER deriving(Show)
@@ -56,15 +56,12 @@ example1=
  "#define C 3\n"++
  "a+=C; \n"++
  "#undef C\n"++
+ "char C;\n"++
  "#endif\n"
 example1' = example1++example1
 
 isJust(Just _)=True
 isJust Nothing=False
- 
- 
-
-
 
 type Table=M.Map Ident String
 type CurrentState=(Table,Integer,Int,Bool,Integer){-defined macro, how deep 'if's are, line num, whether to read a line,depth of skipping  -}
@@ -77,35 +74,35 @@ convert1'::(CurrentState,[(Pre7,Ident,String)])->Either ParseError String
 
 convert1' ((_    ,0    ,_,True ,_),[]               ) = Right ""
 convert1' ((_    ,depth,n,_    ,_),[]               )                  
- | depth>0                                              = Left $newErrorMessage (  Expect "#endif")(newPos "step1" n 1) 
- | otherwise                                            = Left $newErrorMessage (UnExpect "#endif")(newPos "step1" n 1) 
+ | depth>0                                            = Left $newErrorMessage (  Expect "#endif")(newPos "step1" n 1) 
+ | otherwise                                          = Left $newErrorMessage (UnExpect "#endif")(newPos "step1" n 1) 
  
  
 convert1' ((table,depth,n,True ,_),(IFDEF ,ide,_):xs)
  | isJust(M.lookup ide table)                         = convert1'((table,depth+1,n+1,True ,(-1) ),xs)
- | otherwise                                            = convert1'((table,depth+1,n+1,False,depth),xs)
+ | otherwise                                          = convert1'((table,depth+1,n+1,False,depth),xs)
 convert1' ((table,depth,n,True ,_),(IFNDEF,ide,_):xs)
  | isJust(M.lookup ide table)                         = convert1'((table,depth+1,n+1,False,depth),xs)
- | otherwise                                            = convert1'((table,depth+1,n+1,True ,(-1) ),xs)
+ | otherwise                                          = convert1'((table,depth+1,n+1,True ,(-1) ),xs)
 convert1' ((table,depth,n,False,o),(IFDEF ,_  ,_):xs) = convert1'((table,depth+1,n+1,False,o    ),xs)
 convert1' ((table,depth,n,False,o),(IFNDEF,_  ,_):xs) = convert1'((table,depth+1,n+1,False,o    ),xs)
 
 
 convert1' ((table,depth,n,True ,_),(UNDEF ,ide,_):xs)
- | _tabl==table                                         = Left $newErrorMessage (UnExpect$"C macro "++show ide)(newPos "step1" n 1) 
- | otherwise                                            = convert1'((_tabl,depth  ,n+1,True ,(-1) ),xs)
+ | _tabl==table                                       = Left $newErrorMessage (UnExpect$"C macro "++show ide)(newPos "step1" n 1) 
+ | otherwise                                          = convert1'((_tabl,depth  ,n+1,True ,(-1) ),xs)
  where _tabl = M.delete ide table
 convert1' ((table,depth,n,False,o),(UNDEF ,_  ,_):xs) = convert1'((table,depth  ,n+1,False,o    ),xs)
 
 convert1' ((table,depth,n,True ,_),(ENDIF ,_  ,_):xs) = convert1'((table,depth-1,n+1,True ,(-1) ),xs)
 convert1' ((table,depth,n,False,o),(ENDIF ,_  ,_):xs)
- | depth-1==o                                           = convert1'((table,depth-1,n+1,True ,(-1) ),xs)
- | otherwise                                            = convert1'((table,depth-1,n+1,False,o    ),xs)
+ | depth-1==o                                         = convert1'((table,depth-1,n+1,True ,(-1) ),xs)
+ | otherwise                                          = convert1'((table,depth-1,n+1,False,o    ),xs)
  
  
 convert1' ((table,depth,n,True ,_),(DEFINE,ide,t):xs)
- | isJust(M.lookup ide table)                           = Left $newErrorMessage (Message$"C macro "++show ide++" is already defined")(newPos "step1" n 1) 
- | otherwise                                            = convert1'((_tabl,depth  ,n+1,True ,(-1) ),xs)
+ | isJust(M.lookup ide table)                         = Left $newErrorMessage (Message$"C macro "++show ide++" is already defined")(newPos "step1" n 1) 
+ | otherwise                                          = convert1'((_tabl,depth  ,n+1,True ,(-1) ),xs)
  where _tabl = M.insert ide t table
 convert1' ((table,depth,n,False,o),(DEFINE,_  ,_):xs) = convert1'((table,depth  ,n+1,False,o    ),xs)
 
@@ -115,9 +112,22 @@ convert1' ((table,depth,n,True ,_),(OTHER ,_  ,t):xs) = (\x->convert1'5 table t+
 
 {- macro conversion-}
 convert1'5::Table->String->String
-convert1'5 table str = str
+convert1'5 table str = (\(Right x)->x)(parse parser1'5 "" str)>>=repl
+ where 
+  repl::String->String
+  repl x=maybe x id (M.lookup x table)
 
+parser1'5=many token
 
+token = tIdentifier<|>tOperator<|>tChar<|>tString<|>tSpecial<|>tSpace<|>tNumeral
 
+tIdentifier = identifier
+tNumeral    = try(many1 digit)
+tOperator   = try(oneOf "!%&*+,-/:<=>?@^|~" <:> many(oneOf "!%&*+,-/:<=>?@^|~" <|> space ))
+tChar       = try(char '\'' <:> noneOf "'" <:> string "'"   )
+tString     = try(char '"'  <:> many(noneOf "\"")<++> string "\"")
+tSpecial    = string"#"<|>string"$"<|>string"("<|>string")"<|>string"."<|>string";"<|>string"{"<|>string"\\"<|>string"}"<|>string"["<|>string"]"
+
+tSpace      = try(many1 space)
 
 

@@ -9,7 +9,7 @@ module Camphor.Step7_8
 ) where
 
 import Global
-import Text.Parsec
+import Text.Parsec hiding(token)
 import Control.Applicative hiding ((<|>),many)
 import Data.List(genericTake)
 import Control.Monad((>=>))

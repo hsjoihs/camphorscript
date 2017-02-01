@@ -9,12 +9,14 @@ module Global
 ,(<:>)
 )where
 
-import Text.Parsec
+import Text.Parsec hiding(token)
 import Data.Char(isSpace)
 import Control.Applicative hiding ((<|>),many)
 
 (<++>) a b = (++) <$> a <*> b
 (<:>) a b = (:) <$> a <*> b
+infixr 5 <:>
+infixr 5 <++>
 
 identifier=try( (letter<|>char '_') <:> many(alphaNum<|>char '_') )<?>"identifier"
 identifier'=  ( (letter<|>char '_') <:> many(alphaNum<|>char '_') )<?>"identifier"
