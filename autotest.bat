@@ -30,7 +30,8 @@ call :compile ccsc     -C78   xtoLower__ND_rev.txt    C78test6   xtoLower__BF_c.
 
 call :compile ccsc     -E     yPreProcessTest__CS.txt C11test    yPreProcessed.txt
 call :compile ccsc     -E     yInclude__CS.txt        C11test2   yIncluded.txt
-call :compile ccsc     -E     yInclude2__CS.txt       C11test3   yIncluded2.txt
+call :compile ccsc     -E     yDualInclude__CS.txt    C11test3   yDualIncluded.txt
+call :compile ccsc     -E     yRepInclude__CS.txt    C11test3   yRepIncluded.txt
 
 call :compile ccsrc    -C88   xIsNumber__BF_c.txt     R88test    xIsNumber__BF_i.txt
 call :compile ccsrc    -C87   xIsNumber__BF_c.txt     R87test    xIsNumber__ND_rev.txt

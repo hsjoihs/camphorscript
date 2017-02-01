@@ -1,0 +1,5 @@
+char vvv;
+
+#include<void3.txt>
+
+char www;

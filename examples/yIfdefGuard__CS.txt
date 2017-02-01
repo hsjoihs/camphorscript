@@ -1,0 +1,9 @@
+char sss;
+
+#include <void3.txt>
+
+char ttt;
+
+#include <void4.txt>
+
+char uuu;

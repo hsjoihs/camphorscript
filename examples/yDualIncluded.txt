@@ -1,0 +1,33 @@
+char sss;
+
+/* start of "void.txt" */
+
+5     5   5555   555  55555
+ 5   5   5    5   5   5    5
+  5 5    5    5   5   5    5
+   5      5555   555  55555
+
+
+/*  end  of "void.txt" */
+
+char ttt;
+
+/* start of "void2.txt" */
+
+char ppp;
+/* start of "void.txt" */
+
+5     5   5555   555  55555
+ 5   5   5    5   5   5    5
+  5 5    5    5   5   5    5
+   5      5555   555  55555
+
+
+/*  end  of "void.txt" */
+char qqq;
+
+
+/*  end  of "void2.txt" */
+
+char uuu;
+
