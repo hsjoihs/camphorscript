@@ -16,7 +16,7 @@ data Com7=INC|DEC|MOV|LOOP|POOL|IN|OUT|NUL deriving(Show)
 parser7::Stream s m Char=>ParsecT s u m [(Com7,String)]
 parser7 = many sentences
  where
-  sentences = inc<|>dec<|>loop<|>pool<|>mov<|>output<|>input<|>nul
+  sentences = inc<|>dec<|>loop<|>pool<|>mov<|>output<|>input<|>nul<|>comm
   inc    = do{string "inc";spaces;num<-option "1" (many1 digit);spaces;char ';'; return (INC,num)}
   dec    = do{string "dec";spaces;num<-option "1" (many1 digit);spaces;char ';'; return (DEC,num)}
   mov    = do{string "mov";spaces;num<-many1 digit;spaces;char ';'; return (MOV,num)}
@@ -24,9 +24,19 @@ parser7 = many sentences
   pool   = do{string "pool";spaces;char ';'; return (POOL,"")}
   input  = do{string "_input";spaces;char ';'; return (IN,"")} {- "_input" rather than "input" to avoid 'try' -}
   output = do{string "output";spaces;char ';'; return (OUT,"")}
-  nul = do{sp<-many1 space;return (NUL,sp)}
+  nul    = do{sp<-many1 space;return (NUL,sp)}
+  comm   = do{string "/*";comment<-many(noneOf"*");string "*/";return(NUL,"/*"++(comment>>=escape)++"*/")}
+  escape '+' ="_plus_" 
+  escape '-' ="_minus_" 
+  escape ',' ="_comma_" 
+  escape '.' ="_dot_" 
+  escape '[' ="{(" 
+  escape ']' =")}" 
+  escape '>' ="_gt_" 
+  escape '<' ="_lt_" 
+  escape x = [x]
   
-example7 = "mov 0; inc; loop; mov 1; output; _input; mov 0; pool;"
+example7 = "mov 0; /*comment +-,.[]><*/ inc; loop; mov 1; output; _input; mov 0; pool;"
 example7_= either undefined id$parse parser7 "step7" example7
 
 
