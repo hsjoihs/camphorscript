@@ -1,0 +1,12 @@
+﻿CamphorScript
+  ↓Step1(C的マクロ展開)
+  ↓Step2(関数的マクロ展開)
+  ↓Step3(糖衣構文プリプロセス)
+CompiledCamphorScript
+  ↓Step4(逐語訳)
+  ↓Step5(メモリ割り当て)
+  ↓Step6(インクリメント/デクリメント最適化)
+nouDarake
+  ↓Step7(記号化)
+  ↓Step8(空白削除)
+Brainf*ck

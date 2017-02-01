@@ -1,0 +1,9 @@
+mov 0;
+ /*comment +-,.[]><*/ 
+inc; 
+loop; 
+	mov 1; 
+	output; 
+	_input; 
+	mov 0; 
+pool;

@@ -1,0 +1,27 @@
+#ifndef ABC
+#define ABC
+
+#define windows 1
+#def(+=~)(char& a;char& b)
+  while(b){
+   b-=1;a+=1;
+   }
+#end_def
+#define_ del(char& x) clear(x); delete x
+char a;
+#define C 3
+a+=C; 
+#undef C
+char C;
+
+#ifdef windows
+char b;
+b+=7;
+#endif
+
+#ifndef windows
+char x;
+x+=8;
+#endif
+
+#endif

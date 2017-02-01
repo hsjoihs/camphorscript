@@ -144,7 +144,7 @@ convert1'5 table str = (\(Right x)->x)(parse parser1'5 "" str)>>=repl
 
 parser1'5=many token
 
-token = tIdentifier<|>tOperator<|>tChar<|>tString<|>tSpecial<|>tSpace<|>tNumeral
+token = tIdentifier<|>tOperator<|>tChar<|>tString<|>tSpecial<|>tSpace<|>tNumeral<|>tComment
 
 tIdentifier = identifier
 tNumeral    = try(many1 digit)
@@ -152,6 +152,7 @@ tOperator   = try(oneOf "!%&*+,-/:<=>?@^|~" <:> many(oneOf "!%&*+,-/:<=>?@^|~" <
 tChar       = try(char '\'' <:> noneOf "'" <:> string "'"   )
 tString     = try(char '"'  <:> many(noneOf "\"")<++> string "\"")
 tSpecial    = strP$oneOf "#$().;{\\}[]"
+tComment    = try(string"/*" <++> many(noneOf"*") <++>string"*/")
 
 tSpace      = try(many1 space)
 
