@@ -26,7 +26,7 @@ import qualified Data.Map as M
 
 {- C macro  -}
 step1 :: String -> Either ParseError String
-step1 str = join (convert1 <$> (parse parser1 "step1" $ str ++ "\n"))
+step1 str = join (convert1 <$> parse parser1 "step1" (str ++ "\n"))
 
 -- PARSING
 
@@ -108,7 +108,7 @@ convert1' ((table,depth,n,True ,_),(DEFINE,ide,t):xs)
  | otherwise                                          = ('\n':)<$>convert1'((_tabl,depth  ,n+1,True ,(-1) ),xs)
  where _tabl = M.insert ide t table
 convert1' ((table,depth,n,True ,_),(OTHER ,_  ,t):xs) = do
- result   <- convert1'((table,depth,n,True ,(-1) ),xs)
+ result   <- convert1'((table,depth,n+1,True ,(-1) ),xs)
  replaced <- replaceBy table t
  return (replaced++"\n"++result)
 
