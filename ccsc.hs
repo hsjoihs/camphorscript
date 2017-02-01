@@ -1,7 +1,6 @@
 {-# OPTIONS -Wall #-}
 
 import System.Environment
-import System.IO
 import Control.Monad
 import Text.Parsec
 import Camphor.Base_Step1
@@ -56,15 +55,15 @@ dispatch5 (['-','C',x]  :xs)(inf        ,outf,_         ) = dispatch5 xs (inf,ou
 dispatch5 ("-E":xs)         (inf        ,outf,_         ) = dispatch5 xs (inf,outf      ,Right(1      ,1      ))
 dispatch5 ("-X":xs)         (inf        ,outf,_         ) = dispatch5 xs (inf,outf      ,Left "X")
 dispatch5 (inf:xs)          (_          ,outf,frmTo     ) = dispatch5 xs (Just inf,outf      ,frmTo)
+
 dispatch5 []                (Just infile,outf,Right(a,b)) = do
-   handle   <- openFile infile ReadMode
-   contents <- hGetContents handle
+   contents <- getContentsFrom infile
    outputParsed (maybe (remExt infile++"bf") id outf) (fromTo' a  b step contents)
    
 dispatch5 []                (Just infile,_   ,Left "X")   = do
-   handle   <- openFile infile ReadMode
-   contents <- hGetContents handle
+   contents <- getContentsFrom infile
    print$parse parser1 "step1" $ contents ++ "\n";
+   
 dispatch5 []                (Nothing    ,_   ,_        )  = abort "no input files"
 dispatch5 []                (_          ,_   ,Left _)     = return ()
 
