@@ -1,0 +1,9 @@
+BF	spaced brainf*ck
+BF_c	compressed brainf*ck 
+BF_i	indented brainf*ck created by ccsrc -C88
+
+CS	CamphorScript
+CCS	CompiledCamphorScript
+
+ND	NouDarake
+ND_rev	NouDarake created by ccsrc -C87

@@ -1,1 +1,16 @@
-http://d.hatena.ne.jp/aike/20090209
+﻿http://d.hatena.ne.jp/aike/20090209
+難読プログラミング言語をサクサク書くためのマクロ機能付超簡易言語 - aikeの日記
+
+http://stackoverflow.com/questions/14907600/how-to-replace-a-string-with-another-in-haskell
+How to replace a string with another in haskell - Stack Overflow
+
+
+http://d.hatena.ne.jp/language_and_engineering/20130502/PatternsOfMSDOSorBAT
+開発に役立つ，BATファイルの書き方・パターン集　（コマンドプロンプトの定石を体系的に学び，バッチ中級者になろう）
+ - 主に言語とシステム開発に関して
+
+http://www16.atwiki.jp/projectpn/pages/30.html
+BrainF*ckでFibonacci
+
+http://www.kmonos.net/alang/etc/brainfuck.php
+大文字を小文字に変換しながら表示するecho

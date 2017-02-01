@@ -30,23 +30,23 @@ step1 file str = join (convert1 file <$> parse parser1 (file ++ "--step1") (str 
 
 -- PARSING
 
-data Pre7 = IFDEF | IFNDEF | UNDEF | ENDIF | DEFINE | LINE | OTHER deriving (Show)
+data Pre7 = IFDEF | IFNDEF | UNDEF | ENDIF | DEFINE {-| LINE -}| OTHER deriving (Show)
 type Set = (Pre7,Ident,String)
 
 parser1 :: Stream s m Char => ParsecT s u m [Set]
 parser1 = many line
 
 line :: Stream s m Char => ParsecT s u m Set
-line = ifdef <|> ifndef <|> endif <|> define <|> undef <|> line_dir <|> other
+line = ifdef <|> ifndef <|> endif <|> define <|> undef {-<|> line_dir-} <|> other
  where
   ifdef    = (do{ try(do{nbsps;char '#';nbsps;string "ifdef" ;nbsp});nbsps;x<-identifier;nbsps;newline;return(IFDEF ,x,"") })
   ifndef   = (do{ try(do{nbsps;char '#';nbsps;string "ifndef";nbsp});nbsps;x<-identifier;nbsps;newline;return(IFNDEF,x,"") })
   undef    = (do{ try(do{nbsps;char '#';nbsps;string "undef" ;nbsp});nbsps;x<-identifier;nbsps;newline;return(UNDEF ,x,"") })
   endif    = (do{ try(do{nbsps;char '#';nbsps;string "endif" });nbsps;newline;return(ENDIF,"","") })
   other    = (do{ xs<-many(noneOf "\n");newline;return(OTHER,"",xs) })
-  line_dir = (do{ try(do{nbsps;char '#';nbsps;string "line"  ;nbsp});nbsps;n<-uint;  
+  {-line_dir = (do{ try(do{nbsps;char '#';nbsps;string "line"  ;nbsp});nbsps;n<-uint;  
    file' <- option "" (do{nbsp; nbsps; char '"'; file <- many(noneOf "\""); char '"'; return file});
-   return(LINE,n,file')})
+   return(LINE,n,file')})-}
   
   
 {-functional not yet-}
@@ -87,15 +87,15 @@ convert1' f ((_    ,depth,n,_    ,_),[]               )
 convert1' f ((table,depth,n,False,o),(IFDEF ,_  ,_):xs) = ('\n':)<$>convert1' f((table,depth+1,n+1,False,o    ),xs)
 convert1' f ((table,depth,n,False,o),(IFNDEF,_  ,_):xs) = ('\n':)<$>convert1' f((table,depth+1,n+1,False,o    ),xs)
 convert1' f ((table,depth,n,False,o),(UNDEF ,_  ,_):xs) = ('\n':)<$>convert1' f((table,depth  ,n+1,False,o    ),xs)
-convert1' f ((table,depth,n,False,o),(LINE  ,_  ,_):xs) = ('\n':)<$>convert1' f((table,depth  ,n+1,False,o    ),xs) 
+-- convert1' f ((table,depth,n,False,o),(LINE  ,_  ,_):xs) = ('\n':)<$>convert1' f((table,depth  ,n+1,False,o    ),xs) 
 convert1' f ((table,depth,n,False,o),(ENDIF ,_  ,_):xs)
  | depth - 1 == o                                       = ('\n':)<$>convert1' f((table,depth-1,n+1,True ,(-1) ),xs)
  | otherwise                                            = ('\n':)<$>convert1' f((table,depth-1,n+1,False,o    ),xs)
 convert1' f ((table,depth,n,False,o),(DEFINE,_  ,_):xs) = ('\n':)<$>convert1' f((table,depth  ,n+1,False,o    ),xs)
 convert1' f ((table,depth,n,False,o),(OTHER ,_  ,_):xs) = ('\n':)<$>convert1' f((table,depth  ,n+1,False,o    ),xs) 
  
-convert1' _ ((table,depth,_,True ,_),(LINE  ,num,f):xs) = (lin++)<$>convert1' f((table,depth  ,nm ,True ,(-1) ),xs)
- where lin = "#line " ++ num ++ " " ++ show f ++ "\n"; nm=read num::Int  
+{-convert1' _ ((table,depth,_,True ,_),(LINE  ,num,f):xs) = (lin++)<$>convert1' f((table,depth  ,nm ,True ,(-1) ),xs)
+ where lin = "#line " ++ num ++ " " ++ show f ++ "\n"; nm=read num::Int  -}
 convert1' f ((table,depth,n,True ,_),(IFDEF ,ide,_):xs)
  | isJust(M.lookup ide table)                           = ('\n':)<$>convert1' f((table,depth+1,n+1,True ,(-1) ),xs)
  | otherwise                                            = ('\n':)<$>convert1' f((table,depth+1,n+1,False,depth),xs)

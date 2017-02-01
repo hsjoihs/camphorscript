@@ -1,5 +1,10 @@
-﻿
-ver 0.3.9  
+﻿ver 0.3.10  1:33 2014/04/14 (月)
+examplesにfibonacciとtoLowerを追加し、参考文献も追加。
+toLowerとfibonacciを逆コンパイルするも、fibonacciでaddress error。仕方ないね。
+address errorを出さないで警告をソースコードに埋め込むモード作ろうかな
+更になんとなく決めていたsuffixの仕様追加
+
+ver 0.3.9  12:35 2014/04/13 (日) 
 関数的プリプロセスの仕様を書いた
 CamphorScript標準ライブラリを使用変更に対応
 そして再編
