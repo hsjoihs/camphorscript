@@ -1,5 +1,5 @@
 {-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
-
+{-# OPTIONS -Wall -fno-warn-unused-do-bind  -fno-warn-missing-signatures #-}
 module Camphor.Step7_8
 (Com7(..)
 ,step7
@@ -15,10 +15,12 @@ import Data.List(genericTake)
 import Control.Monad((>=>))
 
 
-
 step7 str=convert7 <$> (parse parser7 "step7" str) {-turn into symbols -}
 step8 str=concat   <$> (parse parser8 "step8" str) {-removes unnecessary letters-}
 step7_8 = step7>=>step8
+example7 = "mov 0; /*comment +-,.[]><*/ inc; loop; mov 1; output; _input; mov 0; pool;"
+
+
 
 parser8 = many char'
  where char' = do{x<-oneOf "+-<>[],.";return [x]} <|> do{noneOf "+-<>[],.";return ""}
@@ -37,7 +39,7 @@ parser7 = many sentences
   input  = do{string "_input";spaces;char ';'; return (IN,"")} {- "_input" rather than "input" to avoid 'try' -}
   output = do{string "output";spaces;char ';'; return (OUT,"")}
   nul    = do{sp<-many1 space;return (NUL,sp)}
-  comm   = do{string "/*";comment<-many(noneOf"*");string "*/";return(NUL,"/*"++(comment>>=escape)++"*/")}
+  comm   = do{string "/*";comment<-many(noneOf "*");string "*/";return(NUL,"/*"++(comment>>=escape)++"*/")}
   escape '+' ="_plus_" 
   escape '-' ="_minus_" 
   escape ',' ="_comma_" 
@@ -47,47 +49,21 @@ parser7 = many sentences
   escape '>' ="_gt_" 
   escape '<' ="_lt_" 
   escape x = [x]
-  
-example7 = "mov 0; /*comment +-,.[]><*/ inc; loop; mov 1; output; _input; mov 0; pool;"
-example7_= either undefined id$parse parser7 "step7" example7
 
-
-convert7_::(Integer,[(Com7,String)])->(String,(Integer,[(Com7,String)]))
-convert7_ (n,((INC,num):xs)) = ( genericTake(read num)(repeat '+'), (n,xs) )
-convert7_ (n,((DEC,num):xs)) = ( genericTake(read num)(repeat '-'), (n,xs) )
-convert7_ (n,((LOOP,_):xs)) = ( "[", (n,xs) )
-convert7_ (n,((POOL,_):xs)) = ( "]", (n,xs) )
-convert7_ (n,((IN,_):xs)) = ( ",", (n,xs) )
-convert7_ (n,((OUT,_):xs)) = ( ".", (n,xs) )
-convert7_ (n,((MOV,num):xs)) = if(n<=num')then(genericTake(num'-n)(repeat '>'),(num',xs))else(genericTake(n-num')(repeat '<'),(num',xs))
- where num' = read num ::Integer
-convert7_ (n,((NUL,sp):xs)) =(sp,(n,xs))
-
-   
-convert7'::(Integer,[(Com7,String)])->String
-
-convert7' (_  ,[]) = ""
-convert7' x        = fst(convert7_ x) ++ convert7'(snd(convert7_ x))
-
+convert7::[(Com7,String)]->String
 convert7 x=convert7'(0,x)
-
-
-
   
-{-
+convert7'::(Integer,[(Com7,String)])->String
+convert7' (_,[]             )  = ""
+convert7' (n,((INC ,num):xs))  = genericTake(read num::Integer)(repeat '+') ++ convert7'(n,xs)
+convert7' (n,((DEC ,num):xs))  = genericTake(read num::Integer)(repeat '-') ++ convert7'(n,xs)
+convert7' (n,((LOOP,_  ):xs))  = "["                                        ++ convert7'(n,xs)
+convert7' (n,((POOL,_  ):xs))  = "]"                                        ++ convert7'(n,xs)
+convert7' (n,((IN  ,_  ):xs))  = ","                                        ++ convert7'(n,xs)
+convert7' (n,((OUT ,_  ):xs))  = "."                                        ++ convert7'(n,xs)
+convert7' (n,((NUL ,sp ):xs))  = sp                                         ++ convert7'(n,xs)
+convert7' (n,((MOV ,num):xs))  
+ |                   n<=num'    = genericTake(num'-n)(repeat '>')           ++ convert7'(num',xs)
+ |                   otherwise  = genericTake(n-num')(repeat '<')           ++ convert7'(num',xs)
+ where num' = read num ::Integer
 
-(<++>) a b = (++) <$> a <*> b
-(<:>) a b = (:) <$> a <*> b
-
-
-number  = many1 digit
-plus    = char '+' *> number
-minus   = (:) <$> char '-' <*> number
-integer = plus <|> minus <|> number
-
-float   =(integer <++> decimal <++> exponent)
- where 
-  decimal = option "" (char '.' <:> number)
-  exponent= option "" (oneOf "eE" <:> integer)
-  
-  -}

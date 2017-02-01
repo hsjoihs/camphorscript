@@ -1,4 +1,10 @@
 ﻿To do
+
+ver 0.0.5   13:33 2014/03/25 (火)
+step7のwarning抜きを行った。
+-Wall -fno-warn-unused-do-bind  -fno-warn-missing-signaturesのオプション。
+あとstep1のファイルだけ作成
+
 ver 0.0.4   21:19 2014/03/24 (月)
 step7_8をモジュール化してメイン処理はmain.hsで行うことに。
 
