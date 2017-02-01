@@ -1,5 +1,9 @@
 ﻿
 
+ver 0.1.14 23:21 2014/03/31 (月)
+ユーザーの不正入力を落とすerrorをSafeにあるabortに変更
+残るバグの巣窟はBase_Step4(error)とBase_Step1(\(Right x)->x)
+
 ver 0.1.13 18:25 2014/03/31 (月)
 Base_Step1のバグ抜き(型宣言追加)
 そしてbyteというparserを追加、これで'a'を読んで97を返してくれる。

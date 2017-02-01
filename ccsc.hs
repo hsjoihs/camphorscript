@@ -11,6 +11,7 @@ import Camphor.Step6
 import Camphor.Step7
 import Camphor.Step8
 import Camphor.IO
+import Safe(abort)
 
 info::[String]
 info=[
@@ -31,9 +32,9 @@ step=[step1,undefined,undefined,step4,step5,step6,step7,step8]
 -- starts with xth(1-indexed) and ends with yth(1-indexed)
 fromTo'::Monad m=>Int->Int->[a->m a]->a->m a
 fromTo' x y xs
- | x>y       = error "first number of option -C must not be larger than the second"
- | x<1       = error("step "++show x++"does not exist")
- | y>8       = error("step "++show y++"does not exist")
+ | x>y       = abort "first number of option -C must not be larger than the second"
+ | x<1       = abort("step "++show x++"does not exist")
+ | y>8       = abort("step "++show y++"does not exist")
  | otherwise = foldl1 (>=>)(drop(x-1)$take y xs)
 
 
@@ -49,5 +50,5 @@ dispatch3 [             ] out cont = outputParsed out (fromTo' 4              8 
 dispatch3 [['-','C',x,y]] out cont = outputParsed out (fromTo' (read[x]::Int) (read[y]::Int)  step cont);
 dispatch3 [['-','C',x]  ] out cont = outputParsed out (fromTo' (read[x]::Int) (read[x]::Int)  step cont);
 dispatch3 [['-','E']    ] out cont = outputParsed out (fromTo' 1              1               step cont);
-dispatch3 [x            ] _   _    = error$"unknown option"++show x;
-dispatch3 xs              _   _    = error$"unknown options"++show xs;
+dispatch3 [x            ] _   _    = abort$"unknown option"++show x;
+dispatch3 xs              _   _    = abort$"unknown options"++show xs;

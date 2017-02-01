@@ -6,6 +6,7 @@ import Control.Monad
 import Text.Parsec
 import Camphor.IO
 import CamphorR.R_Step8
+import Safe(abort)
 
 info::[String]
 info=[
@@ -23,9 +24,9 @@ fromTo x y xs = drop(8-x)$take(9-y)$xs
 
 fromTo'::Monad m=>Int->Int->[a->m a]->a->m a
 fromTo' x y xs
- | x<y       = error "first number of option -C must not be smaller than the second"
- | x>8       = error$"step "++show x++"does not exist"
- | y<1       = error$"step "++show y++"does not exist"
+ | x<y       = abort "first number of option -C must not be smaller than the second"
+ | x>8       = abort$"step "++show x++"does not exist"
+ | y<1       = abort$"step "++show y++"does not exist"
  | otherwise = foldl1 (>=>)(fromTo x y xs)
 
 main::IO()
@@ -42,5 +43,5 @@ dispatch3::Options->FilePath->String->IO()
 dispatch3 [             ] out cont = outputParsed out (fromTo' 8              8               step cont);
 dispatch3 [['-','C',x,y]] out cont = outputParsed out (fromTo' (read[x]::Int) (read[y]::Int)  step cont);
 dispatch3 [['-','C',x]  ] out cont = outputParsed out (fromTo' (read[x]::Int) (read[x]::Int)  step cont);
-dispatch3 [x            ] _   _    = error$"unknown option"++show x;
-dispatch3 xs              _   _    = error$"unknown options"++show xs;
+dispatch3 [x            ] _   _    = abort$"unknown option"++show x;
+dispatch3 xs              _   _    = abort$"unknown options"++show xs;
