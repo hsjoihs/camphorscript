@@ -5,11 +5,16 @@ module Camphor.IO
 ,getContentsFrom
 ,abort
 ,replaceExtension
+,(</>)
+,getDirectoryContents
+,getArgs
 )where
 import Camphor.Global
 import Text.Parsec
 import System.IO
 import System.FilePath
+import System.Directory(getDirectoryContents)
+import System.Environment(getArgs)
 
 type Options=[String]
 

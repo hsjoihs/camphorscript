@@ -1,9 +1,7 @@
 {-# OPTIONS -Wall #-}
 
-import Camphor.Global
-import System.Environment
-import Control.Monad
 import Text.Parsec
+import Camphor.Global
 import Camphor.Base_Step1
 import Camphor.Step4
 import Camphor.Step5
@@ -11,23 +9,22 @@ import Camphor.Step6
 import Camphor.Step7
 import Camphor.Step8
 import Camphor.IO
-import System.Directory
 import Data.List(isPrefixOf)
 import qualified Data.Map as M
 
+lib_dir :: FilePath
+lib_dir = "lib"
+
 ioLibs :: IO [FilePath]
 ioLibs = do
- libs' <- getDirectoryContents "lib"
+ libs' <- getDirectoryContents lib_dir
  return [ file | file <- libs', not("." `isPrefixOf` file)]
- 
 
 getLibs3 :: IO(FilePath -> Maybe Txt) 
 getLibs3 = do
   libs <- ioLibs
-  texts <- mapM getContentsFrom (map ("lib\\"++) libs)
+  texts <- mapM getContentsFrom (map (lib_dir </>) libs)
   return (\file -> (M.lookup file $ M.fromList $ zip libs texts))
-
-
 
 info::[String]
 info=[
@@ -76,7 +73,7 @@ dispatch5 (inf:xs)          (_          ,outf,frmTo     ) = dispatch5 xs (Just i
 
 dispatch5 []                (Just infile,outf,Right(a,b)) = do
    contents <- getContentsFrom infile
-   includer  <- getLibs3
+   includer <- getLibs3
    outputParsed (maybe (replaceExtension infile "bf") id outf) (fromTo' a  b (step infile includer) contents)
    
 dispatch5 []                (Just infile,_   ,Left "X")   = do

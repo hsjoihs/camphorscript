@@ -65,9 +65,11 @@ endlocal
 exit /b
 
 :output
-if     %1 == 0 echo succeeded %2 >> %LOG%
+if     %1 == 0 (
+echo success: %2 >> %LOG%
+)
 if not %1 == 0 (
-echo FAILED    %2 >> %LOG%
+echo FAILURE: %2 >> %LOG%
 type nul > %FAIL%
 ) 
 exit /b

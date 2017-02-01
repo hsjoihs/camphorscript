@@ -13,8 +13,10 @@ module Camphor.Global
 ,Ident
 ,isJust
 ,Txt
+,(>=>)
 )where
 
+import Control.Monad
 import Text.Parsec hiding(token)
 import Data.Char(isSpace,ord)
 import Control.Applicative hiding ((<|>),many)

@@ -1,4 +1,8 @@
-﻿ver 0.3.16 23:18 2014/04/16 (水)
+﻿ver 0.3.17 23:57 2014/04/16 (水)
+includerをconvert1'に分配
+そしてbatいじり
+
+ver 0.3.16 23:18 2014/04/16 (水)
 IO(FilePath->Maybe String)が出来た
 ついでにTxtというシノニム作成
 そしてついにincluderをBase_Step1に注入
