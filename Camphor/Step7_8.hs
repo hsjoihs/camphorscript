@@ -1,4 +1,4 @@
-{-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
+﻿{-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  -fno-warn-missing-signatures -fno-warn-unused-imports #-}
 module Camphor.Step7_8
 (Com7(..)

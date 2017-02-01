@@ -1,4 +1,4 @@
-{-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
+﻿{-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  -fno-warn-missing-signatures -fno-warn-unused-imports #-}
 {-
 module Camphor.Step1
@@ -79,34 +79,34 @@ convert1' ((_    ,depth,n,_    ,_),[]               )
  
  
 convert1' ((table,depth,n,True ,_),(IFDEF ,ide,_):xs)
- | isJust(M.lookup ide table)                         = convert1'((table,depth+1,n+1,True ,(-1) ),xs)
- | otherwise                                          = convert1'((table,depth+1,n+1,False,depth),xs)
+ | isJust(M.lookup ide table)                         = ('\n':)<$>convert1'((table,depth+1,n+1,True ,(-1) ),xs)
+ | otherwise                                          = ('\n':)<$>convert1'((table,depth+1,n+1,False,depth),xs)
 convert1' ((table,depth,n,True ,_),(IFNDEF,ide,_):xs)
- | isJust(M.lookup ide table)                         = convert1'((table,depth+1,n+1,False,depth),xs)
- | otherwise                                          = convert1'((table,depth+1,n+1,True ,(-1) ),xs)
-convert1' ((table,depth,n,False,o),(IFDEF ,_  ,_):xs) = convert1'((table,depth+1,n+1,False,o    ),xs)
-convert1' ((table,depth,n,False,o),(IFNDEF,_  ,_):xs) = convert1'((table,depth+1,n+1,False,o    ),xs)
+ | isJust(M.lookup ide table)                         = ('\n':)<$>convert1'((table,depth+1,n+1,False,depth),xs)
+ | otherwise                                          = ('\n':)<$>convert1'((table,depth+1,n+1,True ,(-1) ),xs)
+convert1' ((table,depth,n,False,o),(IFDEF ,_  ,_):xs) = ('\n':)<$>convert1'((table,depth+1,n+1,False,o    ),xs)
+convert1' ((table,depth,n,False,o),(IFNDEF,_  ,_):xs) = ('\n':)<$>convert1'((table,depth+1,n+1,False,o    ),xs)
 
 
 convert1' ((table,depth,n,True ,_),(UNDEF ,ide,_):xs)
  | _tabl==table                                       = Left $newErrorMessage (UnExpect$"C macro "++show ide)(newPos "step1" n 1) 
- | otherwise                                          = convert1'((_tabl,depth  ,n+1,True ,(-1) ),xs)
+ | otherwise                                          = ('\n':)<$>convert1'((_tabl,depth  ,n+1,True ,(-1) ),xs)
  where _tabl = M.delete ide table
-convert1' ((table,depth,n,False,o),(UNDEF ,_  ,_):xs) = convert1'((table,depth  ,n+1,False,o    ),xs)
+convert1' ((table,depth,n,False,o),(UNDEF ,_  ,_):xs) = ('\n':)<$>convert1'((table,depth  ,n+1,False,o    ),xs)
 
-convert1' ((table,depth,n,True ,_),(ENDIF ,_  ,_):xs) = convert1'((table,depth-1,n+1,True ,(-1) ),xs)
+convert1' ((table,depth,n,True ,_),(ENDIF ,_  ,_):xs) = ('\n':)<$>convert1'((table,depth-1,n+1,True ,(-1) ),xs)
 convert1' ((table,depth,n,False,o),(ENDIF ,_  ,_):xs)
- | depth-1==o                                         = convert1'((table,depth-1,n+1,True ,(-1) ),xs)
- | otherwise                                          = convert1'((table,depth-1,n+1,False,o    ),xs)
+ | depth-1==o                                         = ('\n':)<$>convert1'((table,depth-1,n+1,True ,(-1) ),xs)
+ | otherwise                                          = ('\n':)<$>convert1'((table,depth-1,n+1,False,o    ),xs)
  
  
 convert1' ((table,depth,n,True ,_),(DEFINE,ide,t):xs)
  | isJust(M.lookup ide table)                         = Left $newErrorMessage (Message$"C macro "++show ide++" is already defined")(newPos "step1" n 1) 
- | otherwise                                          = convert1'((_tabl,depth  ,n+1,True ,(-1) ),xs)
+ | otherwise                                          = ('\n':)<$>convert1'((_tabl,depth  ,n+1,True ,(-1) ),xs)
  where _tabl = M.insert ide t table
-convert1' ((table,depth,n,False,o),(DEFINE,_  ,_):xs) = convert1'((table,depth  ,n+1,False,o    ),xs)
+convert1' ((table,depth,n,False,o),(DEFINE,_  ,_):xs) = ('\n':)<$>convert1'((table,depth  ,n+1,False,o    ),xs)
 
-convert1' ((table,depth,n,False,o),(OTHER ,_  ,_):xs) = convert1'((table,depth  ,n+1,False,o    ),xs)
+convert1' ((table,depth,n,False,o),(OTHER ,_  ,_):xs) = ('\n':)<$>convert1'((table,depth  ,n+1,False,o    ),xs)
 
 convert1' ((table,depth,n,True ,_),(OTHER ,_  ,t):xs) = (\x->convert1'5 table t++"\n"++x)<$>convert1'((table,depth,n,True ,(-1) ),xs)    
 
