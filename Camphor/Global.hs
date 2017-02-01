@@ -1,5 +1,5 @@
 {-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
-{-# OPTIONS -Wall -fno-warn-unused-do-bind  -fno-warn-missing-signatures -fno-warn-unused-imports #-}
+{-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
 module Camphor.Global
 (identifier
 ,identifier'
@@ -9,32 +9,52 @@ module Camphor.Global
 ,(<:>)
 ,strP
 ,uint
+,byte
 ,Ident
 ,isJust
 )where
 
 import Text.Parsec hiding(token)
-import Data.Char(isSpace)
+import Data.Char(isSpace,ord)
 import Control.Applicative hiding ((<|>),many)
 
-(<++>) a b = (++) <$> a <*> b
-(<:>) a b = (:) <$> a <*> b
-infixr 5 <:>
 infixr 5 <++>
+(<++>) :: Applicative f => f [a] -> f [a] -> f [a]
+(<++>) a b = (++) <$> a <*> b
 
+infixr 5 <:>
+(<:>) :: Applicative f => f a -> f [a] -> f [a]
+(<:>) a b = (:) <$> a <*> b
 
-isJust::Maybe x->Bool
-isJust(Just _)=True
-isJust Nothing=False
+isJust :: Maybe x -> Bool
+isJust (Just _) = True
+isJust Nothing = False
 
-identifier=try( (letter<|>char '_') <:> many(alphaNum<|>char '_') )<?>"identifier"
-identifier'=  ( (letter<|>char '_') <:> many(alphaNum<|>char '_') )<?>"identifier"
+identifier :: Stream s m Char => ParsecT s u m Ident
+identifier=try((letter<|>char '_') <:> many(alphaNum<|>char '_') )<?>"identifier"
+
+identifier' :: Stream s m Char => ParsecT s u m Ident
+identifier'=((letter<|>char '_') <:> many(alphaNum<|>char '_') )<?>"identifier"
  
+nbsp :: Stream s m Char => ParsecT s u m Char
 nbsp =satisfy (\x->isSpace x && x/='\n')<?>"non-breaking space"
+
+nbsps :: Stream s m Char => ParsecT s u m ()
 nbsps=skipMany nbsp
 
-strP p=(\x->[x])<$>p
+strP :: Stream s m Char => ParsecT s u m Char -> ParsecT s u m String
+strP = fmap (\x -> [x])
 
-uint = many1 digit<?>"unsigned integer"
+uint :: Stream s m Char => ParsecT s u m String
+uint = many1 digit <?> "unsigned integer"
+
+byte :: Stream s m Char => ParsecT s u m String
+byte = many1 digit <|> 
+ try(do{
+  char '\'';
+  y <- (noneOf "\\" <|> do{char '\\';x<-oneOf "'\\";return x});
+  char '\'';
+  return . show . ord $ y
+  })
 
 type Ident=String

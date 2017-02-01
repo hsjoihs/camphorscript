@@ -29,8 +29,8 @@ sentences_=def<|>del<|>add<|>sub<|>while<|>read_<|>write<|>nul<|>emp<|>comm
  where
   def  =try(do{string"char"  ;space ;spaces;xs<-identifier;spaces; char ';';return (DEF,xs,None)})
   del  =try(do{string"delete";space ;spaces;xs<-identifier;spaces; char ';';return (DEL,xs,None)})
-  add  =try(do{xs<-identifier;spaces;char '+';spaces;char '=';spaces; ys<-uint;spaces;char ';';return (ADD,xs,Node ys)})
-  sub  =try(do{xs<-identifier;spaces;char '-';spaces;char '=';spaces; ys<-uint;spaces;char ';';return (SUB,xs,Node ys)})
+  add  =try(do{xs<-identifier;spaces;char '+';spaces;char '=';spaces; ys<-byte;spaces;char ';';return (ADD,xs,Node ys)})
+  sub  =try(do{xs<-identifier;spaces;char '-';spaces;char '=';spaces; ys<-byte;spaces;char ';';return (SUB,xs,Node ys)})
   while=try(do{string "while";spaces;char '(';spaces;xs<-identifier;spaces;char ')';spaces;char '{';spaces;ks<-parser4;spaces;char '}';return(WHI,xs,Nodes ks)})
   read_=try(do{string "read" ;spaces;char '(';spaces;xs<-identifier;spaces;char ')';spaces;char ';';return (REA,xs,None)})
   write=try(do{string "write";spaces;char '(';spaces;xs<-identifier;spaces;char ')';spaces;char ';';return (WRI,xs,None)})

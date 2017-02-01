@@ -4,7 +4,6 @@
 module Camphor.Base_Step1
 (step1
 
-
 ,parser1
 ,Pre7(..)
 ,line
