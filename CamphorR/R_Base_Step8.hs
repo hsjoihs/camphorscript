@@ -6,13 +6,13 @@ module CamphorR.R_Base_Step8
 )where
 
 
-step8_R::String->Either a String
+step8_R :: String -> Either a String
 step8_R  = Right . convert8_R . parser8_R
 
-convert8_R::[String]->String
+convert8_R :: [String] -> String
 convert8_R xs=convert8_R' xs 0
 
-convert8_R'::[String]->Int->String --depth
+convert8_R' :: [String] -> Int -> String --depth
 convert8_R' []     _   = ""
 convert8_R' (x:xs) n 
  | last x == '['      = (take n    $repeat '\t')++x++"\n"++convert8_R' xs (n+1)
@@ -22,7 +22,7 @@ convert8_R' (x:xs) n
 
 
 parser8_R :: String -> [String]
-parser8_R xs=parser8_R' xs ""
+parser8_R xs = parser8_R' xs ""
 
 parser8_R'::String->String->[String] --  input buffer(reverse) result
 parser8_R'    ""         ""       = []
