@@ -1,10 +1,9 @@
-{-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
-{-# OPTIONS -Wall -fno-warn-unused-do-bind  -fno-warn-missing-signatures -fno-warn-unused-imports #-}
+{-# OPTIONS -Wall #-}
 {- translation -}
 module Camphor.Base_Step4
 (parser4
 ,Com4(..)
-,sentences_,def,del,add,sub,while,read_,write,nul,emp,comm
+,sentences_
 ,Tree(..)
 ,convert4
 ,convert4'
@@ -50,6 +49,8 @@ convert4'::(CurrState,[Set4])->Either ParseError String
 
 convert4'( _            ,[]                    ) = Right ""
 
+convert4'((_ ,[]    ,_ ),_                     ) = error "Invalid call of convert4'"
+
 convert4'((n ,(s:st),ls),((DEF,ide,_      ):xs)) 
  | isJust(M.lookup ide s)                        = Left $newErrorMessage (Message$"identifier "++show ide++"is already defined")(newPos "step4" 0 0)
  | otherwise                                     = convert4' ((n, M.insert ide new s : st,new:ls),xs)
@@ -60,16 +61,18 @@ convert4'((n ,(s:st),ls),((DEL,ide,_      ):xs)) = case (M.lookup ide s) of
    Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined in this scope")(newPos "step4" 0 0)
 
 convert4'(state         ,((NUL,_  ,Node sp):xs)) = (sp++)<$>convert4'(state,xs) 
--- WHI
--- type Set4=(Com4,Ident,Tree [Char] Com4 [Char])
+convert4'(_             ,((NUL,_  ,_      ):_ )) = error "Invalid format" 
+
 
 convert4'((n ,st    ,ls),((ADD,ide,Node nm):xs)) = case (lookup' ide st) of
    Just  k                                      -> (\x->"mov "++show k++"; inc "++nm++"; "++x)<$>convert4' ((n,st,ls),xs)
    Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos "step4" 0 0)
-
+convert4'(_             ,((ADD,_  ,_      ):_ )) = error "Invalid format" 
+   
 convert4'((n ,st    ,ls),((SUB,ide,Node nm):xs)) = case (lookup' ide st) of
    Just  k                                      -> (\x->"mov "++show k++"; dec "++nm++"; "++x)<$>convert4' ((n,st,ls),xs)
    Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos "step4" 0 0)
+convert4'(_             ,((SUB,_  ,_      ):_ )) = error "Invalid format" 
 
 convert4'((n ,st    ,ls),((REA,ide,_      ):xs)) = case (lookup' ide st) of
    Just  k                                      -> (\x->"mov "++show k++"; _input; "++x)<$>convert4' ((n,st,ls),xs)
@@ -82,8 +85,10 @@ convert4'((n ,st    ,ls),((WRI,ide,_      ):xs)) = case (lookup' ide st) of
 convert4'(state         ,((EMP,_  ,_      ):xs)) = (' ':)<$>convert4'(state,xs)
 
 convert4'(state         ,((COM,_  ,Node cm):xs)) = (cm++)<$>convert4'(state,xs)
+convert4'(_             ,((COM,_  ,_      ):_ )) = error "Invalid format" 
 
 convert4'((n ,st    ,ls),((WHI,ide,Nodes v):xs)) = case (lookup' ide st) of
    Just k                                       -> 
     (\x->"mov "++show k++"; loop; "++x)<$>convert4' ((n+1,M.empty:st,ls),v)<++>Right("mov "++show k++"; pool; ")<++>convert4'((n,st,ls),xs)
    Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos "step4" 0 0)
+convert4'(_             ,((WHI,_  ,_      ):_ )) = error "Invalid format" 
