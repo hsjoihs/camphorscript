@@ -15,18 +15,14 @@ info=[
  ]
 
 main::IO()
-main=do
- args<-getArgs
- if(null args)
-  then mapM_ putStrLn info
-  else do
-   let infile =last args
-   let outfile=if(args `at`(-3)==Just "-o")then maybe "anonymous.bf" id (args `at`(-2)) else remExt infile++"bf"
-   let options=if(args `at`(-3)/=Just "-o")then init args else init$init$init$args
-   handle  <- openFile infile ReadMode
-   contents<- hGetContents handle
-   case dispatch options contents of{Right x->writeFile outfile x;Left x->error(show x)}
-   return()
-   
-dispatch::[String]->String->Either ParseError String
-dispatch []                = Right  
+main=do{args<-getArgs;dispatch2 (reverse args)}
+
+dispatch2::[String]->IO()
+dispatch2 []                = mapM_ putStrLn info
+dispatch2 args@(infile:ars) = do
+ handle  <- openFile infile ReadMode
+ contents<- hGetContents handle
+ dispatch3(reverse$optionsOf ars)(outFileOf ars infile)contents
+
+dispatch3::Options->FilePath->String->IO()
+dispatch3 = undefined 

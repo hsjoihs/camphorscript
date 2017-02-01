@@ -1,0 +1,6 @@
+﻿Brainf*ck
+  ↓Step8(空白追加)       			{- indentation -}
+  ↓Step7(非記号化)       			{- desymbolization -}
+nouDarake
+  ↓Step654(逐語訳)       			{- reverse translation -}
+CompiledCamphorScript
