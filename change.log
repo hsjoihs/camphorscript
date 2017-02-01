@@ -1,0 +1,25 @@
+﻿To do
+ver 0.0.1   18:34 2014/03/24 (月)
+JSだと非常に辛くなるのは十分予想できるのでHaskellで書くことに。
+CamphorScript
+  ↓Step1(C的マクロ展開)
+  ↓Step2(関数的マクロ展開)
+  ↓Step3(糖衣構文プリプロセス)
+CompiledCamphorScript
+  ↓Step4(逐語訳)
+  ↓Step5(メモリ割り当て&インクリメント最適化)
+  ↓Step6(コメントエスケープ)
+nouDarake
+  ↓Step7(記号化)
+  ↓Step8(空白削除)
+Brainf*ck
+
+という流れを決定し、Step7とStep8を完成。
+
+
+ver 0.0.0   19:25 2014/03/02 (日)
+Brainf*ckに翻訳できる言語の名前をCamphorScriptに。
+Brain→脳→樟脳→Camphorってこと。
+
+CamphorScript→マクロ展開されたCamphorScript→nouDarake→Brainf*ckと翻訳される。
+仕様書は後ほど。
