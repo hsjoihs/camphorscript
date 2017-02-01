@@ -1,0 +1,3 @@
+ 
+correct compile in options "-C48 examples/xIsNumber__CCS.txt -o examples/C48test.tmp" 
+correct compile in options "-C88 examples/xIsNumber__BF.txt -o examples/C88test.tmp" 
