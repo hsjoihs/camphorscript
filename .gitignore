@@ -1,2 +1,4 @@
 /!!qqqqq
 *.exe
+*.hi
+*.o
