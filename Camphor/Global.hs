@@ -1,12 +1,13 @@
 {-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  -fno-warn-missing-signatures -fno-warn-unused-imports #-}
-module Global
+module Camphor.Global
 (identifier
 ,identifier'
 ,nbsp
 ,nbsps
 ,(<++>)
 ,(<:>)
+,strP
 )where
 
 import Text.Parsec hiding(token)
@@ -24,3 +25,4 @@ identifier'=  ( (letter<|>char '_') <:> many(alphaNum<|>char '_') )<?>"identifie
 nbsp =satisfy (\x->isSpace x && x/='\n')<?>"non-breaking space"
 nbsps=skipMany nbsp
 
+strP p=(\x->[x])<$>p
