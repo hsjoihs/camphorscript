@@ -42,18 +42,18 @@ fromTo' x y xs
 
 
 dispatch4 :: Options -> IO ()
-dispatch4 []     = mapM_ putStrLn info
-dispatch4 xs     = dispatch5 xs (Nothing,Nothing,Right(4,8))
+dispatch4 [] = mapM_ putStrLn info
+dispatch4 xs = dispatch5 xs (Nothing,Nothing,Right(4,8))
 
 type Stat = (Maybe FilePath,Maybe FilePath,Either String(Int,Int)) -- in,out,from,to
 
 dispatch5 :: Options -> Stat -> IO () 
-dispatch5 ("-o":outf:xs)    (inf        ,_   ,frmTo     ) = dispatch5 xs (inf,Just outf,frmTo)
+dispatch5 ("-o":outf:xs)    (inf        ,_   ,frmTo     ) = dispatch5 xs (     inf,Just outf,frmTo)
 dispatch5 ["-o"]             _                            = abort("argument to '-o' is missing")
-dispatch5 (['-','C',x,y]:xs)(inf        ,outf,_         ) = dispatch5 xs (inf,outf      ,Right(read[x],read[y]))
-dispatch5 (['-','C',x]  :xs)(inf        ,outf,_         ) = dispatch5 xs (inf,outf      ,Right(read[x],read[x]))
-dispatch5 ("-E":xs)         (inf        ,outf,_         ) = dispatch5 xs (inf,outf      ,Right(1      ,1      ))
-dispatch5 ("-X":xs)         (inf        ,outf,_         ) = dispatch5 xs (inf,outf      ,Left "X")
+dispatch5 (['-','C',x,y]:xs)(inf        ,outf,_         ) = dispatch5 xs (     inf,outf      ,Right(read[x],read[y]))
+dispatch5 (['-','C',x]  :xs)(inf        ,outf,_         ) = dispatch5 xs (     inf,outf      ,Right(read[x],read[x]))
+dispatch5 ("-E":xs)         (inf        ,outf,_         ) = dispatch5 xs (     inf,outf      ,Right(1      ,1      ))
+dispatch5 ("-X":xs)         (inf        ,outf,_         ) = dispatch5 xs (     inf,outf      ,Left "X")
 dispatch5 (inf:xs)          (_          ,outf,frmTo     ) = dispatch5 xs (Just inf,outf      ,frmTo)
 
 dispatch5 []                (Just infile,outf,Right(a,b)) = do
@@ -66,5 +66,3 @@ dispatch5 []                (Just infile,_   ,Left "X")   = do
    
 dispatch5 []                (Nothing    ,_   ,_        )  = abort "no input files"
 dispatch5 []                (_          ,_   ,Left _)     = return ()
-
-

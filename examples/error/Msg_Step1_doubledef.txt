@@ -1,0 +1,2 @@
+parse error at "step1'" (line 1, column 1):
+C macro "abc" is already defined
