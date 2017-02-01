@@ -1,0 +1,7 @@
+  
+failed    "ccsc -E examples\error\Step1_defnum.txt  -o bat\k.tmp > bat\Step1_defnum.tmp" 
+failed    "ccsc -E examples\error\Step1_doubledef.txt  -o bat\k.tmp > bat\Step1_doubledef.tmp" 
+failed    "ccsc -E examples\error\Step1_endif.txt  -o bat\k.tmp > bat\Step1_endif.tmp" 
+failed    "ccsc -E examples\error\Step1_loneifdef.txt  -o bat\k.tmp > bat\Step1_loneifdef.tmp" 
+failed    "ccsc -E examples\error\Step1_noendif.txt  -o bat\k.tmp > bat\Step1_noendif.tmp" 
+failed    "ccsc -E examples\error\Step1_undef.txt  -o bat\k.tmp > bat\Step1_undef.tmp" 

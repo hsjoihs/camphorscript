@@ -5,13 +5,15 @@ rem
 
 pushd %0\..
 cls
+set FAIL=bat\fail2.tmp
 
 call bat\makeHaskell ccsc
 call bat\makeHaskell ccsrc
 
 
 call bat\setlogname terrresult
-echo. > %LOG% 
+type nul > %LOG% 
+if exist %FAIL% del %FAIL%
 
 for /F "usebackq" %%i in (`dir /A-D /s /b examples\error\S*.txt`) do (
  call :filename %%i
@@ -19,9 +21,12 @@ for /F "usebackq" %%i in (`dir /A-D /s /b examples\error\S*.txt`) do (
 echo.
 echo %LOG2%:
 type %LOG%
+if exist %FAIL% (
+del %FAIL%
+) else (
 del bat\*.tmp
 echo ---Deleted temporary files.---
-
+)
 pause
 exit
 
@@ -44,6 +49,7 @@ exit /b
 if exist bat\k.tmp (
 echo SUCCEEDED %1 >> %LOG%
 del bat\k.tmp
+type nul > %FAIL%
 ) else (
 echo failed    %1 >> %LOG%
 )

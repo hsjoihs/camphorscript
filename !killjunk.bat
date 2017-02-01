@@ -6,18 +6,11 @@ if not '%userkey%'=='' set userkey=%userkey:~0,1%
 if '%userkey%'=='y' goto start
 exit
 
-
-
 :start 
 echo.
-call :delete *.hi
-call :delete *.o
-call :delete te*.log
-pause
-exit
-
-:delete
-for /F "usebackq" %%i in (`dir /s /b %1`) do ( 
+for /F "usebackq" %%i in (`dir /s /b *.hi *.o te*.log`) do ( 
 echo deleted %%i 
 del %%i  )
 exit /b
+pause
+exit

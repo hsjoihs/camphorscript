@@ -1,0 +1,7 @@
+  
+succeeded "ccsc -C48 examples\xIsNumber__CCS.txt -o bat\C48test.tmp" 
+succeeded "ccsc -C88 examples\xIsNumber__BF.txt -o bat\C88test.tmp" 
+succeeded "ccsc -E examples\xPreProcessTest__CS.txt -o bat\C11test.tmp" 
+succeeded "ccsrc -C88 examples\xIsNumber__BF_c.txt -o bat\R88test.tmp" 
+succeeded "ccsrc -C87 examples\xIsNumber__BF_c.txt -o bat\R87test.tmp" 
+succeeded "ccsc -C78 bat\R87test.tmp -o bat\C78R87test.tmp" 

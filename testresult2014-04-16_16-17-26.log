@@ -1,0 +1,4 @@
+FAILED    "ccsc -C48 examples\xIsNumber__CCS.txt -o bat\C48test.tmp" 
+FAILED    "ccsc -C88 examples\xIsNumber__BF.txt -o bat\C88test.tmp" 
+FAILED    "ccsc -C88 examples\xIsNumber__BF_i.txt -o bat\C88test2.tmp" 
+FAILED    "ccsc -C88 examples\xAtoI__BF_i.txt -o bat\C88test3.tmp" 
