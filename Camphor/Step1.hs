@@ -1,4 +1,4 @@
-﻿{-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
+{-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  -fno-warn-missing-signatures -fno-warn-unused-imports #-}
 {-
 module Camphor.Step1
@@ -26,11 +26,11 @@ type Ident=String
 
 line=ifdef<|>ifndef<|>endif<|>define<|>undef<|>other
  where
-  ifdef  = do{try(do{nbsps;char '#';nbsps;string "ifdef" ;nbsp});nbsps;x<-identifier;return(IFDEF ,x,"")}
-  ifndef = do{try(do{nbsps;char '#';nbsps;string "ifndef";nbsp});nbsps;x<-identifier;return(IFNDEF,x,"")}
-  undef  = do{try(do{nbsps;char '#';nbsps;string "undef" ;nbsp});nbsps;x<-identifier;return(UNDEF ,x,"")}
-  endif  = do{try(do{nbsps;char '#';nbsps;string "endif" });nbsps;return(ENDIF,"","")}
-  other  = do{xs<-many(noneOf "\n");return(OTHER,"",xs)}
+  ifdef  = do{try(do{nbsps;char '#';nbsps;string "ifdef" ;nbsp});nbsps;x<-identifier;return(IFDEF ,x,("",[""]))}
+  ifndef = do{try(do{nbsps;char '#';nbsps;string "ifndef";nbsp});nbsps;x<-identifier;return(IFNDEF,x,("",[""]))}
+  undef  = do{try(do{nbsps;char '#';nbsps;string "undef" ;nbsp});nbsps;x<-identifier;return(UNDEF ,x,("",[""]))}
+  endif  = do{try(do{nbsps;char '#';nbsps;string "endif" });nbsps;return(ENDIF,"",("",[""]))}
+  other  = do{xs<-many(noneOf "\n");return(OTHER,"",(xs,[""]))}
   
 {-functional not yet-}
 define=
@@ -38,10 +38,14 @@ define=
   try(do{nbsps;char '#';nbsps;string "define";nbsp})
   nbsps
   xs<-identifier'
-  ys<-option ""(do{nbsp;nbsps;m<-many(noneOf "\n");return m})
-  return(DEFINE,xs,ys)
+  (ws,ys)<-option ([""],"")(
+   do{nbsp;nbsps;m<-many(noneOf "\n");return$([""],' ':m)}<|>
+   do{char '(';zs<-sepBy identifier spaceComma;char ')';m<-many(noneOf "\n");return$(zs,m)})
+  return(DEFINE,xs,(ys,ws))
   
-  
+spaceComma=try(do{many space;char ',';many space;return ','})
+
+ 
 err1="#define 1"
 example1=
  "#ifndef ABC\n"++
@@ -63,60 +67,60 @@ example1' = example1++example1
 isJust(Just _)=True
 isJust Nothing=False
 
-type Table=M.Map Ident String
+type Table=M.Map Ident (String,[String])
 type CurrentState=(Table,Integer,Int,Bool,Integer){-defined macro, how deep 'if's are, line num, whether to read a line,depth of skipping  -}
 
 
-convert1::[(Pre7,Ident,String)]->Either ParseError String
+convert1::[(Pre7,Ident,(String,[String]))]->Either ParseError String
 convert1 xs=convert1' ((M.empty,0,0,True,(-1)) ,xs)
 
-convert1'::(CurrentState,[(Pre7,Ident,String)])->Either ParseError String
+convert1'::(CurrentState,[(Pre7,Ident,(String,[String]))])->Either ParseError String
 
-convert1' ((_    ,0    ,_,True ,_),[]               ) = Right ""
-convert1' ((_    ,depth,n,_    ,_),[]               )                  
- | depth>0                                            = Left $newErrorMessage (  Expect "#endif")(newPos "step1" n 1) 
- | otherwise                                          = Left $newErrorMessage (UnExpect "#endif")(newPos "step1" n 1) 
+convert1' ((_    ,0    ,_,True ,_),[]                   ) = Right ""
+convert1' ((_    ,depth,n,_    ,_),[]                   )                  
+ | depth>0                                                = Left $newErrorMessage (  Expect "#endif")(newPos "step1" n 1) 
+ | otherwise                                              = Left $newErrorMessage (UnExpect "#endif")(newPos "step1" n 1) 
  
  
-convert1' ((table,depth,n,True ,_),(IFDEF ,ide,_):xs)
- | isJust(M.lookup ide table)                         = ('\n':)<$>convert1'((table,depth+1,n+1,True ,(-1) ),xs)
- | otherwise                                          = ('\n':)<$>convert1'((table,depth+1,n+1,False,depth),xs)
-convert1' ((table,depth,n,True ,_),(IFNDEF,ide,_):xs)
- | isJust(M.lookup ide table)                         = ('\n':)<$>convert1'((table,depth+1,n+1,False,depth),xs)
- | otherwise                                          = ('\n':)<$>convert1'((table,depth+1,n+1,True ,(-1) ),xs)
-convert1' ((table,depth,n,False,o),(IFDEF ,_  ,_):xs) = ('\n':)<$>convert1'((table,depth+1,n+1,False,o    ),xs)
-convert1' ((table,depth,n,False,o),(IFNDEF,_  ,_):xs) = ('\n':)<$>convert1'((table,depth+1,n+1,False,o    ),xs)
+convert1' ((table,depth,n,True ,_),(IFDEF ,ide,_    ):xs)
+ | isJust(M.lookup ide table)                             = ('\n':)<$>convert1'((table,depth+1,n+1,True ,(-1) ),xs)
+ | otherwise                                              = ('\n':)<$>convert1'((table,depth+1,n+1,False,depth),xs)
+convert1' ((table,depth,n,True ,_),(IFNDEF,ide,_    ):xs)
+ | isJust(M.lookup ide table)                             = ('\n':)<$>convert1'((table,depth+1,n+1,False,depth),xs)
+ | otherwise                                              = ('\n':)<$>convert1'((table,depth+1,n+1,True ,(-1) ),xs)
+convert1' ((table,depth,n,False,o),(IFDEF ,_  ,_    ):xs) = ('\n':)<$>convert1'((table,depth+1,n+1,False,o    ),xs)
+convert1' ((table,depth,n,False,o),(IFNDEF,_  ,_    ):xs) = ('\n':)<$>convert1'((table,depth+1,n+1,False,o    ),xs)
 
 
-convert1' ((table,depth,n,True ,_),(UNDEF ,ide,_):xs)
- | _tabl==table                                       = Left $newErrorMessage (UnExpect$"C macro "++show ide)(newPos "step1" n 1) 
- | otherwise                                          = ('\n':)<$>convert1'((_tabl,depth  ,n+1,True ,(-1) ),xs)
+convert1' ((table,depth,n,True ,_),(UNDEF ,ide,_    ):xs)
+ | _tabl==table                                           = Left $newErrorMessage (UnExpect$"C macro "++show ide)(newPos "step1" n 1) 
+ | otherwise                                              = ('\n':)<$>convert1'((_tabl,depth  ,n+1,True ,(-1) ),xs)
  where _tabl = M.delete ide table
-convert1' ((table,depth,n,False,o),(UNDEF ,_  ,_):xs) = ('\n':)<$>convert1'((table,depth  ,n+1,False,o    ),xs)
+convert1' ((table,depth,n,False,o),(UNDEF ,_  ,_    ):xs) = ('\n':)<$>convert1'((table,depth  ,n+1,False,o    ),xs)
 
-convert1' ((table,depth,n,True ,_),(ENDIF ,_  ,_):xs) = ('\n':)<$>convert1'((table,depth-1,n+1,True ,(-1) ),xs)
-convert1' ((table,depth,n,False,o),(ENDIF ,_  ,_):xs)
- | depth-1==o                                         = ('\n':)<$>convert1'((table,depth-1,n+1,True ,(-1) ),xs)
- | otherwise                                          = ('\n':)<$>convert1'((table,depth-1,n+1,False,o    ),xs)
+convert1' ((table,depth,n,True ,_),(ENDIF ,_  ,_    ):xs) = ('\n':)<$>convert1'((table,depth-1,n+1,True ,(-1) ),xs)
+convert1' ((table,depth,n,False,o),(ENDIF ,_  ,_    ):xs)
+ | depth-1==o                                             = ('\n':)<$>convert1'((table,depth-1,n+1,True ,(-1) ),xs)
+ | otherwise                                              = ('\n':)<$>convert1'((table,depth-1,n+1,False,o    ),xs)
  
  
-convert1' ((table,depth,n,True ,_),(DEFINE,ide,t):xs)
- | isJust(M.lookup ide table)                         = Left $newErrorMessage (Message$"C macro "++show ide++" is already defined")(newPos "step1" n 1) 
- | otherwise                                          = ('\n':)<$>convert1'((_tabl,depth  ,n+1,True ,(-1) ),xs)
- where _tabl = M.insert ide t table
-convert1' ((table,depth,n,False,o),(DEFINE,_  ,_):xs) = ('\n':)<$>convert1'((table,depth  ,n+1,False,o    ),xs)
+convert1' ((table,depth,n,True ,_),(DEFINE,ide,(t,u)):xs)
+ | isJust(M.lookup ide table)                             = Left $newErrorMessage (Message$"C macro "++show ide++" is already defined")(newPos "step1" n 1) 
+ | otherwise                                              = ('\n':)<$>convert1'((_tabl,depth  ,n+1,True ,(-1) ),xs)
+ where _tabl = M.insert ide (t,u) table
+convert1' ((table,depth,n,False,o),(DEFINE,_  ,_    ):xs) = ('\n':)<$>convert1'((table,depth  ,n+1,False,o    ),xs)
 
-convert1' ((table,depth,n,False,o),(OTHER ,_  ,_):xs) = ('\n':)<$>convert1'((table,depth  ,n+1,False,o    ),xs)
+convert1' ((table,depth,n,False,o),(OTHER ,_  ,_    ):xs) = ('\n':)<$>convert1'((table,depth  ,n+1,False,o    ),xs)
 
-convert1' ((table,depth,n,True ,_),(OTHER ,_  ,t):xs) = (\x->convert1'5 table t++"\n"++x)<$>convert1'((table,depth,n,True ,(-1) ),xs)    
+convert1' ((table,depth,n,True ,_),(OTHER ,_  ,(t,_)):xs) = (\x->convert1'5 table t++"\n"++x)<$>convert1'((table,depth,n,True ,(-1) ),xs)    
 
 {- macro conversion-}
 convert1'5::Table->String->String
 convert1'5 table str = (\(Right x)->x)(parse parser1'5 "" str)>>=repl
  where 
   repl::String->String
-  repl x=maybe x id (M.lookup x table)
-
+  repl x=if(maybe True (\k->snd k==[]) val)then maybe x fst val else error "functional #define is under construction" 
+   where val=M.lookup x table
 parser1'5=many token
 
 token = tIdentifier<|>tOperator<|>tChar<|>tString<|>tSpecial<|>tSpace<|>tNumeral
