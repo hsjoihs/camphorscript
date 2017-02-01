@@ -33,8 +33,8 @@ fromTo x y xs = drop(x-1)$take y xs
 fromTo'::Monad m=>Int->Int->[a->m a]->a->m a
 fromTo' x y xs
  | x>y       = error "first number of option -C must not be larger than the second"
- | x<1       = error "step "++show x++"does not exist"
- | y>8       = error "step "++show y++"does not exist"
+ | x<1       = error("step "++show x++"does not exist")
+ | y>8       = error("step "++show y++"does not exist")
  | otherwise = foldl1 (>=>)(fromTo x y xs)
 
 
@@ -48,6 +48,7 @@ dispatch2 (infile:ars) = do
 dispatch3::Options->FilePath->String->IO()
 dispatch3 [             ] out cont = outputParsed out (fromTo' 4              8               step cont);
 dispatch3 [['-','C',x,y]] out cont = outputParsed out (fromTo' (read[x]::Int) (read[y]::Int)  step cont);
+dispatch3 [['-','C',x]  ] out cont = outputParsed out (fromTo' (read[x]::Int) (read[x]::Int)  step cont);
 dispatch3 [x            ] _   _    = error$"unknown option"++show x;
 dispatch3 xs              _   _    = error$"unknown options"++show xs;
 
