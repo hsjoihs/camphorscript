@@ -1,4 +1,7 @@
 ﻿
+ver 0.1.19 16:25 2014/04/03 (木)
+バグの巣窟Base_Step4のerrorを怪奇なデータ型の作成によりほぼ排除
+
 ver 0.1.18 15:25 2014/04/03 (木)
 バグの巣窟Base_Step1のundefinedをEitherモナドでgracefully fail させた
 

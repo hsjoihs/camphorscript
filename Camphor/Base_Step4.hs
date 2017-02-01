@@ -1,8 +1,12 @@
-{-# OPTIONS -Wall #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# OPTIONS -Wall -fno-warn-unused-do-bind#-}
 {- translation -}
 module Camphor.Base_Step4
 (parser4
-,Com4(..)
+,Com4_1(..)
+,Com4_2(..)
+,Com4_3(..)
+,OneOf(..)
 ,sentences_
 ,Tree(..)
 ,convert4
@@ -17,11 +21,50 @@ import Text.Parsec.Error
 import Text.Parsec.Pos
 import Control.Applicative hiding ((<|>),many)
 import qualified Data.Map as M
-import Camphor.Base_Step4_1
+
+data Com4_1=WHI deriving(Show)
+data Com4_2=DEF|DEL|REA|WRI|COM|NUL|EMP deriving(Show)
+data Com4_3=ADD|SUB deriving(Show)
+
+data OneOf a b c = Top a | Mid b | Bot c deriving (Show)
+
+data Tree b c d f = Nodes [OneOf d f(b,c,Tree b c d f)] deriving(Show)
+type Node b c d f =        OneOf d f(b,c,Tree b c d f)
+
+type Set4 = Node Com4_1 Ident (Com4_2,String) (Com4_3,[Char],[Char])
+
+parser4:: Stream s m Char =>ParsecT s u m [Set4]
+parser4=many sentences_
 
 
--- data Com4=DEF|DEL|ADD|SUB|WHI|REA|WRI|NUL|EMP|COM deriving(Show)
--- type Set4=(Com4,Ident,Tree [Char] Com4 [Char])
+sentences_:: Stream s m Char =>ParsecT s u m Set4
+
+sentences_=def<|>del<|>add<|>sub<|>while<|>read_<|>write<|>nul<|>emp<|>comm 
+ where
+  def  =try(do{string"char"  ;space ;spaces;xs<-identifier;spaces; char ';';return$Top(DEF,xs)})
+  del  =try(do{string"delete";space ;spaces;xs<-identifier;spaces; char ';';return$Top(DEL,xs)})
+  add  =try(do{xs<-identifier;spaces;char '+';spaces;char '=';spaces; ys<-byte;spaces;char ';';return$Mid(ADD,xs,ys)})
+  sub  =try(do{xs<-identifier;spaces;char '-';spaces;char '=';spaces; ys<-byte;spaces;char ';';return$Mid(SUB,xs,ys)})
+  while=try(do{string "while";spaces;char '(';spaces;xs<-identifier;spaces;char ')';spaces;char '{';spaces;ks<-parser4;spaces;char '}';return$Bot(WHI,xs,Nodes ks)})
+  read_=try(do{string "read" ;spaces;char '(';spaces;xs<-identifier;spaces;char ')';spaces;char ';';return$Top(REA,xs)})
+  write=try(do{string "write";spaces;char '(';spaces;xs<-identifier;spaces;char ')';spaces;char ';';return$Top(WRI,xs)})
+  nul=try(do{sp<-many1 space;return$Top(NUL,sp)})
+  emp=do{char ';';return$Top(EMP,"")}
+  comm=try(do{string "/*";xs<-many(noneOf "*");string "*/";return$Top(COM,"/*"++xs++"*/")})
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+
 
 type VarNum=Integer
 type Table4=M.Map Ident VarNum -- variable, variable num
@@ -51,44 +94,39 @@ convert4'( _            ,[]                    ) = Right ""
 
 convert4'((_ ,[]    ,_ ),_                     ) = error "Invalid call of convert4'"
 
-convert4'((n ,(s:st),ls),((DEF,ide,_      ):xs)) 
+convert4'((n ,(s:st),ls),(Top(DEF,ide      ):xs)) 
  | isJust(M.lookup ide s)                        = Left $newErrorMessage (Message$"identifier "++show ide++"is already defined")(newPos "step4" 0 0)
  | otherwise                                     = convert4' ((n, M.insert ide new s : st,new:ls),xs)
   where new=minUnused ls
 
-convert4'((n ,(s:st),ls),((DEL,ide,_      ):xs)) = case (M.lookup ide s) of
+convert4'((n ,(s:st),ls),(Top(DEL,ide      ):xs)) = case (M.lookup ide s) of
    Just  k                                      -> convert4' ((n, M.delete ide s : st,remove k ls),xs)
    Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined in this scope")(newPos "step4" 0 0)
 
-convert4'(state         ,((NUL,_  ,Node sp):xs)) = (sp++)<$>convert4'(state,xs) 
-convert4'(_             ,((NUL,_  ,_      ):_ )) = error "Invalid format" 
+convert4'(state         ,(Top(NUL,sp):xs)) = (sp++)<$>convert4'(state,xs) 
 
 
-convert4'((n ,st    ,ls),((ADD,ide,Node nm):xs)) = case (lookup' ide st) of
+convert4'((n ,st    ,ls),(Mid(ADD,ide,nm):xs)) = case (lookup' ide st) of
    Just  k                                      -> (\x->"mov "++show k++"; inc "++nm++"; "++x)<$>convert4' ((n,st,ls),xs)
    Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos "step4" 0 0)
-convert4'(_             ,((ADD,_  ,_      ):_ )) = error "Invalid format" 
    
-convert4'((n ,st    ,ls),((SUB,ide,Node nm):xs)) = case (lookup' ide st) of
+convert4'((n ,st    ,ls),(Mid(SUB,ide,nm):xs)) = case (lookup' ide st) of
    Just  k                                      -> (\x->"mov "++show k++"; dec "++nm++"; "++x)<$>convert4' ((n,st,ls),xs)
    Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos "step4" 0 0)
-convert4'(_             ,((SUB,_  ,_      ):_ )) = error "Invalid format" 
 
-convert4'((n ,st    ,ls),((REA,ide,_      ):xs)) = case (lookup' ide st) of
+convert4'((n ,st    ,ls),(Top(REA,ide      ):xs)) = case (lookup' ide st) of
    Just  k                                      -> (\x->"mov "++show k++"; _input; "++x)<$>convert4' ((n,st,ls),xs)
    Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos "step4" 0 0)
 
-convert4'((n ,st    ,ls),((WRI,ide,_      ):xs)) = case (lookup' ide st) of
+convert4'((n ,st    ,ls),(Top(WRI,ide      ):xs)) = case (lookup' ide st) of
    Just  k                                      -> (\x->"mov "++show k++"; output; "++x)<$>convert4' ((n,st,ls),xs)
    Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos "step4" 0 0)
 
-convert4'(state         ,((EMP,_  ,_      ):xs)) = (' ':)<$>convert4'(state,xs)
+convert4'(state         ,(Top(EMP,_       ):xs)) = (' ':)<$>convert4'(state,xs)
 
-convert4'(state         ,((COM,_  ,Node cm):xs)) = (cm++)<$>convert4'(state,xs)
-convert4'(_             ,((COM,_  ,_      ):_ )) = error "Invalid format" 
+convert4'(state         ,(Top(COM,cm):xs)) = (cm++)<$>convert4'(state,xs)
 
-convert4'((n ,st    ,ls),((WHI,ide,Nodes v):xs)) = case (lookup' ide st) of
+convert4'((n ,st    ,ls),(Bot(WHI,ide,Nodes v):xs)) = case (lookup' ide st) of
    Just k                                       -> 
     (\x->"mov "++show k++"; loop; "++x)<$>convert4' ((n+1,M.empty:st,ls),v)<++>Right("mov "++show k++"; pool; ")<++>convert4'((n,st,ls),xs)
    Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos "step4" 0 0)
-convert4'(_             ,((WHI,_  ,_      ):_ )) = error "Invalid format" 
