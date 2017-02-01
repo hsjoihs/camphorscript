@@ -23,15 +23,17 @@ info=[
  "-X          Debug"
  ]
  
-main::IO()
-main=do{args<-getArgs;dispatch2(reverse args)} -- reverse args for pattern matching
+main :: IO()
+main = do
+ args<-getArgs
+ dispatch4 args
 
-step::[String->Either ParseError String]   
-step=[step1,undefined,undefined,step4,step5,step6,step7,step8]
+step :: [String -> Either ParseError String]   
+step = [step1,undefined,undefined,step4,step5,step6,step7,step8]
 
 
 -- starts with xth(1-indexed) and ends with yth(1-indexed)
-fromTo'::Monad m=>Int->Int->[a->m a]->a->m a
+fromTo' :: Monad m => Int -> Int -> [a -> m a] -> a -> m a
 fromTo' x y xs
  | x>y       = abort "first number of option -C must not be larger than the second"
  | x<1       = abort("step "++show x++"does not exist")
@@ -39,18 +41,31 @@ fromTo' x y xs
  | otherwise = foldl1 (>=>)(drop(x-1)$take y xs)
 
 
-dispatch2::[String]->IO ()
-dispatch2 []                = mapM_ putStrLn info
-dispatch2 (infile:ars) = do
- handle  <- openFile infile ReadMode
- contents<- hGetContents handle
- dispatch3(reverse$optionsOf ars)(outFileOf ars infile)contents --options are parsed from the left; thus reverse
- 
-dispatch3::Options->FilePath->String->IO()
-dispatch3 [             ] out cont = outputParsed out (fromTo' 4              8               step cont);
-dispatch3 [['-','C',x,y]] out cont = outputParsed out (fromTo' (read[x]::Int) (read[y]::Int)  step cont);
-dispatch3 [['-','C',x]  ] out cont = outputParsed out (fromTo' (read[x]::Int) (read[x]::Int)  step cont);
-dispatch3 [['-','E']    ] out cont = outputParsed out (fromTo' 1              1               step cont);
-dispatch3 [['-','X']    ] out cont = print$parse parser1 "step1" $ cont ++ "\n";
-dispatch3 [x            ] _   _    = abort$"unknown option"++show x;
-dispatch3 xs              _   _    = abort$"unknown options"++show xs;
+
+dispatch4 :: Options -> IO ()
+dispatch4 []     = mapM_ putStrLn info
+dispatch4 xs     = dispatch5 xs (Nothing,Nothing,Right(4,8))
+
+type Stat = (Maybe FilePath,Maybe FilePath,Either String(Int,Int)) -- in,out,from,to
+
+dispatch5 :: Options -> Stat -> IO () 
+dispatch5 ("-o":outf:xs)    (inf        ,_   ,frmTo     ) = dispatch5 xs (inf,Just outf,frmTo)
+dispatch5 ["-o"]             _                            = abort("argument to '-o' is missing")
+dispatch5 (['-','C',x,y]:xs)(inf        ,outf,_         ) = dispatch5 xs (inf,outf      ,Right(read[x],read[y]))
+dispatch5 (['-','C',x]  :xs)(inf        ,outf,_         ) = dispatch5 xs (inf,outf      ,Right(read[x],read[x]))
+dispatch5 ("-E":xs)         (inf        ,outf,_         ) = dispatch5 xs (inf,outf      ,Right(1      ,1      ))
+dispatch5 ("-X":xs)         (inf        ,outf,_         ) = dispatch5 xs (inf,outf      ,Left "X")
+dispatch5 (inf:xs)          (_          ,outf,frmTo     ) = dispatch5 xs (Just inf,outf      ,frmTo)
+dispatch5 []                (Just infile,outf,Right(a,b)) = do
+   handle   <- openFile infile ReadMode
+   contents <- hGetContents handle
+   outputParsed (maybe (remExt infile++"bf") id outf) (fromTo' a  b step contents)
+   
+dispatch5 []                (Just infile,_   ,Left "X")   = do
+   handle   <- openFile infile ReadMode
+   contents <- hGetContents handle
+   print$parse parser1 "step1" $ contents ++ "\n";
+dispatch5 []                (Nothing    ,_   ,_        )  = abort "no input files"
+dispatch5 []                (_          ,_   ,Left _)     = return ()
+
+
