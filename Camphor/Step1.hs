@@ -2,8 +2,7 @@
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  -fno-warn-missing-signatures -fno-warn-unused-imports #-}
 
 module Camphor.Step1
-(Pre7(..)
-,step1
+(step1
 ,example1
 ,err1
 ,example1'
@@ -49,10 +48,12 @@ err1="#define 1"
 example1=
  "#ifndef ABC\n"++
  "#define ABC\n"++
+ "\n"++
+ "#define windows 1\n"++
  "#def(+=~)(char& a;char& b)\n"++
- " while(b){\n"++
- "  b-=1;a+=1;\n"++
- "  }\n"++
+ "  while(b){\n"++
+ "   b-=1;a+=1;\n"++
+ "   }\n"++
  "#end_def\n"++
  "#define_ del(char& x) clear(x); delete x\n"++
  "char a;\n"++
@@ -60,6 +61,17 @@ example1=
  "a+=C; \n"++
  "#undef C\n"++
  "char C;\n"++
+ "\n"++
+ "#ifdef windows\n"++
+ "char b;\n"++
+ "b+=7;\n"++
+ "#endif\n"++
+ "\n"++
+ "#ifndef windows\n"++
+ "char x;\n"++
+ "x+=8;\n"++
+ "#endif\n"++
+ "\n"++
  "#endif\n"
 example1' = example1++example1
 
