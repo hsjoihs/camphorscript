@@ -5,7 +5,7 @@ import Control.Monad
 import Text.Parsec
 import Camphor.IO
 import CamphorR.R_Step8
-import Safe(abort)
+
 
 info :: [String]
 info = [

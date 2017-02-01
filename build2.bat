@@ -1,5 +1,5 @@
 @echo off
 pushd %0\..
-ghc --make  ccsrc
+%~d0\ghc2\ghc\2013.2.0.0\bin\ghc --make  ccsrc
 echo finished
 pause

@@ -10,7 +10,7 @@ import Camphor.Step6
 import Camphor.Step7
 import Camphor.Step8
 import Camphor.IO
-import Safe(abort)
+
 
 info::[String]
 info=[

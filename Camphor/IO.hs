@@ -6,6 +6,7 @@ module Camphor.IO
 ,optionsOf
 ,Options
 ,getContentsFrom
+,abort
 )where
 import Text.Parsec
 import System.IO
@@ -32,3 +33,6 @@ getContentsFrom file = do
  handle   <- openFile file ReadMode
  contents <- hGetContents handle
  return contents
+ 
+abort :: String -> a
+abort = error
