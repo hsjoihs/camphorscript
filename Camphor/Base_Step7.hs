@@ -41,7 +41,6 @@ parser7 = many sentences
   output = do{string "output";spaces;char ';'; return (OUT,"")}
   nul    = do{sp<-many1 space;return (NUL,sp)}
   comm   = do{string "/*";comment<-many(noneOf "*");string "*/";return(NUL,"/*"++(comment>>=escape)++"*/")}
-  uint   = many1 digit<?>"unsigned integer"
   escape '+' ="_plus_" 
   escape '-' ="_minus_" 
   escape ',' ="_comma_" 

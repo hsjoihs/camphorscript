@@ -8,6 +8,8 @@ module Camphor.Global
 ,(<++>)
 ,(<:>)
 ,strP
+,uint
+,Ident
 )where
 
 import Text.Parsec hiding(token)
@@ -19,6 +21,7 @@ import Control.Applicative hiding ((<|>),many)
 infixr 5 <:>
 infixr 5 <++>
 
+
 identifier=try( (letter<|>char '_') <:> many(alphaNum<|>char '_') )<?>"identifier"
 identifier'=  ( (letter<|>char '_') <:> many(alphaNum<|>char '_') )<?>"identifier"
  
@@ -26,3 +29,7 @@ nbsp =satisfy (\x->isSpace x && x/='\n')<?>"non-breaking space"
 nbsps=skipMany nbsp
 
 strP p=(\x->[x])<$>p
+
+uint = many1 digit<?>"unsigned integer"
+
+type Ident=String

@@ -1,5 +1,5 @@
 {-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
-{-# OPTIONS -Wall -fno-warn-unused-do-bind  -fno-warn-missing-signatures -fno-warn-unused-imports #-}
+{-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
 {- C macro expansion -}
 module Camphor.Base_Step1
 (step1
@@ -15,7 +15,6 @@ module Camphor.Base_Step1
 ,convert1'5
 ,parser1'5
 ,token
-,tIdentifier,tOperator,tChar,tString,tSpecial,tSpace,tNumeral
 ) where
 
 
@@ -29,13 +28,22 @@ import Control.Monad(join)
 import qualified Data.Map as M
 
 {- C macro  -}
+
+type Set=(Pre7,Ident,String)
+
+
+step1::String->Either ParseError String
 step1 str=join(convert1 <$> (parse parser1 "step1"$str++"\n"))
+
+
+parser1::Stream s m Char=>ParsecT s u m [Set]
 parser1=sepBy line newline
+
 
 data Pre7=IFDEF|IFNDEF|UNDEF|ENDIF|DEFINE|OTHER deriving(Show)
 
-type Ident=String
 
+line::Stream s m Char=>ParsecT s u m Set
 line=ifdef<|>ifndef<|>endif<|>define<|>undef<|>other
  where
   ifdef  = do{try(do{nbsps;char '#';nbsps;string "ifdef" ;nbsp});nbsps;x<-identifier;return(IFDEF ,x,"")}
@@ -44,7 +52,9 @@ line=ifdef<|>ifndef<|>endif<|>define<|>undef<|>other
   endif  = do{try(do{nbsps;char '#';nbsps;string "endif" });nbsps;return(ENDIF,"","")}
   other  = do{xs<-many(noneOf "\n");return(OTHER,"",xs)}
   
+  
 {-functional not yet-}
+define::Stream s m Char=>ParsecT s u m Set
 define=
  do
   try(do{nbsps;char '#';nbsps;string "define";nbsp})
@@ -53,8 +63,10 @@ define=
   ys<-option ""(do{nbsp;nbsps;m<-many(noneOf "\n");return m})
   return(DEFINE,xs,ys)
   
-  
+err1::String 
 err1="#define 1"
+
+example1::String
 example1=
  "#ifndef ABC\n"++
  "#define ABC\n"++
@@ -83,19 +95,24 @@ example1=
  "#endif\n"++
  "\n"++
  "#endif\n"
+ 
+example1'::String
 example1' = example1++example1
 
+isJust::Maybe x->Bool
 isJust(Just _)=True
 isJust Nothing=False
+
 
 type Table=M.Map Ident String
 type CurrentState=(Table,Integer,Int,Bool,Integer){-defined macro, how deep 'if's are, line num, whether to read a line,depth of skipping  -}
 
 
-convert1::[(Pre7,Ident,String)]->Either ParseError String
+convert1::[Set]->Either ParseError String
 convert1 xs=convert1' ((M.empty,0,0,True,(-1)) ,xs)
 
-convert1'::(CurrentState,[(Pre7,Ident,String)])->Either ParseError String
+
+convert1'::(CurrentState,[Set])->Either ParseError String
 
 convert1' ((_    ,0    ,_,True ,_),[]               ) = Right ""
 convert1' ((_    ,depth,n,_    ,_),[]               )                  
@@ -142,18 +159,25 @@ convert1'5 table str = (\(Right x)->x)(parse parser1'5 "" str)>>=repl
   repl::String->String
   repl x=maybe x id (M.lookup x table)
 
+  
+parser1'5::Stream s m Char=>ParsecT s u m [String]
 parser1'5=many token
 
-token = tIdentifier<|>tOperator<|>tChar<|>tString<|>tSpecial<|>tSpace<|>tNumeral<|>tComment
 
-tIdentifier = identifier
-tNumeral    = try(many1 digit)
-tOperator   = try(oneOf "!%&*+,-/:<=>?@^|~" <:> many(oneOf "!%&*+,-/:<=>?@^|~" <|> space ))
-tChar       = try(char '\'' <:> noneOf "'" <:> string "'"   )
-tString     = try(char '"'  <:> many(noneOf "\"")<++> string "\"")
-tSpecial    = strP$oneOf "#$().;{\\}[]"
-tComment    = try(string"/*" <++> many(noneOf"*") <++>string"*/")
-
-tSpace      = try(many1 space)
+token::Stream s m Char=>ParsecT s u m String
+token = tIdentifier<|>tOperator<|>tChar<|>tString<|>tSpecial<|>tSpace<|>tNumeral<|>tComment<|>tComment2
+ where
+  tIdentifier = identifier
+  tNumeral    = try(many1 digit)
+  tOperator   = try(oneOf "!%&*+,-/:<=>?@^|~" <:> many(oneOf "!%&*+,-/:<=>?@^|~" <|> space ))
+  tChar       = try(char '\'' <:> noneOf "'" <:> string "'"   )
+  tString     = try(char '"'  <:> many(noneOf "\"")<++> string "\"")
+  tSpecial    = strP$oneOf "#$().;{\\}[]"
+  tComment    = try(string"/*" <++> many(noneOf"*") <++>string"*/")
+  tComment2   = try(do{string"//";xs<-many(noneOf"\n");string"\n";return("/*"++(xs>>=esc)++"*/")})
+   where 
+   esc '*' = "_star_"
+   esc x   = [x]
+  tSpace      = try(many1 space)
 
 
