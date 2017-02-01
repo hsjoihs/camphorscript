@@ -75,6 +75,10 @@ include  = do
   
   
  
+lift :: (Monad m) => (a -> b) -> m (n,a)-> m (n,b)
+lift f mna = do
+ (n,a) <- mna
+ return(n,f a)
   
 
 
@@ -86,55 +90,59 @@ type CurrentState=(Table,Integer,Int,Bool,Integer){-defined macro, how deep 'if'
 
 
 convert1 :: FilePath ->(M.Map FilePath Txt) -> [Set] -> Either ParseError String
-convert1 file includer xs = convert1' file includer ((M.empty,0,0,True,(-1)) ,xs) 
+convert1 file includer xs = snd <$> convert1' file includer ((M.empty,0,0,True,(-1)) ,xs) 
 
 
-convert1' :: FilePath -> (M.Map FilePath Txt) -> (CurrentState,[Set]) -> Either ParseError String
+convert1' :: FilePath -> (M.Map FilePath Txt) -> (CurrentState,[Set]) -> Either ParseError (Table,String)
 
-convert1' _ _((_    ,0    ,_,True ,_),[]               ) = Right ""
+convert1' _ _((table,0    ,_,True ,_),[]               ) = Right (table,"")
 convert1' f _((_    ,depth,n,_    ,_),[]               )                  
  | depth>0                                              = Left $newErrorMessage (  Expect "#endif")(newPos (f++"--step1'") n 1) 
  | otherwise                                            = Left $newErrorMessage (UnExpect "#endif")(newPos (f++"--step1'") n 1) 
  
  
-convert1' f i((table,depth,n,False,o),(IFDEF ,_  ,_):xs) = ('\n':)<$>convert1' f i((table,depth+1,n+1,False,o    ),xs)
-convert1' f i((table,depth,n,False,o),(IFNDEF,_  ,_):xs) = ('\n':)<$>convert1' f i((table,depth+1,n+1,False,o    ),xs)
-convert1' f i((table,depth,n,False,o),(UNDEF ,_  ,_):xs) = ('\n':)<$>convert1' f i((table,depth  ,n+1,False,o    ),xs)
-convert1' f i((table,depth,n,False,o),(INCLU ,_  ,_):xs) = ('\n':)<$>convert1' f i((table,depth  ,n+1,False,o    ),xs)
--- convert1' f ((table,depth,n,False,o),(LINE  ,_  ,_):xs) = ('\n':)<$>convert1' f((table,depth  ,n+1,False,o    ),xs) 
+convert1' f i((table,depth,n,False,o),(IFDEF ,_  ,_):xs) = ('\n':) `lift` convert1' f i((table,depth+1,n+1,False,o    ),xs)
+convert1' f i((table,depth,n,False,o),(IFNDEF,_  ,_):xs) = ('\n':) `lift` convert1' f i((table,depth+1,n+1,False,o    ),xs)
+convert1' f i((table,depth,n,False,o),(UNDEF ,_  ,_):xs) = ('\n':) `lift` convert1' f i((table,depth  ,n+1,False,o    ),xs)
+convert1' f i((table,depth,n,False,o),(INCLU ,_  ,_):xs) = ('\n':) `lift` convert1' f i((table,depth  ,n+1,False,o    ),xs)
+-- convert1' f ((table,depth,n,False,o),(LINE  ,_  ,_):xs) = ('\n':) `lift` convert1' f((table,depth  ,n+1,False,o    ),xs) 
 convert1' f i((table,depth,n,False,o),(ENDIF ,_  ,_):xs)
- | depth - 1 == o                                        = ('\n':)<$>convert1' f i((table,depth-1,n+1,True ,(-1) ),xs)
- | otherwise                                             = ('\n':)<$>convert1' f i((table,depth-1,n+1,False,o    ),xs)
-convert1' f i((table,depth,n,False,o),(DEFINE,_  ,_):xs) = ('\n':)<$>convert1' f i((table,depth  ,n+1,False,o    ),xs)
-convert1' f i((table,depth,n,False,o),(OTHER ,_  ,_):xs) = ('\n':)<$>convert1' f i((table,depth  ,n+1,False,o    ),xs) 
+ | depth - 1 == o                                        = ('\n':) `lift` convert1' f i((table,depth-1,n+1,True ,(-1) ),xs)
+ | otherwise                                             = ('\n':) `lift` convert1' f i((table,depth-1,n+1,False,o    ),xs)
+convert1' f i((table,depth,n,False,o),(DEFINE,_  ,_):xs) = ('\n':) `lift` convert1' f i((table,depth  ,n+1,False,o    ),xs)
+convert1' f i((table,depth,n,False,o),(OTHER ,_  ,_):xs) = ('\n':) `lift` convert1' f i((table,depth  ,n+1,False,o    ),xs) 
  
-{-convert1' _ ((table,depth,_,True ,_),(LINE  ,num,f):xs) = (lin++)<$>convert1' f((table,depth  ,nm ,True ,(-1) ),xs)
+{-convert1' _ ((table,depth,_,True ,_),(LINE  ,num,f):xs) = (lin++) `lift` convert1' f((table,depth  ,nm ,True ,(-1) ),xs)
  where lin = "#line " ++ num ++ " " ++ show f ++ "\n"; nm=read num::Int  -}
 convert1' f i((table,depth,n,True ,_),(IFDEF ,ide,_):xs)
- | isJust(M.lookup ide table)                            = ('\n':)<$>convert1' f i((table,depth+1,n+1,True ,(-1) ),xs)
- | otherwise                                             = ('\n':)<$>convert1' f i((table,depth+1,n+1,False,depth),xs)
+ | isJust(M.lookup ide table)                            = ('\n':) `lift` convert1' f i((table,depth+1,n+1,True ,(-1) ),xs)
+ | otherwise                                             = ('\n':) `lift` convert1' f i((table,depth+1,n+1,False,depth),xs)
 convert1' f i((table,depth,n,True ,_),(IFNDEF,ide,_):xs)
- | isJust(M.lookup ide table)                            = ('\n':)<$>convert1' f i((table,depth+1,n+1,False,depth),xs)
- | otherwise                                             = ('\n':)<$>convert1' f i((table,depth+1,n+1,True ,(-1) ),xs)
+ | isJust(M.lookup ide table)                            = ('\n':) `lift` convert1' f i((table,depth+1,n+1,False,depth),xs)
+ | otherwise                                             = ('\n':) `lift` convert1' f i((table,depth+1,n+1,True ,(-1) ),xs)
 convert1' f i((table,depth,n,True ,_),(UNDEF ,ide,_):xs)
  | _tabl==table                                          = Left $newErrorMessage (UnExpect$"C macro "++show ide)(newPos (f++"step1'") n 1) 
- | otherwise                                             = ('\n':)<$>convert1' f i((_tabl,depth  ,n+1,True ,(-1) ),xs)
+ | otherwise                                             = ('\n':) `lift` convert1' f i((_tabl,depth  ,n+1,True ,(-1) ),xs)
  where _tabl = M.delete ide table
 convert1' f i((table,depth,n,True ,_),(INCLU ,_,fil):xs) = case M.lookup fil i of 
  Nothing  ->                                               Left $newErrorMessage (UnExpect$"library "++show fil)(newPos (f++"step1'") n 1) 
  Just txt ->                                               do
-  text   <- step1 (lib_dir </> fil) i txt
-  result <- convert1' f i((table,depth  ,n+1,True ,(-1) ),xs)
-  return("/* start of "++show fil++" */\n\n"++text++"\n\n/*  end  of "++show fil++" */\n"++result)
-convert1' f i((table,depth,n,True ,_),(ENDIF ,_  ,_):xs) = ('\n':)<$>convert1' f i((table,depth-1,n+1,True ,(-1) ),xs)
+  let inclfile = lib_dir </> fil
+  sets   <- parse parser1 (inclfile ++ "--step1") (txt ++ "\n")
+  -- sets :: [Set]
+  (newtable,text)      <- convert1' inclfile i ((table,0,0,True,(-1)) ,sets)
+  (newtable',result)   <- convert1' f i((newtable,depth  ,n+1,True ,(-1) ),xs)
+  return(newtable',"/* start of "++show inclfile++" */\n\n"++text++"\n\n/*  end  of "++show inclfile++" */\n"++result)
+ 
+convert1' f i((table,depth,n,True ,_),(ENDIF ,_  ,_):xs) = ('\n':) `lift` convert1' f i((table,depth-1,n+1,True ,(-1) ),xs)
 convert1' f i((table,depth,n,True ,_),(DEFINE,ide,t):xs)
  | isJust(M.lookup ide table)                            = Left $newErrorMessage (Message$"C macro "++show ide++" is already defined")(newPos (f++"step1'") n 1) 
- | otherwise                                             = ('\n':)<$>convert1' f i((_tabl,depth  ,n+1,True ,(-1) ),xs)
+ | otherwise                                             = ('\n':) `lift` convert1' f i((_tabl,depth  ,n+1,True ,(-1) ),xs)
  where _tabl = M.insert ide t table
 convert1' f i((table,depth,n,True ,_),(OTHER ,_  ,t):xs) = do
- result   <- convert1' f i((table,depth,n+1,True ,(-1) ),xs)
- replaced <- replaceBy table t
- return (replaced++"\n"++result)
+ replaced            <- replaceBy table t
+ (newtable,result)   <- convert1' f i((table,depth,n+1,True ,(-1) ),xs)
+ return (newtable,replaced++"\n"++result)
 
 {- macro conversion-}
 replaceBy :: Table -> String -> Either ParseError String

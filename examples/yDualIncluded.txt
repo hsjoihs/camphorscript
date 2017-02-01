@@ -1,6 +1,6 @@
 char sss;
 
-/* start of "void.txt" */
+/* start of "lib\\void.txt" */
 
 5     5   5555   555  55555
  5   5   5    5   5   5    5
@@ -8,14 +8,14 @@ char sss;
    5      5555   555  55555
 
 
-/*  end  of "void.txt" */
+/*  end  of "lib\\void.txt" */
 
 char ttt;
 
-/* start of "void2.txt" */
+/* start of "lib\\void2.txt" */
 
 char ppp;
-/* start of "void.txt" */
+/* start of "lib\\void.txt" */
 
 5     5   5555   555  55555
  5   5   5    5   5   5    5
@@ -23,11 +23,11 @@ char ppp;
    5      5555   555  55555
 
 
-/*  end  of "void.txt" */
+/*  end  of "lib\\void.txt" */
 char qqq;
 
 
-/*  end  of "void2.txt" */
+/*  end  of "lib\\void2.txt" */
 
 char uuu;
 

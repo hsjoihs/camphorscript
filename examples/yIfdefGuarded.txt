@@ -1,0 +1,51 @@
+char sss;
+
+/* start of "lib\\void3.txt" */
+
+
+
+
+ 5   5   555   555  5555           55555  5   5  5555   55555  55555
+ 5   5  5   5   5   5   5            5    5   5  5   5  5      5
+  5 5   5   5   5   5   5            5    55555  5555   55555  55555
+  5 5   5   5   5   5   5            5    5   5  5   5  5      5
+   5     555   555  5555   555555    5    5   5  5   5  55555  55555
+
+
+     /* __VOID3_INCLUDED__ */
+
+
+
+/*  end  of "lib\\void3.txt" */
+
+char ttt;
+
+/* start of "lib\\void4.txt" */
+
+char vvv;
+
+/* start of "lib\\void3.txt" */
+
+
+
+
+
+
+
+
+
+
+
+     /* __VOID3_INCLUDED__ */
+
+
+
+/*  end  of "lib\\void3.txt" */
+
+char www;
+
+
+/*  end  of "lib\\void4.txt" */
+
+char uuu;
+
