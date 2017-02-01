@@ -1,5 +1,6 @@
 {-# OPTIONS -Wall #-}
 
+import Camphor.Global
 import System.Environment
 import Control.Monad
 import Text.Parsec
@@ -12,20 +13,19 @@ import Camphor.Step8
 import Camphor.IO
 import System.Directory
 import Data.List(isPrefixOf)
-import Control.Applicative((<$>))
+import qualified Data.Map as M
 
 ioLibs :: IO [FilePath]
 ioLibs = do
  libs' <- getDirectoryContents "lib"
  return [ file | file <- libs', not("." `isPrefixOf` file)]
  
-  
-getLibs2 :: FilePath -> IO (Maybe String)
-getLibs2 file = do
+
+getLibs3 :: IO(FilePath -> Maybe Txt) 
+getLibs3 = do
   libs <- ioLibs
-  if file `elem` libs
-   then Just<$>getContentsFrom file
-   else return Nothing
+  texts <- mapM getContentsFrom (map ("lib\\"++) libs)
+  return (\file -> (M.lookup file $ M.fromList $ zip libs texts))
 
 
 
@@ -45,8 +45,8 @@ main = do
  dispatch4 args
 
 
-step :: FilePath -> [String -> Either ParseError String]   
-step file= [step1 file,undefined,undefined,step4,step5,step6,step7,step8]
+step :: FilePath -> (FilePath -> Maybe Txt) -> [Txt -> Either ParseError Txt]   
+step file includer = [step1 file includer,undefined,undefined,step4,step5,step6,step7,step8]
 
 
 -- starts with xth(1-indexed) and ends with yth(1-indexed)
@@ -76,7 +76,8 @@ dispatch5 (inf:xs)          (_          ,outf,frmTo     ) = dispatch5 xs (Just i
 
 dispatch5 []                (Just infile,outf,Right(a,b)) = do
    contents <- getContentsFrom infile
-   outputParsed (maybe (replaceExtension infile "bf") id outf) (fromTo' a  b (step infile) contents)
+   includer  <- getLibs3
+   outputParsed (maybe (replaceExtension infile "bf") id outf) (fromTo' a  b (step infile includer) contents)
    
 dispatch5 []                (Just infile,_   ,Left "X")   = do
    contents <- getContentsFrom infile

@@ -12,6 +12,7 @@ module Camphor.Global
 ,byte
 ,Ident
 ,isJust
+,Txt
 )where
 
 import Text.Parsec hiding(token)
@@ -58,3 +59,4 @@ byte = many1 digit <|>
   })
 
 type Ident=String
+type Txt=String

@@ -25,8 +25,8 @@ import Control.Monad(join)
 import qualified Data.Map as M
 
 {- C macro  -}
-step1 :: FilePath -> String -> Either ParseError String
-step1 file str = join (convert1 file <$> parse parser1 (file ++ "--step1") (str ++ "\n"))
+step1 :: FilePath -> (FilePath -> Maybe Txt) -> String -> Either ParseError String
+step1 file includer str = join (convert1 file <$> parse parser1 (file ++ "--step1") (str ++ "\n"))
 
 -- PARSING
 

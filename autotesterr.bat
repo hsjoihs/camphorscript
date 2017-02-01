@@ -42,7 +42,7 @@ exit /b
 :compileErr
 echo testing %3:
 %1 %2 examples\error\%3  -o bat\k.tmp > bat\%~n3.tmp
-call :output2 "%1 %2 examples\error\%3  -o bat\k.tmp > bat\%~n3.tmp"
+call :output2 "%1 %2 examples\error\%3  -o bat\k.tmp"
 exit /b
 
 :output2
