@@ -1,58 +1,59 @@
 @echo off
+rem
+rem -- This batch automatically tests ccsc and ccsrc so that fatal bugs can be found more easily.
+rem
+
 pushd %0\..
-goto CCSC
+cls
 
-:CCSC
-echo ---Making ccsc---
-%~d0\ghc2\ghc\2013.2.0.0\bin\ghc --make  ccsc
+call :make ccsc
+call :make ccsrc
 
-if not %errorlevel% == 0 goto OnError 
-if     %errorlevel% == 0 goto OnSuccess
+set today_YYYYMMDD=%date:~0,4%-%date:~5,2%-%date:~8,2%
+set now_HHmmSS=%time:~0,2%-%time:~3,2%-%time:~6,2%
+set LOG=testresult%today_YYYYMMDD%_%now_HHmmSS%.log
+echo. > %LOG% 
 
-:OnError
-echo ---Failed, retry.---
-goto CCSC
-
-:OnSuccess
-echo ---Successful--- 
-goto CCSRC
-
-:CCSRC
-echo ---Making ccsrc---
-%~d0\ghc2\ghc\2013.2.0.0\bin\ghc --make  ccsrc
-
-if not %errorlevel% == 0 goto OnErrorR 
-if     %errorlevel% == 0 goto OnSuccessR
-
-:OnErrorR
-echo ---Failed, retry.---
-goto CCSRC
-
-:OnSuccessR
-echo ---Successful---
-goto TEST
-
-
-
-
-
-:TEST
-set LOG=testresult.log
-echo. > %LOG%
-ccsc -C48 examples/xIsNumber__CCS.txt -o examples/C48test.tmp
-fc examples\C48test.tmp examples\xIsNumber__BF_c.txt
-if     %errorlevel% == 0 echo correct compile in options "-C48 examples/xIsNumber__CCS.txt -o examples/C48test.tmp" >> %log%
-if not %errorlevel% == 0 echo wrong   compile in options "-C48 examples/xIsNumber__CCS.txt -o examples/C48test.tmp" >> %log%
-
-
-ccsc -C88 examples/xIsNumber__BF.txt -o examples/C88test.tmp
-fc examples\C88test.tmp examples\xIsNumber__BF_c.txt
-if     %errorlevel% == 0 echo correct compile in options "-C88 examples/xIsNumber__BF.txt -o examples/C88test.tmp" >> %log%
-if not %errorlevel% == 0 echo wrong   compile in options "-C88 examples/xIsNumber__BF.txt -o examples/C88test.tmp" >> %log%
-
+rem  :compile compiler option source                           tmp                     judger
+call :compile ccsc     -C48   examples\xIsNumber__CCS.txt      examples\C48test.tmp    examples\xIsNumber__BF_c.txt
+call :compile ccsc     -C88   examples\xIsNumber__BF.txt       examples\C88test.tmp    examples\xIsNumber__BF_c.txt
+call :compile ccsc     -E     examples\xPreProcessTest__CS.txt examples\C11test.tmp    examples\xPreProcessed.txt
+call :compile ccsrc    -C88   examples\xIsNumber__BF_c.txt     examples\R88test.tmp    examples\xIsNumber__BF_i.txt
 
 type %log%
 del examples\*.tmp
+echo ---Deleted temporary files.---
 
 pause
 exit
+rem #$#$#$# MAIN THINGS END HERE #$#$#$#
+
+
+rem --- call :output %errorlevel% string
+:output
+if     %1 == 0 echo succeeded %2 >> %log%
+if not %1 == 0 echo FAILED    %2 >> %log%
+exit /b
+
+rem --- call :make file
+:make
+echo ---Making %1.hs---
+%~d0\ghc2\ghc\2013.2.0.0\bin\ghc --make  %1
+
+if not %errorlevel% == 0 (
+echo ---Failed, retry.---
+rem ---pause for a second
+ping -n 2 localhost > nul 
+call :make %1
+)
+if     %errorlevel% == 0 (
+echo ---Successful--- 
+)
+exit /b
+
+rem --- call :compile compiler option source tmp judger
+:compile
+%1 %2 %3 -o %4
+fc /n %4 %5
+call :output %errorlevel% "%1 %2 %3 -o %4"
+exit /b

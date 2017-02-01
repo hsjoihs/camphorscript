@@ -1,0 +1,34 @@
+
+
+
+
+
+/*_star_a+= ~b_star_*/
+#def(+=~)(char& a;char& b)
+  while(b){
+   b-=1;a+=1;
+   }
+#end_def
+
+#define_ del(char& x) clear(x); delete x
+char a; /*temporary _star_ */
+
+
+a+=3; 
+
+
+char C;
+
+
+char b;
+b+=7;
+
+
+
+
+
+
+
+#define id(x) x
+
+

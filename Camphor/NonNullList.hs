@@ -3,7 +3,7 @@ module Camphor.NonNullList
 ,toList
 )where
 
-data NNList a = (:-:)a [a] deriving(Show)
+data NNList a = (:|)a [a] deriving(Show)
 
 toList :: NNList a -> [a]
-toList (x :-: xs) = x:xs
+toList (x :| xs) = x:xs

@@ -63,7 +63,7 @@ step4::String->Either ParseError String
 step4 str=do{sets<-parse parser4 "step4" str;convert4 sets}
 
 convert4::[Set4]->Either ParseError String
-convert4 xs=convert4' ((1,M.empty :-: [],[]),xs)
+convert4 xs=convert4' ((1,M.empty :| [],[]),xs)
 
 minUnused::[VarNum]->VarNum
 minUnused xs     = head$filter(\x->not(x `elem` xs)) [0..]
@@ -81,13 +81,13 @@ convert4'::(CurrState,[Set4])->Either ParseError String
 convert4'( _            ,[]                    ) = Right ""
 
 
-convert4'((n ,(s:-:st),ls),(Top(DEF,ide      ):xs)) 
+convert4'((n ,(s:|st),ls),(Top(DEF,ide      ):xs)) 
  | isJust(M.lookup ide s)                        = Left $newErrorMessage (Message$"identifier "++show ide++"is already defined")(newPos "step4" 0 0)
- | otherwise                                     = convert4' ((n, M.insert ide new s :-: st,new:ls),xs)
+ | otherwise                                     = convert4' ((n, M.insert ide new s :| st,new:ls),xs)
   where new=minUnused ls
 
-convert4'((n ,(s:-:st),ls),(Top(DEL,ide      ):xs)) = case (M.lookup ide s) of
-   Just  k                                      -> convert4' ((n, M.delete ide s :-: st,remove k ls),xs)
+convert4'((n ,(s:|st),ls),(Top(DEL,ide      ):xs)) = case (M.lookup ide s) of
+   Just  k                                      -> convert4' ((n, M.delete ide s :| st,remove k ls),xs)
    Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined or is already deleted in this scope")(newPos "step4" 0 0)
 
 convert4'(state         ,(Top(NUL,sp):xs)) = (sp++)<$>convert4'(state,xs) 
@@ -114,5 +114,5 @@ convert4'(state         ,(Top(COM,cm):xs)) = (cm++)<$>convert4'(state,xs)
 
 convert4'((n ,st    ,ls),(Bot(WHI,ide,Nodes v):xs)) = case (lookup' ide (toList st)) of
    Just k                                       -> 
-    (\x->"mov "++show k++"; loop; "++x)<$>convert4' ((n+1,M.empty:-:toList st,ls),v)<++>Right("mov "++show k++"; pool; ")<++>convert4'((n,st,ls),xs)
+    (\x->"mov "++show k++"; loop; "++x)<$>convert4' ((n+1,M.empty:|toList st,ls),v)<++>Right("mov "++show k++"; pool; ")<++>convert4'((n,st,ls),xs)
    Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos "step4" 0 0)
