@@ -5,7 +5,6 @@ module Camphor.IO
 ,getContentsFrom
 ,abort
 ,replaceExtension
-,(</>)
 ,getDirectoryContents
 ,getArgs
 )where

@@ -1,0 +1,3 @@
+char ppp;
+#include <void.txt>
+char qqq;

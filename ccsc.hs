@@ -12,19 +12,18 @@ import Camphor.IO
 import Data.List(isPrefixOf)
 import qualified Data.Map as M
 
-lib_dir :: FilePath
-lib_dir = "lib"
+
 
 ioLibs :: IO [FilePath]
 ioLibs = do
  libs' <- getDirectoryContents lib_dir
  return [ file | file <- libs', not("." `isPrefixOf` file)]
 
-getLibs3 :: IO(FilePath -> Maybe Txt) 
+getLibs3 :: IO(M.Map FilePath Txt) 
 getLibs3 = do
   libs <- ioLibs
   texts <- mapM getContentsFrom (map (lib_dir </>) libs)
-  return (\file -> (M.lookup file $ M.fromList $ zip libs texts))
+  return ( M.fromList $ zip libs texts)
 
 info::[String]
 info=[
@@ -42,7 +41,7 @@ main = do
  dispatch4 args
 
 
-step :: FilePath -> (FilePath -> Maybe Txt) -> [Txt -> Either ParseError Txt]   
+step :: FilePath -> (M.Map FilePath Txt) -> [Txt -> Either ParseError Txt]   
 step file includer = [step1 file includer,undefined,undefined,step4,step5,step6,step7,step8]
 
 

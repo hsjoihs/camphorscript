@@ -14,12 +14,15 @@ module Camphor.Global
 ,isJust
 ,Txt
 ,(>=>)
+,lib_dir
+,(</>)
 )where
 
 import Control.Monad
 import Text.Parsec hiding(token)
 import Data.Char(isSpace,ord)
 import Control.Applicative hiding ((<|>),many)
+import System.FilePath
 
 infixr 5 <++>
 (<++>) :: Applicative f => f [a] -> f [a] -> f [a]
@@ -28,6 +31,9 @@ infixr 5 <++>
 infixr 5 <:>
 (<:>) :: Applicative f => f a -> f [a] -> f [a]
 (<:>) a b = (:) <$> a <*> b
+
+lib_dir :: FilePath
+lib_dir = "lib"
 
 isJust :: Maybe x -> Bool
 isJust (Just _) = True

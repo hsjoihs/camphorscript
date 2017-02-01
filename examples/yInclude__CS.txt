@@ -1,0 +1,5 @@
+char abc;
+
+#include <void.txt>
+
+char def;
