@@ -1,8 +1,20 @@
 {-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
+
+module Camphor.Step7_8
+(Com7(..)
+,step7
+,step8
+,step7_8
+,example7
+) where
+
+
 import Text.Parsec
 import Control.Applicative hiding ((<|>),many)
 import Data.List(genericTake)
 import Control.Monad((>=>))
+
+
 
 step7 str=convert7 <$> (parse parser7 "step7" str) {-turn into symbols -}
 step8 str=concat   <$> (parse parser8 "step8" str) {-removes unnecessary letters-}
