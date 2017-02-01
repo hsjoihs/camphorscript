@@ -4,7 +4,7 @@ import System.Environment
 import System.IO
 import Control.Monad
 import Text.Parsec
-import Camphor.Step1
+import Camphor.Base_Step1
 import Camphor.Step4
 import Camphor.Step5
 import Camphor.Step6
@@ -19,7 +19,8 @@ info=[
  "Usage: ccsc [options] [-o outfilepath] infile",
  "options: ",
  "-Cnum[num]  compile from step 'num' to step 'num'",
- "-E          C preprocess only"
+ "-E          C preprocess only",
+ "-X          Debug"
  ]
  
 main::IO()
@@ -50,5 +51,6 @@ dispatch3 [             ] out cont = outputParsed out (fromTo' 4              8 
 dispatch3 [['-','C',x,y]] out cont = outputParsed out (fromTo' (read[x]::Int) (read[y]::Int)  step cont);
 dispatch3 [['-','C',x]  ] out cont = outputParsed out (fromTo' (read[x]::Int) (read[x]::Int)  step cont);
 dispatch3 [['-','E']    ] out cont = outputParsed out (fromTo' 1              1               step cont);
+dispatch3 [['-','X']    ] out cont = print$parse parser1 "step1" $ cont ++ "\n";
 dispatch3 [x            ] _   _    = abort$"unknown option"++show x;
 dispatch3 xs              _   _    = abort$"unknown options"++show xs;

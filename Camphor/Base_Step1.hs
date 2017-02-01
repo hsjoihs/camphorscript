@@ -9,7 +9,7 @@ module Camphor.Base_Step1
 ,line
 ,convert1
 ,convert1'
-,convert1'5
+,replaceBy
 ,parser1'5
 ,token
 ) where
@@ -25,60 +25,71 @@ import Control.Monad(join)
 import qualified Data.Map as M
 
 {- C macro  -}
+step1 :: String -> Either ParseError String
+step1 str = join (convert1 <$> (parse parser1 "step1" $ str ++ "\n"))
 
-type Set=(Pre7,Ident,String)
+-- PARSING
 
+data Pre7 = IFDEF | IFNDEF | UNDEF | ENDIF | DEFINE | OTHER deriving (Show)
+type Set = (Pre7,Ident,String)
 
-step1::String->Either ParseError String
-step1 str=join(convert1 <$> (parse parser1 "step1"$str++"\n"))
+parser1 :: Stream s m Char => ParsecT s u m [Set]
+parser1 = many line
 
-
-parser1::Stream s m Char=>ParsecT s u m [Set]
-parser1=sepBy line newline
-
-
-data Pre7=IFDEF|IFNDEF|UNDEF|ENDIF|DEFINE|OTHER deriving(Show)
-
-
-line::Stream s m Char=>ParsecT s u m Set
-line=ifdef<|>ifndef<|>endif<|>define<|>undef<|>other
+line :: Stream s m Char => ParsecT s u m Set
+line = ifdef <|> ifndef <|> endif <|> define <|> undef <|> other
  where
-  ifdef  = do{try(do{nbsps;char '#';nbsps;string "ifdef" ;nbsp});nbsps;x<-identifier;return(IFDEF ,x,"")}
-  ifndef = do{try(do{nbsps;char '#';nbsps;string "ifndef";nbsp});nbsps;x<-identifier;return(IFNDEF,x,"")}
-  undef  = do{try(do{nbsps;char '#';nbsps;string "undef" ;nbsp});nbsps;x<-identifier;return(UNDEF ,x,"")}
-  endif  = do{try(do{nbsps;char '#';nbsps;string "endif" });nbsps;return(ENDIF,"","")}
-  other  = do{xs<-many(noneOf "\n");return(OTHER,"",xs)}
+  ifdef  = (do{ try(do{nbsps;char '#';nbsps;string "ifdef" ;nbsp});nbsps;x<-identifier;nbsps;newline;return(IFDEF ,x,"") })
+  ifndef = (do{ try(do{nbsps;char '#';nbsps;string "ifndef";nbsp});nbsps;x<-identifier;nbsps;newline;return(IFNDEF,x,"") })
+  undef  = (do{ try(do{nbsps;char '#';nbsps;string "undef" ;nbsp});nbsps;x<-identifier;nbsps;newline;return(UNDEF ,x,"") })
+  endif  = (do{ try(do{nbsps;char '#';nbsps;string "endif" });nbsps;newline;return(ENDIF,"","") })
+  other  = do{ xs<-many(noneOf "\n");newline;return(OTHER,"",xs) }
   
   
 {-functional not yet-}
-define::Stream s m Char=>ParsecT s u m Set
-define=
+define :: Stream s m Char => ParsecT s u m Set
+define =
  do
   try(do{nbsps;char '#';nbsps;string "define";nbsp})
   nbsps
-  xs<-identifier'
-  ys<-option ""(do{nbsp;nbsps;m<-many(noneOf "\n");return m})
-  return(DEFINE,xs,ys)
+  xs <- identifier'
+  ys <- do{newline;return $ Right ""} <|> do{nbsp;nbsps;m<-many(noneOf "\n");newline;return $ Right m} <|> do{ks<-many(noneOf "\n");newline;return $ Left ks}
+  case ys of
+   Right ys' -> return (DEFINE,xs,ys')
+   Left  ys' -> return (OTHER ,"","#define "++xs++ys')
+  
+  
+ 
   
 
 
 
-
+-- CONVERSION
 
 type Table=M.Map Ident String
 type CurrentState=(Table,Integer,Int,Bool,Integer){-defined macro, how deep 'if's are, line num, whether to read a line,depth of skipping  -}
 
 
-convert1::[Set]->Either ParseError String
-convert1 xs=convert1' ((M.empty,0,0,True,(-1)) ,xs)
+convert1 :: [Set] -> Either ParseError String
+convert1 xs = convert1' ((M.empty,0,0,True,(-1)) ,xs)
 
 
-convert1'::(CurrentState,[Set])->Either ParseError String
+convert1' :: (CurrentState,[Set]) -> Either ParseError String
 
 convert1' ((_    ,0    ,_,True ,_),[]               ) = Right ""
 convert1' ((_    ,depth,n,_    ,_),[]               )                  
- | depth>0                                            = Left $newErrorMessage (  Expect "#endif")(newPos "step1" n 1) 
- | otherwise                                          = Left $newErrorMessage (UnExpect "#endif")(newPos "step1" n 1) 
+ | depth>0                                            = Left $newErrorMessage (  Expect "#endif")(newPos "step1'" n 1) 
+ | otherwise                                          = Left $newErrorMessage (UnExpect "#endif")(newPos "step1'" n 1) 
+ 
+ 
+convert1' ((table,depth,n,False,o),(IFDEF ,_  ,_):xs) = ('\n':)<$>convert1'((table,depth+1,n+1,False,o    ),xs)
+convert1' ((table,depth,n,False,o),(IFNDEF,_  ,_):xs) = ('\n':)<$>convert1'((table,depth+1,n+1,False,o    ),xs)
+convert1' ((table,depth,n,False,o),(UNDEF ,_  ,_):xs) = ('\n':)<$>convert1'((table,depth  ,n+1,False,o    ),xs)
+convert1' ((table,depth,n,False,o),(ENDIF ,_  ,_):xs)
+ | depth - 1 == o                                     = ('\n':)<$>convert1'((table,depth-1,n+1,True ,(-1) ),xs)
+ | otherwise                                          = ('\n':)<$>convert1'((table,depth-1,n+1,False,o    ),xs)
+convert1' ((table,depth,n,False,o),(DEFINE,_  ,_):xs) = ('\n':)<$>convert1'((table,depth  ,n+1,False,o    ),xs)
+convert1' ((table,depth,n,False,o),(OTHER ,_  ,_):xs) = ('\n':)<$>convert1'((table,depth  ,n+1,False,o    ),xs) 
  
  
 convert1' ((table,depth,n,True ,_),(IFDEF ,ide,_):xs)
@@ -87,38 +98,31 @@ convert1' ((table,depth,n,True ,_),(IFDEF ,ide,_):xs)
 convert1' ((table,depth,n,True ,_),(IFNDEF,ide,_):xs)
  | isJust(M.lookup ide table)                         = ('\n':)<$>convert1'((table,depth+1,n+1,False,depth),xs)
  | otherwise                                          = ('\n':)<$>convert1'((table,depth+1,n+1,True ,(-1) ),xs)
-convert1' ((table,depth,n,False,o),(IFDEF ,_  ,_):xs) = ('\n':)<$>convert1'((table,depth+1,n+1,False,o    ),xs)
-convert1' ((table,depth,n,False,o),(IFNDEF,_  ,_):xs) = ('\n':)<$>convert1'((table,depth+1,n+1,False,o    ),xs)
-
-
 convert1' ((table,depth,n,True ,_),(UNDEF ,ide,_):xs)
- | _tabl==table                                       = Left $newErrorMessage (UnExpect$"C macro "++show ide)(newPos "step1" n 1) 
+ | _tabl==table                                       = Left $newErrorMessage (UnExpect$"C macro "++show ide)(newPos "step1'" n 1) 
  | otherwise                                          = ('\n':)<$>convert1'((_tabl,depth  ,n+1,True ,(-1) ),xs)
  where _tabl = M.delete ide table
-convert1' ((table,depth,n,False,o),(UNDEF ,_  ,_):xs) = ('\n':)<$>convert1'((table,depth  ,n+1,False,o    ),xs)
-
 convert1' ((table,depth,n,True ,_),(ENDIF ,_  ,_):xs) = ('\n':)<$>convert1'((table,depth-1,n+1,True ,(-1) ),xs)
-convert1' ((table,depth,n,False,o),(ENDIF ,_  ,_):xs)
- | depth-1==o                                         = ('\n':)<$>convert1'((table,depth-1,n+1,True ,(-1) ),xs)
- | otherwise                                          = ('\n':)<$>convert1'((table,depth-1,n+1,False,o    ),xs)
- 
- 
 convert1' ((table,depth,n,True ,_),(DEFINE,ide,t):xs)
- | isJust(M.lookup ide table)                         = Left $newErrorMessage (Message$"C macro "++show ide++" is already defined")(newPos "step1" n 1) 
+ | isJust(M.lookup ide table)                         = Left $newErrorMessage (Message$"C macro "++show ide++" is already defined")(newPos "step1'" n 1) 
  | otherwise                                          = ('\n':)<$>convert1'((_tabl,depth  ,n+1,True ,(-1) ),xs)
  where _tabl = M.insert ide t table
-convert1' ((table,depth,n,False,o),(DEFINE,_  ,_):xs) = ('\n':)<$>convert1'((table,depth  ,n+1,False,o    ),xs)
-
-convert1' ((table,depth,n,False,o),(OTHER ,_  ,_):xs) = ('\n':)<$>convert1'((table,depth  ,n+1,False,o    ),xs)
-
-convert1' ((table,depth,n,True ,_),(OTHER ,_  ,t):xs) = (\x->convert1'5 table t++"\n"++x)<$>convert1'((table,depth,n,True ,(-1) ),xs)    
+convert1' ((table,depth,n,True ,_),(OTHER ,_  ,t):xs) = (\x->replaceBy table t++"\n"++x)<$>convert1'((table,depth,n,True ,(-1) ),xs)    
 
 {- macro conversion-}
-convert1'5::Table->String->String
-convert1'5 table str = (\(Right x)->x)(parse parser1'5 "" str)>>=repl
+replaceBy :: Table -> String -> String
+replaceBy table str = case parsed of
+ Right xs -> concat$ map (replaceTokenBy table) xs
+ Left  e  -> undefined
  where 
-  repl::String->String
-  repl x=maybe x id (M.lookup x table)
+  parsed :: Either ParseError [String]
+  parsed = parse parser1'5 "" str
+
+    
+replaceTokenBy :: Table -> String -> String -- maybe is harder to read than case of; thus rewrite
+replaceTokenBy table x = case M.lookup x table of 
+ Just t  -> replaceBy (M.delete x table) t -- recursion (macro does not expand itself, to ensure that it terminates)
+ Nothing -> x
 
   
 parser1'5::Stream s m Char=>ParsecT s u m [String]

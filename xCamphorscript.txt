@@ -2,16 +2,20 @@
 #define ABC
 
 #define windows 1
+
 #def(+=~)(char& a;char& b)
   while(b){
    b-=1;a+=1;
    }
 #end_def
+
 #define_ del(char& x) clear(x); delete x
 char a;
+
 #define C 3
 a+=C; 
 #undef C
+
 char C;
 
 #ifdef windows
@@ -23,5 +27,7 @@ b+=7;
 char x;
 x+=8;
 #endif
+
+#define id(x) x
 
 #endif
