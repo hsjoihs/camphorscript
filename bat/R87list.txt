@@ -2,3 +2,7 @@ xIsNumber 1
 xtoLower 2
 xHello 3
 xAtoI 4
+qEscSeq 5
+qScope 6
+xEcho 7
+; BF_c -> ND_rev

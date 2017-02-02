@@ -1,0 +1,4 @@
+inc 10;output;
+mov 1;inc 9;output;
+mov 2;inc 92;output;
+mov 3;inc 39;output;

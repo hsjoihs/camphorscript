@@ -1,0 +1,5 @@
+inc 1;
+mov 0;loop;
+	mov 1;output;
+	_input;
+mov 0;mov 0;pool;

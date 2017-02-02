@@ -2,3 +2,7 @@ xIsNumber 1
 xAtoI 2
 xEcho 3
 xHello 4
+qEscSeq 5
+qScope 6
+xtoLower 7
+; BF_i -> BF_c

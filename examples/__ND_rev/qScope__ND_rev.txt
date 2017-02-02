@@ -1,0 +1,5 @@
+inc 5;output;
+mov 1;inc 5;output;
+mov 2;inc 5;output;
+mov 1;output;
+mov 2;inc 5;
