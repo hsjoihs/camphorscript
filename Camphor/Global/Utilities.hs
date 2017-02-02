@@ -1,11 +1,12 @@
 {-# OPTIONS -Wall #-}
 module Camphor.Global.Utilities
-(makeErr,Message(..),readEith,readMay,escStar,newErrorMessage
+(makeErr,Message(..),readEith,readMay,escStar,newErrorMessage,remSpace
 )where
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Text.Parsec hiding(token)
 import Text.Parsec.Error(newErrorMessage,Message(..))
 import Text.Parsec.Pos(newPos)
+import Data.Char(isSpace)
 
 makeErr :: Message -> SourceName -> Line -> Column -> Either ParseError b
 makeErr msg pos x y = Left$newErrorMessage msg (newPos pos x y) 
@@ -19,3 +20,6 @@ readMay s      = case [x | (x,t) <- reads s, ("","") <- lex t] of [x] -> Just x 
 escStar :: Char -> String
 escStar '*' = "_star_"
 escStar x   = [x]
+
+remSpace :: String -> String
+remSpace = filter(not . isSpace)

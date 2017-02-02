@@ -3,7 +3,7 @@
 module Camphor.Base_Step2_2
 (parser2_2
 ,parser2'
-,Upgrade(..),Sent,Sents,Type,Value,TypeList1,ValueList,Extra,SimpleSent(..)
+,Upgrade(..),Sent,Sents,Type(..),Value(..),TypeList,ValueList,Extra,SimpleSent(..)
 )where
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Camphor.Global.Synonyms
@@ -23,11 +23,12 @@ type Extra = SourcePos
 type Sent  = Upgrade (Extra,SimpleSent)
 type Sents = [Sent]
 
-type TypeList1 = (Type, Ident, [(Oper, Type, Ident)])
+type TypeList = (Type, Ident, [(Oper, Type, Ident)])
+type ValueList = (Value,[(Oper,Value)])
 
 data SimpleSent =
  Char Ident | Del Ident | Scolon | Infl Fix Oper | Infr Fix Oper | Sp String | Comm String | 
- Func1 Ident TypeList1 Sent | Func2 Oper TypeList1 TypeList1 Sent | Call1 Ident ValueList |
+ Func1 Ident TypeList Sent | Func2 Oper TypeList TypeList Sent | Call1 Ident ValueList |
  Call2 Oper ValueList ValueList | Call3 Oper ValueList ValueList | Call4 [(Value,Oper)] ValueList | Call5 ValueList deriving(Show)
 
 data Type = CNSTNT_CHAR | CONST_CHAR | CHAR_AND deriving(Show,Eq)
@@ -125,7 +126,7 @@ op_call1 = do{
  ----- Semicolon *is* parsed because troubles that can occur in normal functions cannot occur with operators
  }
 
----  (値【演算子 値】)演算子(値 【演算子 値】);
+---  (val [op val])op(val [op val]);
 op_call2 :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 op_call2 = try(do{
  p <- getPosition; 
@@ -143,7 +144,7 @@ op_call2 = try(do{
  })
  
  
---- (値【演算子 値】)演算子 値 【演算子 値】 ; 
+--- (val [op val])op val [op val] ; 
 op_call3 :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 op_call3 = try(do{
  p <- getPosition; 
@@ -177,19 +178,14 @@ op_call5 :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 op_call5 = try(do{
  p <- getPosition; 
  vs <- getValueList; __; _scolon; return(simple p$Call5 vs)
- 
  })
- 
-
-
-
 typ :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Type
 typ = 
  ( do{_cnstnt; __; _char; return CNSTNT_CHAR} <?> "constant char" )<|>
  ( do{_const ; __; _char; return CONST_CHAR } <?> "const char"    )<|>
  ( do{_char;   __; _and ; return CHAR_AND   } <?> "char&"         )
  
-getTypeList :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity TypeList1
+getTypeList :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity TypeList
 getTypeList = do
  g <- typ;      __;   
  h <- _ident;   __;    
@@ -199,13 +195,9 @@ getTypeList = do
 value :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Value
 value = (Var <$> _ident <?> "variable") <|> (Constant <$> _num <?> "unsigned integer or character literal")
 
-type ValueList = (Value,[(Oper,Value)])
+
 getValueList :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity ValueList
 getValueList = do
  g <- value;  __;
  h <- many(do{a <- _op; __; b <- value; __; return(a,b)})
  return(g,h)
- 
-
- 
-
