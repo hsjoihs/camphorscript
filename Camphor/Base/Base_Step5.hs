@@ -123,7 +123,7 @@ convert5' m f((n ,s:|st ,ls),Top(DEL ide     ):xs) = case M.lookup ide s of
    Nothing                                      -> makeErr(msgIde ide "is not defined or is already deleted in this scope")(f++"--step5'") 0 0
    
 convert5' m f((n ,st    ,ls),Top(AS0 ide     ):xs) = case lookup' ide (toList st) of
-   Just  k                                      -> {-(("unsafe_assert "++show k++"; ")++)<$$>-}convert5' m f((n, st,ls),xs)
+   Just  _                                      -> {-(("unsafe_assert "++show k++"; ")++)<$$>-}convert5' m f((n, st,ls),xs)
    Nothing                                      -> makeErr(msgIde ide "is not defined or is already deleted")(f++"--step5'") 0 0
 
 convert5' m f(state         ,Top(NUL sp      ):xs) = (sp++) <$$> convert5' m f(state,xs) 

@@ -15,7 +15,7 @@ exit
 setlocal
 set k=%~nx1
 echo %k% > bat\ver.tmp
-for /F "usebackq" %%j in (` optotest --getver ^< bat\ver.tmp `) do (
+for /F "usebackq" %%j in (` orthotest --getver ^< bat\ver.tmp `) do (
  echo #define VERSION "%%j" > Camphor\version.h
  del bat\ver.tmp
 )

@@ -33,54 +33,15 @@ for /F "usebackq eol=; delims=" %%i in (`type bat\R88list.txt`)  do ( call :test
 for /F "usebackq eol=; delims=" %%i in (`type bat\R87list.txt`)  do ( call :tester ccsrc -C87 BF_c     ND_rev  R87test  %%i )
 for /F "usebackq eol=; delims=" %%i in (`type bat\R84list.txt`)  do ( call :tester ccsrc -C84 BF_c     CCS_rev R84test  %%i )
 
-echo %LOG2%: > bat\testresult.tmp
-type %LOG% >>  bat\testresult.tmp
-echo. >>  bat\testresult.tmp
-type testresult.log >> bat\testresult.tmp
-type bat\testresult.tmp > testresult.log
-echo.
-echo %LOG2%:
-type %LOG%
-del %LOG%
-if exist %FAIL% (
-del %FAIL%
-) else (
-del bat\*.tmp
-echo ---Deleted temporary files.---
-) 
+call bat\jigo testresult
 pause
 exit
+
+
 rem #$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$
 rem #$#$#$#$#$#$# MAIN THINGS END HERE $#$#$#$#$#$#$
 rem #$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$
-:compile
-setlocal
-set compiler=%1
-set option=%2
-set source=examples\%3
-set tmp=bat\%4.tmp
-set judger=examples\%5
-set test=%compiler% %option% %source%
 
-rem print without linefeed
-set /p out=testing %test%: < nul
-%test% -o %tmp%
-fc /n %tmp% %judger% > nul
-call :output %errorlevel% "%test% -o %tmp%"
-endlocal
-exit /b
-
-:output
-if     %1 == 0 (
-echo success
-echo success: %2 >> %LOG%
-)
-if not %1 == 0 (
-echo FAILURE
-echo FAILURE: %2 >> %LOG%
-type nul > %FAIL%
-) 
-exit /b
 rem ccsc -C48 CCS BF_c C48test %%i
 :tester 
 setlocal
@@ -91,6 +52,6 @@ set to=%4
 set tmp=%5
 set name=%6
 set num=%7
-call :compile %compiler%    %option%   __%frm%\%name%__%frm%.txt   %tmp%%num%    __%to%\%name%__%to%.txt 
+call bat\compile examples %compiler%    %option% -f0.6  __%frm%\%name%__%frm%.txt   %tmp%%num%    __%to%\%name%__%to%.txt 
 endlocal
 exit /b

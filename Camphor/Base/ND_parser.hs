@@ -22,7 +22,7 @@ parserND' :: Stream s m Char => ParsecT s u m [Chunk]
 parserND' = do{sents <- many sentences;eof;return sents}
 
 sentences :: Stream s m Char => ParsecT s u m Chunk
-sentences = inc <|> dec <|> loop <|> pool <|> mov <|> assert <|> output <|> input <|> nul <|> comm 
+sentences = (inc <|> dec <|> loop <|> pool <|> mov <|> assert <|> output <|> input <?> "sentence") <|> nul <|> comm 
  where
   uintOr1 = do{spaces;num <- option 1 uint';spaces;char ';';return num}
   uintAndS = do{spaces;num <- uint';spaces;char ';';return num}
@@ -34,8 +34,8 @@ sentences = inc <|> dec <|> loop <|> pool <|> mov <|> assert <|> output <|> inpu
   pool   = do{string "pool";spaces;char ';'; return(B POOL)}
   input  = do{string "_input";spaces;char ';'; return(B IN)} {- "_input" rather than "input" to avoid 'try' -}
   output = do{string "output";spaces;char ';'; return(B OUT)}
-  nul    = do{sp<-many1 space;return$C(NUL,sp)}
-  comm   = do{string "/*";comment<-many(noneOf "*");string "*/";return$C(NUL,"/*"++(comment>>=escape)++"*/")}
+  nul    = do{sp<-many1 space;return$C(NUL,sp)} <?> "space"
+  comm   = do{string "/*";comment<-many(noneOf "*");string "*/"<?>"end of block comment";return$C(NUL,"/*"++(comment>>=escape)++"*/")} <?> "comment"
   escape '+' = "_plus_" 
   escape '-' = "_minus_" 
   escape ',' = "_comma_" 

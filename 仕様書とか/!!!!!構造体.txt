@@ -1,0 +1,61 @@
+1.構文
+ 1-1. 構造体宣言
+  rep = "" | (','  |  ',', type  |  ';', type), identifier, rep
+  structDef = 'struct', newtype, '{', type, identifier, rep, (';' | ',' | ''), '}'//, ('' | renaming)
+  /*
+  renaming = 'renaming', '(', list, ')'
+  list = single | single, ',', list
+  single = idDot, '->', identifier
+  idDot = identifier | identifier '.' idDot
+  */
+ 1-2. 変数定義/削除
+  通常の変数と同じ。Cと同じく、型名の前にはstructが必要。
+  typedefは無いのでマクロでどうにかする 
+ 1-3. メンバアクセス
+  .を用いる。
+     
+2.例
+ 2-1.元
+  struct pairChar_{char first, char second}
+  #define pairChar struct pairChar_
+  pairChar a;  a .first += 1;  a.second += 2;
+  clear(a.first); clear(a.second); 
+  delete a; // all fields must be zero
+  struct tripleChar_{pairChar fs; char third;}// C struct allowed
+  /* renaming( fs.first -> first, fs.second -> second)*/; 
+  #define tripleChar struct tripleChar_
+  tripleChar b; b .fs. first += 1; b. fs .second += 2; b.third += 3;
+ 2-2.展開後
+  /*struct pairChar_{char first, char second}
+  #define pairChar struct pairChar_*/
+  char a__DOT__first; char a__DOT__second; a__DOT__first +=1; a__DOT__second +=2;
+  clear(a__DOT__first); clear(a__DOT__second);
+  delete a__DOT__first; delete a__DOT__second;
+  /*struct tripleChar_{pairChar fs; char third;}// C struct allowed
+  /__star__ renaming( fs.first -> first, fs.second -> second)__star__/; 
+  #define tripleChar struct tripleChar_*/
+  char b__DOT__fs__DOT__first; char b__DOT__fs__DOT_second; char b__DOT__third;
+  b__DOT__fs__DOT__first += 1; b__DOT__fs__DOT__second += 2; b__DOT__third += 3;
+ 2-3.要するに
+  コンパイル時には変数をバラすだけでいいのだが、
+  型の種類が増えるのでそれへの対応が必要。
+
+3. 関数
+ 3-1.解説
+  まず、({識別子})を演算子として認定する。
+  その後、以下の様な展開を行う。
+ 3-2.before
+  struct pairChar_{char first, char second}
+  void dbg_dump(struct pairChar_ &a)
+  {
+  	  write(a.first);
+  	  write(a.second);
+  }
+ 3-3.after
+  void dbg_dump(char& a__DOT__first ({pairChar_}) char& a__DOT__second)
+  {
+  	  write(a__DOT__first);
+  	  write(a__DOT__second);
+  }
+ 3-4.その他
+  勿論、元々の方についていたconst修飾子やconstant修飾子は継承される。

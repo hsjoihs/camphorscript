@@ -1,3 +1,193 @@
+terrresult2014-09-14_15-46-40: 
+failed    "ccsc -C22 examples\error\Step2_1035_prag_memory_using_isconstant.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1035_prag_memory_using_isconstant.txt-step2" (line 3, column 9):
+cannot use constant 50 in a `MEMORY using' pragma
+ 
+failed    "ccsc -C22 examples\error\Step2_1036_type_wrongcall_definedasarg_functi.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1036_type_wrongcall_definedasarg_functi.txt-step2" (line 3, column 9):
+cannot call "a" as a function because it is defined as an argument
+ 
+failed    "ccsc -C22 examples\error\Step2_1037_type_wrongcall_definedasarg_synt.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1037_type_wrongcall_definedasarg_synt.txt-step2" (line 3, column 9):
+cannot use "a" as a syntax because it is defined as an argument
+ 
+failed    "ccsc -C22 examples\error\Step2_1038_type_wrongcall_recursivecall.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1038_type_wrongcall_recursivecall.txt-step2" (line 3, column 9):
+cannot call function foo(char& a ){ .. } recursively inside function bar(char& a ){ .. }
+ 
+failed    "ccsc -C22 examples\error\Step2_1039_type_wrongcall_fixnotdefined_operat.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1039_type_wrongcall_fixnotdefined_operat.txt-step2-2" (line 1, column 1):
+cannot call operator "%%" because its fixity is not defined
+ 
+failed    "ccsc -C22 examples\error\Step2_1040_type_wrongdef_insidecall_functi.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1040_type_wrongdef_insidecall_functi.txt-step2" (line 3, column 9):
+cannot define function "bar" inside function/operator definition
+ 
+failed    "ccsc -C22 examples\error\Step2_1041_type_wrongdef_insidecall_synt.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1041_type_wrongdef_insidecall_synt.txt-step2" (line 3, column 9):
+cannot define syntax "bar" inside function/operator definition
+ 
+failed    "ccsc -C22 examples\error\Step2_1042_type_wrongdef_insidecall_operat.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1042_type_wrongdef_insidecall_operat.txt-step2" (line 4, column 9):
+cannot define operator "%%" inside function/operator definition
+ 
+failed    "ccsc -C22 examples\error\Step2_charblock.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_charblock.txt-step2" (line 1, column 6):
+unexpected token "block"
+ 
+failed    "ccsc -C22 examples\error\Step2_charchar.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_charchar.txt-step2" (line 1, column 6):
+unexpected token "char"
+ 
+failed    "ccsc -C22 examples\error\Step2_charconst.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_charconst.txt-step2" (line 1, column 6):
+unexpected token "const"
+ 
+failed    "ccsc -C22 examples\error\Step2_charconstant.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_charconstant.txt-step2" (line 1, column 6):
+unexpected token "constant"
+ 
+failed    "ccsc -C22 examples\error\Step2_chardelete.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_chardelete.txt-step2" (line 1, column 6):
+unexpected token "delete"
+ 
+failed    "ccsc -C22 examples\error\Step2_charinfixl.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_charinfixl.txt-step2" (line 1, column 6):
+unexpected token "infixl"
+ 
+failed    "ccsc -C22 examples\error\Step2_charinfixr.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_charinfixr.txt-step2" (line 1, column 6):
+unexpected token "infixr"
+ 
+failed    "ccsc -C22 examples\error\Step2_charsyntax.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_charsyntax.txt-step2" (line 1, column 6):
+unexpected token "syntax"
+ 
+failed    "ccsc -C22 examples\error\Step2_charvoid.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_charvoid.txt-step2" (line 1, column 6):
+unexpected token "void"
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidchar.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidchar.txt--step4_II" (line 1, column 5):
+unexpected ";"
+expecting space, block comment, "//" or identifier
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidchar2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidchar2.txt--step4_II" (line 1, column 8):
+unexpected "b"
+expecting space, block comment, "//" or ";"
+ 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invaliddelete.txt--step4_II" (line 1, column 7):
+unexpected ";"
+expecting space, block comment, "//" or identifier
+ 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invaliddelete2.txt--step4_II" (line 1, column 10):
+unexpected "b"
+expecting space, block comment, "//" or ";"
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidread.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidread.txt--step4_II" (line 1, column 6):
+unexpected "1"
+expecting space, block comment, "//" or identifier
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidread2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidread2.txt--step4_II" (line 1, column 5):
+unexpected ","
+expecting letter, digit or "_", space, block comment, "//", "+", "-" or "("
+ 
+failed    "ccsc -C44 examples\error\Step4_nulladd.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_nulladd.txt--step4'" (line 0, column 0):
+identifier a is not defined
+ 
+failed    "ccsc -C44 examples\error\Step4_nullchar.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_nullchar.txt--step4'" (line 0, column 0):
+identifier a is already defined
+ 
+failed    "ccsc -C44 examples\error\Step4_nulldelete.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_nulldelete.txt--step4'" (line 0, column 0):
+identifier a is not defined or is already deleted in this scope
+ 
+failed    "ccsc -C44 examples\error\Step4_undeletedinblock.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_undeletedinblock.txt--step4'" (line 0, column 0):
+identifier a is not deleted
+ 
+failed    "ccsc -C44 examples\error\Step4_undeletedinwhile.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_undeletedinwhile.txt--step4'" (line 0, column 0):
+identifier a is not deleted
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_command.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_command.txt--step7" (line 1, column 1):
+unexpected 'b'
+expecting sentence, space, comment or end of input
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_comment.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_comment.txt--step7" (line 1, column 3):
+unexpected end of input
+expecting end of block comment
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_inc.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_inc.txt--step7" (line 1, column 5):
+unexpected "$"
+expecting space, unsigned integer, character literal, white space or ";"
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_loop.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_loop.txt--step7" (line 1, column 6):
+unexpected "3"
+expecting space or ";"
+ 
+failed    "ccsc -C78 examples\error\Step7_null_mov.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_null_mov.txt--step7" (line 1, column 4):
+unexpected ";"
+expecting white space, unsigned integer or character literal
+ 
+failed    "ccsc -C78 examples\error\Step7_rand.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_rand.txt--step7" (line 1, column 1):
+unexpected 'g'
+expecting sentence, space, comment or end of input
+ 
+ 
+terrresult2014-09-14_14-10-35: 
+failed    "ccsc -C22 examples\error\Step2_1031_type_wrongdef_paramoverlap_synt.txt  -o bat\k.tmp" 
+failed    "ccsc -C22 examples\error\Step2_1032_access_wrongdel_notdefinedhere_idn.txt  -o bat\k.tmp" 
+failed    "ccsc -C22 examples\error\Step2_1033_access_wrongdel_definedasarg_idn.txt  -o bat\k.tmp" 
+failed    "ccsc -C22 examples\error\Step2_1034_prag_memory_using_notvalidident.txt  -o bat\k.tmp" 
+failed    "ccsc -C22 examples\error\Step2_1035_prag_memory_using_isconstant.txt  -o bat\k.tmp" 
+failed    "ccsc -C22 examples\error\Step2_1036_type_wrongcall_definedasarg_functi.txt  -o bat\k.tmp" 
+failed    "ccsc -C22 examples\error\Step2_1037_type_wrongcall_definedasarg_synt.txt  -o bat\k.tmp" 
+failed    "ccsc -C22 examples\error\Step2_1038_type_wrongcall_recursivecall.txt  -o bat\k.tmp" 
+failed    "ccsc -C22 examples\error\Step2_1039_type_wrongcall_fixnotdefined_operat.txt  -o bat\k.tmp" 
+failed    "ccsc -C22 examples\error\Step2_1040_type_wrongdef_insidecall_functi.txt  -o bat\k.tmp" 
+failed    "ccsc -C22 examples\error\Step2_1041_type_wrongdef_insidecall_synt.txt  -o bat\k.tmp" 
+failed    "ccsc -C22 examples\error\Step2_1042_type_wrongdef_insidecall_operat.txt  -o bat\k.tmp" 
+failed    "ccsc -C22 examples\error\Step2_charblock.txt  -o bat\k.tmp" 
+failed    "ccsc -C22 examples\error\Step2_charchar.txt  -o bat\k.tmp" 
+failed    "ccsc -C22 examples\error\Step2_charconst.txt  -o bat\k.tmp" 
+failed    "ccsc -C22 examples\error\Step2_charconstant.txt  -o bat\k.tmp" 
+failed    "ccsc -C22 examples\error\Step2_chardelete.txt  -o bat\k.tmp" 
+failed    "ccsc -C22 examples\error\Step2_charinfixl.txt  -o bat\k.tmp" 
+failed    "ccsc -C22 examples\error\Step2_charinfixr.txt  -o bat\k.tmp" 
+failed    "ccsc -C22 examples\error\Step2_charsyntax.txt  -o bat\k.tmp" 
+failed    "ccsc -C22 examples\error\Step2_charvoid.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidchar.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidchar2.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete2.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidread.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidread2.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_nulladd.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_nullchar.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_nulldelete.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_undeletedinblock.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_undeletedinwhile.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_command.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_comment.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_inc.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_loop.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_null_mov.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_rand.txt  -o bat\k.tmp" 
+ 
 terrresult2014-09-07_14-01-19: 
 failed    "ccsc -E examples\error\Step1_commented_endif.txt  -o bat\k.tmp" 
 failed    "ccsc -E examples\error\Step1_defnum.txt  -o bat\k.tmp" 

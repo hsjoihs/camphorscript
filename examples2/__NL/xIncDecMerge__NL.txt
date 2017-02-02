@@ -1,0 +1,6 @@
+
+/* ccsc -C24 _temp\incdecmerge.txt -o con -fincdecmerge */
+char a; 
+ a+=97;write(a); 
+ a+=1;write(a); 
+ a+=1;write(a); 

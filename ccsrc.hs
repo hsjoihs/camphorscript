@@ -27,7 +27,7 @@ main = do
 
 dispatch4 :: Options -> IO ()
 dispatch4 []     = mapM_ putStrLn info
-dispatch4 xs     = case optionParse xs (Nothing,Nothing,(8,8)) of
+dispatch4 xs     = case optionParse xs emptyStat of
  Left e -> abort e
  Right (infile,outf,(a,b)) -> do
   contents <- getContentsFrom infile
