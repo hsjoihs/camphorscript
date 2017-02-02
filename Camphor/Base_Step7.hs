@@ -29,10 +29,11 @@ type Chunk = Either (ComNum,Integer) (Com7,String)
 parser7 :: Stream s m Char => ParsecT s u m [Chunk]
 parser7 = do{sents<-many sentences;eof;return sents}
  where
-  sentences = inc <|> dec <|> loop <|> pool <|> mov <|> output <|> input <|> nul <|> comm
+  sentences = inc <|> dec <|> loop <|> pool <|> mov <|> assert <|> output <|> input <|> nul <|> comm
   inc    = do{string "inc";spaces;num<-option 1 uint';spaces;char ';'; return$Left(INC,num)}
   dec    = do{string "dec";spaces;num<-option 1 uint';spaces;char ';'; return$Left(DEC,num)}
   mov    = do{string "mov";spaces;num<-uint';spaces;char ';'; return$Left(MOV,num)}
+  assert = do{string "assert_zero";spaces;_<-uint';spaces;char ';'; return$Right(NUL,"")}
   loop   = do{string "loop";spaces;char ';'; return$Right(LOOP,"")}
   pool   = do{string "pool";spaces;char ';'; return$Right(POOL,"")}
   input  = do{string "_input";spaces;char ';'; return$Right(IN,"")} {- "_input" rather than "input" to avoid 'try' -}

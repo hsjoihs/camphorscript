@@ -105,26 +105,26 @@ convert3' m f((n ,s:|st ,ls),(Top(DEF,ide     ):xs))
 
 
 convert3' m f((n ,s:|st ,ls),(Top(DEL,ide     ):xs)) = case (M.lookup ide s) of
-   Just  k                                      -> convert3' m f((n, M.delete ide s :| st,filter (/=k) ls),xs)
+   Just  k                                      -> (("assert_zero "++show k++"; ")++)<$$>convert3' m f((n, M.delete ide s :| st,filter (/=k) ls),xs)
    Nothing                                      -> Left $newErrorMessage (msgIde ide "is not defined or is already deleted in this scope")(newPos (f++"--step3_II'") 0 0)
 
 convert3' m f(state         ,(Top(NUL,sp      ):xs)) = (sp++) <$$> convert3' m f(state,xs) 
 
 
 convert3' m f((n ,st    ,ls),(Mid(ADD,ide,  nm):xs)) = case (lookup' ide (toList st)) of
-   Just  k                                      -> (\x->"mov "++show k++"; inc "++nm++"; "++x) <$$> convert3' m  f((n,st,ls),xs)
+   Just  k                                      -> (("mov "++show k++"; inc "++nm++"; ")++) <$$> convert3' m  f((n,st,ls),xs)
    Nothing                                      -> Left $newErrorMessage (msgIde ide "is not defined")(newPos (f++"--step3_II'") 0 0)
    
 convert3' m f((n ,st    ,ls),(Mid(SUB,ide,  nm):xs)) = case (lookup' ide (toList st)) of
-   Just  k                                      -> (\x->"mov "++show k++"; dec "++nm++"; "++x) <$$> convert3' m  f((n,st,ls),xs)
+   Just  k                                      -> (("mov "++show k++"; dec "++nm++"; ")++) <$$> convert3' m  f((n,st,ls),xs)
    Nothing                                      -> Left $newErrorMessage (msgIde ide "is not defined")(newPos (f++"--step3_II'") 0 0)
 
 convert3' m f((n ,st    ,ls),(Top(REA,ide     ):xs)) = case (lookup' ide (toList st)) of
-   Just  k                                      -> (\x->"mov "++show k++"; _input; "++x) <$$> convert3'  m f((n,st,ls),xs)
+   Just  k                                      -> (("mov "++show k++"; _input; ")++) <$$> convert3'  m f((n,st,ls),xs)
    Nothing                                      -> Left $newErrorMessage (msgIde ide "is not defined")(newPos (f++"--step3_II'") 0 0)
 
 convert3' m f((n ,st    ,ls),(Top(WRI,ide     ):xs)) = case (lookup' ide (toList st)) of
-   Just  k                                      -> (\x->"mov "++show k++"; output; "++x) <$$> convert3'  m f((n,st,ls),xs)
+   Just  k                                      -> (("mov "++show k++"; output; ")++) <$$> convert3'  m f((n,st,ls),xs)
    Nothing                                      -> Left $newErrorMessage (msgIde ide "is not defined")(newPos (f++"--step3_II'") 0 0)
 
 convert3' m f(state         ,(Null             :xs)) = (' ':) <$$> convert3' m f(state,xs)

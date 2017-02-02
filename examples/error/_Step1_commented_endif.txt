@@ -1,0 +1,8 @@
+#ifndef abc
+
+char aaa;
+/*
+
+#endif
+
+*/

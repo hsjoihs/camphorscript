@@ -1,0 +1,4 @@
+#else
+
+char abc;
+
