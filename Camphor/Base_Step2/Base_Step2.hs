@@ -6,7 +6,6 @@ module Camphor.Base_Step2.Base_Step2
 ) where 
 
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
-import Camphor.Partial
 import Camphor.Base_Step2.Type
 import Camphor.Base_Step2.UserState
 import Camphor.Base_Step2.New 
@@ -18,7 +17,7 @@ import Camphor.Global.Utilities
 import Camphor.Global.Operators
 import Camphor.NonEmpty
 import Data.Maybe(isJust)
-import Text.Parsec 
+import Text.Parsec  
 import qualified Data.Map as M 
  
 step2 ::  FilePath -> Txt -> Either ParseError Txt
@@ -292,16 +291,11 @@ replacer2 stat narr pos (Call5 (x,ov:ovs)) table = do
 --       outermacros         position    name     valuelist    replacement table
 rpl1 :: NonEmpty MacroId -> SourcePos -> Ident -> ValueList -> M.Map Ident Value -> UserState -> Either ParseError (NonEmpty SimpleSent)
 rpl1 ms pos ident valuelist table stat = do
- let newValuelist = map' tmp valuelist
+ let newValuelist = map' (replaceSingle table) valuelist
  instnce@(typelist,sent) <- getInstanceOfCall1 pos ident newValuelist stat
  let mname = Func ident instnce ; table2 = makeReplacerTable typelist newValuelist
  rpl1_1 pos sent table2 (mname `cons` ms) stat 
- where
-  tmp :: Value -> Value
-  tmp m@(Constant _) = m
-  tmp v@(Var idn) = case M.lookup idn table of
-   Nothing -> v
-   Just val -> val   
+  
 
 rpl1_1 :: SourcePos -> Sent -> ReplTable -> NonEmpty MacroId -> UserState -> Either ParseError (NonEmpty SimpleSent)
 rpl1_1 pos (Single(_,ssent)) table2 newMs stat  = replacer2 stat newMs pos ssent table2
@@ -312,4 +306,19 @@ rpl1_1 pos (Block xs) table2 newMs stat = do
   (r:rs) -> return$concat' (r:|rs)
    
 rpl2 :: NonEmpty MacroId -> SourcePos -> Oper -> (ValueList,ValueList) -> M.Map Ident Value -> UserState -> Either ParseError (NonEmpty SimpleSent)
-rpl2 (n:|ns) pos oper (vlist1,vlist2) table stat = undefined
+rpl2 ms pos oper (vlist1,vlist2) table stat = do
+ let newVlist1 = map' (replaceSingle table) vlist1
+ let newVlist2 = map' (replaceSingle table) vlist2
+ instnce@(tlist1,tlist2,sent) <- getInstanceOfCall2 pos oper newVlist1 newVlist2 stat
+ let mname = Operator oper instnce ; table2 = makeReplacerTable2 (tlist1,tlist2) (newVlist1,newVlist2)
+ rpl1_1 pos sent table2 (mname `cons` ms) stat
+
+ 
+replaceSingle :: M.Map Ident Value -> Value -> Value
+replaceSingle _ m@(Constant _) = m
+replaceSingle table v@(Var idn) = case M.lookup idn table of
+ Nothing -> v
+ Just val -> val 
+ 
+ 
+ 
