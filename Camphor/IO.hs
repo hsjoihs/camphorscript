@@ -6,7 +6,7 @@ module Camphor.IO
 ,readFile'
 ,abort
 ,replaceExtension
-,getDirectoryContents
+,getDirectoryContents,doesFileExist
 ,getArgs
 ,splitFileName
 )where
@@ -15,7 +15,7 @@ import Prelude(error)
 import Camphor.Global.Synonyms
 import Text.Parsec
 import System.FilePath
-import System.Directory(getDirectoryContents)
+import System.Directory(getDirectoryContents,doesFileExist)
 import System.Environment(getArgs)
 import Data.Char(toLower)
 

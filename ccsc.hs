@@ -18,11 +18,15 @@ import Camphor.Lib
 import Camphor.CmdOptions
 import Data.List(isPrefixOf)
 import qualified Data.Map as M
+import Data.Maybe
+import Control.Monad
 
 getLibs :: FilePath -> IO FileToTxt 
 getLibs dir = do
-  libs' <- getDirectoryContents dir
-  let libs = [ file | file <- libs', not("." `isPrefixOf` file)]
+  conts' <- getDirectoryContents dir
+  let conts = [ file | file <- conts', not("." `isPrefixOf` file)]
+  libs' <- forM conts $ \f -> do{e <- doesFileExist (dir </> f); if e then return(Just f) else return(Nothing)}
+  let libs = catMaybes libs'
   texts <- mapM getContentsFrom (map (dir </>) libs)
   return (M.fromList $ zip libs texts)
 

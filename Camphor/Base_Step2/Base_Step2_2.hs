@@ -209,8 +209,8 @@ typ =
 getTypeList :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity TypeList
 getTypeList = do
  g <- typ;      __;   
- h <- _ident;   __;    
- i <- many (do{a <- _op; __; b <- typ; __; c <- _ident; return(a,(b,c))}); 
+ h <- _ident;   __;   
+ i <- many (do{ a <- _op; __; b <- typ; __; c <- _ident; __; return(a,(b,c))}); 
  return$SepList((g,h),i)
 
 value :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity Value
