@@ -9,9 +9,7 @@ module CamphorR.R_Base_Step7
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Text.Parsec hiding(token)
 import Control.Applicative hiding ((<|>),many)
-import Text.Parsec.Error
-import Text.Parsec.Pos
---import CamphorR.R_Base_Step8(parser8_R)
+import Camphor.Global.Utilities
 
 
 -- desymbolization(already indented)
@@ -30,16 +28,16 @@ parser7_R' f state            (((_ , IN):xs):yss) = (("_input;")++)<$> parser7_R
 parser7_R' f state            (((_ ,OUT):xs):yss) = (("output;")++)<$> parser7_R' f state (xs:yss)
 parser7_R' f (ads   ,adr,pos) (((mv,MOV):xs):yss)
  | diff==0                                        = parser7_R' f (ads,adr,pos) (xs:yss) --no move
- | new  <0                                        = Left$newErrorMessage (Message "negative address")(newPos (f++"Rstep7'") 0 0)
+ | new  <0                                        = makeErr(Message "negative address")(f++"Rstep7'") 0 0
  | otherwise                                      = (("mov "++show new++";" )++)<$>parser7_R' f (ads,new,pos) (xs:yss)
  where diff = length(filter (=='>') mv) - length(filter (=='<') mv) ; new = adr+diff
 parser7_R' f (ads   ,adr,pos) (((_ ,LOP):xs):yss) = (("mov "++show adr++";loop;")++)<$>parser7_R' f (adr:ads,adr,pos) (xs:yss) 
-parser7_R' f ([]    ,_  ,_  ) (((_ ,POL):_ ):_  ) = Left$newErrorMessage (UnExpect "]")(newPos (f++"Rstep7'") 0 0)
+parser7_R' f ([]    ,_  ,_  ) (((_ ,POL):_ ):_  ) = makeErr(UnExpect "]")(f++"Rstep7'") 0 0
 parser7_R' f (ad:ads,adr,pos) (((_ ,POL):xs):yss) 
  | ad==adr                                        = (("mov "++show adr++";pool;")++)<$>parser7_R' f (ads,adr,pos) (xs:yss) 
- | otherwise                                      = Left$newErrorMessage (Message "address is different")(newPos (f++"Rstep7'") 0 0)
+ | otherwise                                      = makeErr(Message "address is different")(f++"Rstep7'") 0 0
 parser7_R' _ ([]    ,_  ,_  ) []                  = Right ""
-parser7_R' f (_     ,_  ,_  ) []                  = Left$newErrorMessage (Expect "]")(newPos (f++"Rstep7'") 0 0)
+parser7_R' f (_     ,_  ,_  ) []                  = makeErr(Expect "]")(f++"Rstep7'") 0 0
 
 
 type CurrState = ([Int],Int,(Int,Int)) --loop addresses(inner=head),current address,position

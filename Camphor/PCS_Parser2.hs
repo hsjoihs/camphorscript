@@ -1,10 +1,10 @@
-{-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
 module Camphor.PCS_Parser2
 (parser2'
 ,Tok(..)
 ,showTok
-,tok
+--,tok
 ,_char,_delete,_paren,_nerap,_brace
 ,_ecarb,_scolon,_cnstnt,_infixl,_infixr
 ,_void,_const,_ident,_num,_comm,_op,_sp,_nl,__
@@ -17,18 +17,19 @@ import Text.Parsec
 import Camphor.PCS_Parser
 import Data.Functor.Identity
 import Data.Char(isSpace)
+import Camphor.Global.Synonyms
 
-_nl :: Stream s Identity (SourcePos, Tok) => Parsec s u Tok
+_nl :: Stream s Identity (SourcePos, Tok) => Parsec s u String
 _nl = _sp <|> _comm
 
 __ :: Stream s Identity (SourcePos, Tok) => Parsec s u ()
 __ = skipMany _nl
-
+{-
 tok :: Stream s Identity (SourcePos, Tok) => Parsec s u Tok
 tok = _char <|> _delete <|> _paren  <|> _nerap  <|> _brace 
  <|> _ecarb <|> _scolon <|> _cnstnt <|> _infixl <|> _infixr 
  <|> _void  <|> _const  <|> _ident  <|> _num    <|> _comm <|> _op <|> _sp
-
+-}
 _char   :: Stream s Identity (SourcePos, Tok) => Parsec s u Tok
 _char   = parseIf CHAR
  
@@ -65,26 +66,26 @@ _void   = parseIf VOID
 _const  :: Stream s Identity (SourcePos, Tok) => Parsec s u Tok
 _const  = parseIf CONST
 
-_ident  :: Stream s Identity (SourcePos, Tok) => Parsec s u Tok
+_ident  :: Stream s Identity (SourcePos, Tok) => Parsec s u Ident
 _ident  = parseWhen qqq
- where qqq (_,t@(IDENT _)) = Just t ; qqq(_,_) = Nothing
+ where qqq (_,IDENT t) = Just t ; qqq(_,_) = Nothing
  
-_num   :: Stream s Identity (SourcePos, Tok) => Parsec s u Tok
+_num   :: Stream s Identity (SourcePos, Tok) => Parsec s u Integer
 _num   = parseWhen qqq
- where qqq (_,t@(NUM   _)) = Just t ; qqq(_,_) = Nothing
+ where qqq (_,NUM   t) = Just t ; qqq(_,_) = Nothing
  
-_comm  :: Stream s Identity (SourcePos, Tok) => Parsec s u Tok
+_comm  :: Stream s Identity (SourcePos, Tok) => Parsec s u String
 _comm  = parseWhen qqq
- where qqq (_,t@(NUM   _)) = Just t ; qqq(_,_) = Nothing
+ where qqq (_,COMM  t) = Just t ; qqq(_,_) = Nothing
  
-_op    :: Stream s Identity (SourcePos, Tok) => Parsec s u Tok
+_op    :: Stream s Identity (SourcePos, Tok) => Parsec s u Oper
 _op    = parseWhen qqq
- where qqq (_,t@(OP    _)) = Just t ; qqq(_,_) = Nothing
+ where qqq (_,OP    t) = Just t ; qqq(_,_) = Nothing
  
  
-_sp    :: Stream s Identity (SourcePos, Tok) => Parsec s u Tok
+_sp    :: Stream s Identity (SourcePos, Tok) => Parsec s u String
 _sp    = parseWhen qqq
- where qqq (_,t@(SP    _)) = Just t ; qqq(_,_) = Nothing
+ where qqq (_,SP    t) = Just t ; qqq(_,_) = Nothing
 
  
 testTokBy :: Eq a => a -> (t, a) -> Maybe a

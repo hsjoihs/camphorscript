@@ -4,4 +4,3 @@ module Camphor.Lib
 ) where
 lib_dir :: FilePath
 lib_dir = "lib"
-

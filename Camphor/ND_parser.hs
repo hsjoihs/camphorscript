@@ -12,8 +12,7 @@ module Camphor.ND_parser
 
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Text.Parsec hiding(token)
-import Camphor.Global
-
+import Camphor.Global.Parsers
 data ABC a b c = A a | B b | C c deriving(Show)
 data ComNum = INC | DEC | MOV | ASR deriving(Show)
 data Com    =  LOOP | POOL | IN | OUT  deriving(Show)

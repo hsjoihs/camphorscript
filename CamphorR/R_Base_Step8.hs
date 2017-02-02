@@ -10,14 +10,14 @@ step8_R :: String -> Either a String
 step8_R  = Right . convert8_R . parser8_R
 
 convert8_R :: [String] -> String
-convert8_R xs=convert8_R' xs 0
+convert8_R xs = convert8_R' xs 0
 
 convert8_R' :: [String] -> Int -> String --depth
 convert8_R' []     _   = ""
 convert8_R' (x:xs) n = case reverse x of 
- '[' : _ -> replicate n     '\t'++x++"\n"++convert8_R' xs (n+1)
- ']' : _ -> replicate (n-1) '\t'++x++"\n"++convert8_R' xs (n-1)
- _       -> replicate n     '\t'++x++"\n"++convert8_R' xs n
+ '[' : _ -> replicate n     '\t' ++ x ++ "\n" ++convert8_R' xs (n+1)
+ ']' : _ -> replicate (n-1) '\t' ++ x ++ "\n" ++convert8_R' xs (n-1)
+ _       -> replicate n     '\t' ++ x ++ "\n" ++convert8_R' xs n
 
 
 
@@ -25,7 +25,7 @@ convert8_R' (x:xs) n = case reverse x of
 parser8_R :: String -> [String]
 parser8_R xs = parser8_R' xs ""
 
-parser8_R'::String->String->[String] --  input buffer(reverse) result
+parser8_R' :: String -> String -> [String] --  input buffer(reverse) result
 parser8_R'    ""         ""       = []
 parser8_R'    ""         xs       = [reverse xs]
 parser8_R'   (x:xs)      ""      
@@ -37,13 +37,13 @@ parser8_R'   (x:xs)     ys@(y:_)
  | x `canFollow` y                        = parser8_R' xs (x:ys)   
  | otherwise                              = reverse ys: parser8_R' xs [x]
  
-canFollow::Char->Char->Bool
-canFollow '+' =(`elem` "+<>")
-canFollow '-' =(`elem` "-<>")
-canFollow '>' =(=='>')
-canFollow '<' =(=='<')
-canFollow '.' =(`elem` "+-<>")
-canFollow ',' =(`elem` "+-<>")
-canFollow '[' =(`elem` "<>")
-canFollow ']' =(`elem` "<>")
-canFollow _   =const False
+canFollow :: Char -> Char -> Bool
+canFollow '+' = (`elem` "+<>")
+canFollow '-' = (`elem` "-<>")
+canFollow '>' = (=='>')
+canFollow '<' = (=='<')
+canFollow '.' = (`elem` "+-<>")
+canFollow ',' = (`elem` "+-<>")
+canFollow '[' = (`elem` "<>")
+canFollow ']' = (`elem` "<>")
+canFollow _   = const False

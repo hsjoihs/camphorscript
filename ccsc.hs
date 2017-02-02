@@ -1,7 +1,9 @@
 {-# OPTIONS -Wall #-}
 
 import Text.Parsec
-import Camphor.Global
+import Camphor.Global.Utilities
+import Camphor.Global.Operators
+import Camphor.Global.Synonyms
 import Camphor.Step1
 import Camphor.Step2
 import Camphor.Step3_I

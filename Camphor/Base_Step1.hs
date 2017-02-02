@@ -15,7 +15,10 @@ module Camphor.Base_Step1
 ) where
 
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
-import Camphor.Global
+import Camphor.Global.Parsers
+import Camphor.Global.Utilities
+import Camphor.Global.Operators
+import Camphor.Global.Synonyms
 import Text.Parsec hiding(token)
 import Control.Applicative hiding ((<|>),many)
 import Data.Maybe(isJust)
