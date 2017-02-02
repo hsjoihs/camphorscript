@@ -3,6 +3,7 @@ module Camphor.IO
 (outputParsed
 ,Options
 ,getContentsFrom
+,fromFile
 ,abort
 ,replaceExtension
 ,getDirectoryContents
@@ -15,19 +16,25 @@ import System.IO
 import System.FilePath
 import System.Directory(getDirectoryContents)
 import System.Environment(getArgs)
-
+import Data.Char(toLower)
 type Options = [String]
 
 
 outputParsed :: FilePath -> Either ParseError Txt -> IO()
-outputParsed path (Right x) = writeFile path x
-outputParsed _    (Left  e) = putStrLn $ "parse error at " ++ show e
+outputParsed path (Right x) 
+ | map toLower path == "con" = putStrLn x
+ | otherwise                 = writeFile path x
+outputParsed _    (Left  e)  = putStrLn $ "parse error at " ++ show e
 
 getContentsFrom :: FilePath -> IO Txt
 getContentsFrom file = do
- handle   <- openFile file ReadMode
- contents <- hGetContents handle
+ contents <- fromFile file
  return contents
+ 
+fromFile :: FilePath -> IO String
+fromFile file 
+ | map toLower file == "con" = getContents
+ | otherwise                 = openFile file ReadMode >>= hGetContents 
  
 abort :: String -> a
 abort = error

@@ -3,6 +3,7 @@
 import Text.Parsec
 import Camphor.Global
 import Camphor.Step1
+import Camphor.Step2
 import Camphor.Step3_I
 import Camphor.Step3_II
 import Camphor.Step5
@@ -43,7 +44,7 @@ main = do
 
 
 step :: FilePath -> (M.Map FilePath Txt) -> Maybe MemSize -> [Txt -> Either ParseError Txt]   
-step file includer mem= map ($file) [step1 includer,undefined,step3_I,step3_II mem,step5,step6,step7,step8]
+step file includer mem= map ($file) [step1 includer,step2,step3_I,step3_II mem,step5,step6,step7,step8]
 
 
 -- starts with xth(1-indexed) and ends with yth(1-indexed)

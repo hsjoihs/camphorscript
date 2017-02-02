@@ -6,8 +6,14 @@ set FAIL="bat\failed.tmp"
 pushd %0\..
 cls
 
-call bat\makeHaskell ccsc
-call bat\makeHaskell ccsrc
+echo ---Making ccsc.hs---
+%~d0\ghc2\ghc\2013.2.0.0\bin\ghc --make  ccsc
+echo ---Finished---
+echo.
+echo ---Making ccsrc.hs---
+%~d0\ghc2\ghc\2013.2.0.0\bin\ghc --make  ccsrc
+echo ---Finished---
+echo.
 
 call bat\setlogname testresult
 type nul > %LOG% 

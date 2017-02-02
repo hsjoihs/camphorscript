@@ -7,11 +7,14 @@ module Camphor.Global
 ,(<++>),(<:>),(>=>),(</>)
 ,strP
 ,uint,byte,uint'
+,alphaNumBar,alphaBar
 ,isJust,isNothing
 ,lib_dir
 ,Ident,Txt,MemSize,Address
 ,lift,(<$$>)
 ,readEith,readMay
+,blockComm,lineComm,operator
+,escStar
 )where
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Control.Monad
@@ -32,13 +35,14 @@ infixr 5 <:>
 lib_dir :: FilePath
 lib_dir = "lib"
 
-
+alphaBar :: Stream s m Char => ParsecT s u m Char
+alphaBar = (letter <|> char '_')<?>"letter or \"_\""
 
 identifier :: Stream s m Char => ParsecT s u m Ident
-identifier=try((letter <|> char '_') <:> many(alphaNum <|> char '_') )<?>"identifier"
+identifier = try(alphaBar <:> many alphaNumBar)<?>"identifier"
 
 identifier' :: Stream s m Char => ParsecT s u m Ident
-identifier' = ((letter <|> char '_') <:> many(alphaNum <|> char '_') )<?>"identifier"
+identifier' = (alphaBar <:> many alphaNumBar)<?>"identifier"
  
 nbsp :: Stream s m Char => ParsecT s u m Char
 nbsp = satisfy (\x->isSpace x && x/='\n')<?>"non-breaking space"
@@ -55,8 +59,8 @@ spaces1' = skipMany1 space'
 space' :: Stream s m Char => ParsecT s u m Char
 space' = 
   space <|> 
-  (do{string "/*"; manyTill anyChar(try(string "*/"));return ' ';} <?> "block comment") <|> 
-  (do{string "//";many(noneOf "\n");newline;return ' '} <?> "line comment")
+  ( blockComm >> return ' ' ) <|> 
+  ( lineComm  >> return ' ' )
 
 
 
@@ -65,7 +69,7 @@ nbnls :: Stream s m Char => ParsecT s u m ()
 nbnls=skipMany nbnl
 
 nbnl :: Stream s m Char => ParsecT s u m Char
-nbnl = ( nbsp <?> "non-breaking space" )<|> (try(do{string "/*"; manyTill anyChar(try(string "*/"));return ' ';}) <?> "block comment")
+nbnl = ( nbsp <?> "non-breaking space" )<|> ( blockComm >> return ' ' )
 
 
 strP :: Stream s m Char => ParsecT s u m Char -> ParsecT s u m String
@@ -114,7 +118,7 @@ unesc '0' = '\0'
 unesc x   = x -- '\?"
   
 newline' :: Stream s m Char => ParsecT s u m ()
-newline' = (do{newline;return()} <?> "new line") <|> (do{string "//";many(noneOf "\n");newline;return()} <?> "line comment")
+newline' = ( newline >> return () ) <|> ( lineComm >> return () )
   
 type Ident=String
 type Txt=String
@@ -136,3 +140,19 @@ readMay :: Read a => String -> Maybe a
 readMay s = case [x | (x,t) <- reads s, ("","") <- lex t] of
                 [x] -> Just x
                 _ -> Nothing
+				
+alphaNumBar :: Stream s m Char => ParsecT s u m Char
+alphaNumBar = (alphaNum <|> char '_') <?> "letter, digit or \"_\""
+
+lineComm :: Stream s m Char => ParsecT s u m String
+lineComm = do{string "//";comm<-many(noneOf "\n");newline;return (comm>>=escStar)}
+
+blockComm :: Stream s m Char => ParsecT s u m String
+blockComm = try(do{string "/*"; comm<-manyTill anyChar(try(string "*/"));return(comm>>=escStar)}) <?> "block comment"
+
+escStar :: Char -> String
+escStar '*' = "_star_"
+escStar x   = [x]
+
+operator :: Stream s m Char => ParsecT s u m String
+operator = try(oneOf "!%&*+,-:<=>?@^|~" <:> many(oneOf "!%&*+,-:<=>?@^|~" <|> space ))

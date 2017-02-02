@@ -52,8 +52,8 @@ other = do
  xs <- many(noneOf("\n/"))
  do{newline;return(OTHER,"",xs)} <|> do{
   char '/';
-  do{char '/';ys<-many(noneOf("\n"));newline;                                    return(OTHER,"",xs++"/*"++(ys>>=esc)++"*/")} <|> 
-  do{char '*';ys<-manyTill anyChar(try(string "*/"));(_,_,zs)<-other;return(OTHER,"",xs++"/*"++(ys>>=esc)++"*/"++zs)} <|>
+  do{char '/';ys<-many(noneOf("\n"));newline;                        return(OTHER,"",xs++"/*"++(ys>>=escStar)++"*/")} <|> 
+  do{char '*';ys<-manyTill anyChar(try(string "*/"));(_,_,zs)<-other;return(OTHER,"",xs++"/*"++(ys>>=escStar)++"*/"++zs)} <|>
   do{(_,_,ys) <- other; return(OTHER,"",xs++"/"++ys) }
   }
  
@@ -187,14 +187,11 @@ token = tIdentifier <|> tOperator <|> tChar <|> tString <|> tSpecial <|> tSpace 
  where
   tIdentifier = identifier
   tNumeral    = try(many1 digit)
-  tOperator   = try(oneOf "!%&*+,-:<=>?@^|~" <:> many(oneOf "!%&*+,-:<=>?@^|~" <|> space ))
+  tOperator   = operator
   tChar       = try(char '\'' <:> noneOf "'" <:> string "'"   )
   tString     = try(char '"'  <:> many(noneOf "\"") <++> string "\"")
   tSpecial    = strP $ oneOf "#$().;{\\}[]"
-  tComment    = try(do{string"/*";xs<-manyTill anyChar (try (string "*/"));return$"/*"++(xs>>=esc)++"*/" })
-  tComment2   = try(do{string"//";xs<-manyTill anyChar eof;return$"/*"++(xs>>=esc)++"*/"})
+  tComment    = try(do{string"/*";xs<-manyTill anyChar (try (string "*/"));return$"/*"++(xs>>=escStar)++"*/" })
+  tComment2   = try(do{string"//";xs<-manyTill anyChar eof;return$"/*"++(xs>>=escStar)++"*/"})
   tSpace      = try(many1 space)
 
-esc :: Char -> String
-esc '*' = "_star_"
-esc x   = [x]
