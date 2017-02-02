@@ -15,7 +15,6 @@ import Control.Applicative hiding ((<|>),many)
 import Camphor.NonEmpty
 import qualified Data.Map as M
 import Text.Parsec.Error
-import Text.Parsec.Pos
 
 data Com3_top=DEF | DEL | REA | WRI | COM | NUL deriving(Show)
 data Com3_mid=ADD | SUB deriving(Show)
@@ -83,11 +82,11 @@ minUnused(Just x) = minUnused' [0..(x-1)]
 minUnused' :: [Address] -> [Address] -> FilePath -> Either ParseError Address
 minUnused' list used f= let filtered = filter(`notElem` used) list in
  case filtered of 
-  [] -> Left$newErrorMessage (Message$ "memory ran out")(newPos (f++"--step3_II'") 0 0)
+  [] -> makeErr(message$ "memory ran out")(f++"--step3_II'") 0 0
   x:_ -> Right x
   
 msgIde :: Show a => a -> String -> Message
-msgIde ide left= Message$"identifier "++show ide++left
+msgIde ide left= message$"identifier "++show ide++left
 
 
 lookup'::Ord k=>k->[M.Map k a]->Maybe a -- lookup towards the outer scope until you find a variable
@@ -101,7 +100,7 @@ convert3' _ _((_ ,s:|_  ,_ ),[]                    ) = Right (s,"")
 
 
 convert3' m f((n ,s:|st ,ls),(Top(DEF,ide     ):xs)) 
- | isJust(M.lookup ide s)                           = Left $newErrorMessage(msgIde ide "is already defined")(newPos (f++"--step3_II'") 0 0)
+ | isJust(M.lookup ide s)                           = makeErr(msgIde ide "is already defined")(f++"--step3_II'") 0 0
  | otherwise                                        = do
   new <- minUnused m ls f
   convert3' m f((n, M.insert ide new s :| st,new:ls),xs)
@@ -109,26 +108,26 @@ convert3' m f((n ,s:|st ,ls),(Top(DEF,ide     ):xs))
 
 convert3' m f((n ,s:|st ,ls),(Top(DEL,ide     ):xs)) = case (M.lookup ide s) of
    Just  k                                      -> (("assert_zero "++show k++"; ")++)<$$>convert3' m f((n, M.delete ide s :| st,filter (/=k) ls),xs)
-   Nothing                                      -> Left $newErrorMessage (msgIde ide "is not defined or is already deleted in this scope")(newPos (f++"--step3_II'") 0 0)
+   Nothing                                      -> makeErr(msgIde ide "is not defined or is already deleted in this scope")(f++"--step3_II'") 0 0
 
 convert3' m f(state         ,(Top(NUL,sp      ):xs)) = (sp++) <$$> convert3' m f(state,xs) 
 
 
 convert3' m f((n ,st    ,ls),(Mid(ADD,ide,  nm):xs)) = case (lookup' ide (toList st)) of
    Just  k                                      -> (("mov "++show k++"; inc "++nm++"; ")++) <$$> convert3' m  f((n,st,ls),xs)
-   Nothing                                      -> Left $newErrorMessage (msgIde ide "is not defined")(newPos (f++"--step3_II'") 0 0)
+   Nothing                                      -> makeErr(msgIde ide "is not defined")(f++"--step3_II'") 0 0
    
 convert3' m f((n ,st    ,ls),(Mid(SUB,ide,  nm):xs)) = case (lookup' ide (toList st)) of
    Just  k                                      -> (("mov "++show k++"; dec "++nm++"; ")++) <$$> convert3' m  f((n,st,ls),xs)
-   Nothing                                      -> Left $newErrorMessage (msgIde ide "is not defined")(newPos (f++"--step3_II'") 0 0)
+   Nothing                                      -> makeErr(msgIde ide "is not defined")(f++"--step3_II'") 0 0
 
 convert3' m f((n ,st    ,ls),(Top(REA,ide     ):xs)) = case (lookup' ide (toList st)) of
    Just  k                                      -> (("mov "++show k++"; _input; ")++) <$$> convert3'  m f((n,st,ls),xs)
-   Nothing                                      -> Left $newErrorMessage (msgIde ide "is not defined")(newPos (f++"--step3_II'") 0 0)
+   Nothing                                      -> makeErr(msgIde ide "is not defined")(f++"--step3_II'") 0 0
 
 convert3' m f((n ,st    ,ls),(Top(WRI,ide     ):xs)) = case (lookup' ide (toList st)) of
    Just  k                                      -> (("mov "++show k++"; output; ")++) <$$> convert3'  m f((n,st,ls),xs)
-   Nothing                                      -> Left $newErrorMessage (msgIde ide "is not defined")(newPos (f++"--step3_II'") 0 0)
+   Nothing                                      -> makeErr(msgIde ide "is not defined")(f++"--step3_II'") 0 0
 
 convert3' m f(state         ,(Null             :xs)) = (' ':) <$$> convert3' m f(state,xs)
 convert3' m f(state         ,(Top(COM,cm)      :xs)) = (cm++) <$$> convert3' m f(state,xs)
@@ -138,23 +137,23 @@ convert3' m f((n ,st    ,ls),(Bot(WHI,ide,Ns v):xs)) = case (lookup' ide (toList
     (table1,res1) <- convert3'  m f((n+1,M.empty `cons` st,ls),v ) -- inside the loop
     if not(M.null table1) 
      then let leftList = map fst $ M.toList table1 in 
-     Left $ newErrorMessage (Message$message leftList)(newPos (f++"--step3_II'") 0 0) 
+     makeErr(message$identMsg leftList)(f++"--step3_II'") 0 0
      else do
     (table2,res2) <- convert3'  m f((n  ,st               ,ls),xs) -- left
     return $ (table2,"mov " ++ show k ++ "; loop; " ++ res1 ++ "mov " ++ show k ++ "; pool; " ++ res2)
-   Nothing                                      -> Left $newErrorMessage (msgIde ide "is not defined")(newPos (f++"--step3_II'") 0 0)
+   Nothing                                      -> makeErr(msgIde ide "is not defined")(f++"--step3_II'") 0 0
    
 convert3' m f((n ,st    ,ls),(Bot(BLO,_  ,Ns v):xs)) =  do
     (table1,res1) <- convert3'  m f((n+1,M.empty `cons` st,ls),v ) -- inside the loop
     if not(M.null table1) 
      then let leftList = map fst $ M.toList table1 in 
-     Left $ newErrorMessage (Message$message leftList)(newPos (f++"--step3_II'") 0 0) 
+     makeErr(message$identMsg leftList)(f++"--step3_II'") 0 0
      else do
     (table2,res2) <- convert3'  m f((n  ,st               ,ls),xs) -- left
     return $ (table2,res1 ++ res2)
 
-message :: [String] -> String
-message qs = case qs of 
+identMsg :: [String] -> String
+identMsg qs = case qs of 
  []  -> "" 
  [q] -> "identifier "++q++" is not deleted"
  rs  -> "identifiers "++show rs++" are not deleted"

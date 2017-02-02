@@ -3,7 +3,7 @@ module Camphor.IO
 (outputParsed
 ,Options
 ,getContentsFrom
-,fromFile
+,readFile'
 ,abort
 ,replaceExtension
 ,getDirectoryContents
@@ -12,7 +12,6 @@ module Camphor.IO
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,undefined)
 import Camphor.Global
 import Text.Parsec
-import System.IO
 import System.FilePath
 import System.Directory(getDirectoryContents)
 import System.Environment(getArgs)
@@ -28,13 +27,13 @@ outputParsed _    (Left  e)  = putStrLn $ "parse error at " ++ show e
 
 getContentsFrom :: FilePath -> IO Txt
 getContentsFrom file = do
- contents <- fromFile file
+ contents <- readFile' file
  return contents
  
-fromFile :: FilePath -> IO String
-fromFile file 
+readFile' :: FilePath -> IO String
+readFile' file 
  | map toLower file == "con" = getContents
- | otherwise                 = openFile file ReadMode >>= hGetContents 
+ | otherwise                 = readFile file  
  
 abort :: String -> a
 abort = error

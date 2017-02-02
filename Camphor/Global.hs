@@ -14,7 +14,7 @@ module Camphor.Global
 ,lift,(<$$>)
 ,readEith,readMay
 ,blockComm,lineComm,operator
-,escStar
+,escStar,makeErr,unExpect,message,expect
 )where
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Control.Monad
@@ -23,6 +23,8 @@ import Data.Char(isSpace,ord)
 import Control.Applicative hiding ((<|>),many)
 import System.FilePath
 import Data.Maybe(isJust,isNothing)
+import Text.Parsec.Error
+import Text.Parsec.Pos
 
 infixr 5 <++>
 (<++>) :: Applicative f => f [a] -> f [a] -> f [a]
@@ -156,3 +158,16 @@ escStar x   = [x]
 
 operator :: Stream s m Char => ParsecT s u m String
 operator = try(oneOf "!%&*+,-:<=>?@^|~" <:> many(oneOf "!%&*+,-:<=>?@^|~" <|> space ))
+
+
+makeErr :: Message -> SourceName -> Line -> Column -> Either ParseError b
+makeErr msg pos x y = Left$newErrorMessage msg (newPos pos x y) 
+
+unExpect :: String -> Message
+unExpect = UnExpect
+
+expect :: String -> Message
+expect = Expect
+
+message :: String -> Message
+message = Message

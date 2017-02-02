@@ -1,6 +1,12 @@
 ﻿To do
 Step2作成
+Step7のエラーメッセージ改良
 
+
+ver 0.5.8 18:02 2014/05/04 (日)
+PCS_parserを分離
+Step2の大まかな枠組み作成
+Camphor.PartialやmakeErrなどの便利機能も
 
 ver 0.5.7 23:33 2014/05/02 (金) 
 Step2の字句解析完成
