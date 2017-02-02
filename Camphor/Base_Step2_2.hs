@@ -3,7 +3,7 @@
 module Camphor.Base_Step2_2
 (parser2_2
 ,parser2'
-,Upgrade(..),Sent,Sents,Type,Value,TypeList1,ValueList,Extra(..)
+,Upgrade(..),Sent,Sents,Type,Value,TypeList1,ValueList,Extra,SimpleSent(..)
 )where
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Camphor.Global.Synonyms
@@ -18,14 +18,15 @@ parser2_2 = do{xs <- many sent; eof; return xs;}
  
 data Upgrade a = Single a | Block [Upgrade a] deriving(Show)
 
-data Extra = X deriving(Show,Eq,Ord,Bounded,Enum)
+--data Extra = X deriving(Show,Eq,Ord,Bounded,Enum)
+type Extra = SourcePos
 type Sent  = Upgrade (Extra,SimpleSent)
 type Sents = [Sent]
 
 type TypeList1 = (Type, Ident, [(Oper, Type, Ident)])
 
 data SimpleSent =
- Char Ident | Del Ident | Scolon | Infl Integer String | Infr Integer String | Sp String | Comm String | 
+ Char Ident | Del Ident | Scolon | Infl Fix Oper | Infr Fix Oper | Sp String | Comm String | 
  Func1 Ident TypeList1 Sent | Func2 Oper TypeList1 TypeList1 Sent | Call1 Ident ValueList |
  Call2 Oper ValueList ValueList | Call3 Oper ValueList ValueList | Call4 [(Value,Oper)] ValueList | Call5 ValueList deriving(Show)
 
@@ -35,8 +36,8 @@ data Value = Var Ident | Constant Integer deriving(Show,Eq)
 
 
 
-simple :: SimpleSent -> Sent
-simple x = Single(X,x)
+simple :: SourcePos -> SimpleSent -> Sent
+simple p x = Single(p,x)
  
  
 sent :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
@@ -46,30 +47,30 @@ sent = def <|> del <|> scl <|>
  op_call1 <|> op_call2 <|> op_call3 <|> op_call4 <|> op_call5
 
 def :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
-def = do{_char;   __; i <-_ident; __;_scolon;return(simple$Char i)}
+def = do{p <- getPosition; _char;   __; i <-_ident; __;_scolon;return(simple p$Char i)}
 --        char           abcd            ;
 
 del :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
-del = do{_delete; __; i <-_ident; __;_scolon;return(simple$Del i)}
+del = do{p <- getPosition; _delete; __; i <-_ident; __;_scolon;return(simple p$Del i)}
 --        delete         abcd            ;
 
 scl :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
-scl = _scolon >> return (simple Scolon)
+scl = do{p <- getPosition; _scolon; return (simple p Scolon)}
 --      ;
 
 infl :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
-infl = do{_infixl; __; n <-_num; __; _paren; __; o <-_op; __; _nerap; __; _scolon; return(simple$Infl n o)}
+infl = do{p <- getPosition; _infixl; __; n <-_num; __; _paren; __; o <-_op; __; _nerap; __; _scolon; return(simple p$Infl n o)}
 --         infixl          15              (            &&              )           ;          
 
 infr :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
-infr = do{_infixr; __; n <-_num; __; _paren; __; o <-_op; __; _nerap; __; _scolon; return(simple$Infr n o)}
+infr = do{p <- getPosition; _infixr; __; n <-_num; __; _paren; __; o <-_op; __; _nerap; __; _scolon; return(simple p$Infr n o)}
 --         infixr          15              (            &&              )           ;          
 
 spac :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
-spac = do{s <- _sp;  return(simple$Sp s)} 
+spac = do{p <- getPosition; s <- _sp;  return(simple p$Sp s)} 
 
 comm :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
-comm = do{s <- _comm;return(simple$Comm s)} 
+comm = do{p <- getPosition; s <- _comm;return(simple p$Comm s)} 
 
 block :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 block = do{_brace; ss <- many sent;_ecarb; return(Block ss)}
@@ -77,17 +78,19 @@ block = do{_brace; ss <- many sent;_ecarb; return(Block ss)}
 
 func_def :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 func_def = do{
+ p <- getPosition; 
  name <- try(do{_void; __; n <- _ident; return n});  __; -- void clear
  _paren;               __;             -- (
  list1 <- getTypeList; __;             -- char& a
  _nerap;               __;             -- )
  m <- block;                           -- {         }
- return(simple$Func1 name list1 m)
+ return(simple p$Func1 name list1 m)
  }
 -- void 識別子(型 識別子【演算子 型 識別子】){【文】}
 
 op_def :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 op_def = do{
+ p <- getPosition; 
  op <- try(do{_void; __; _paren; __; n <- _op; __; _nerap; return n});  __; -- void (+=)
  _paren;               __; -- (
  list1 <- getTypeList; __; -- char& a, char& b
@@ -95,35 +98,37 @@ op_def = do{
  list2 <- getTypeList; __; -- constant char N
  _nerap;               __; -- )
  m <- block;               -- {    }
- return(simple$Func2 op list1 list2 m)
+ return(simple p$Func2 op list1 list2 m)
  }
 -- void(演算子)(型 識別子【演算子 型 識別子】;型 識別子【演算子 型 識別子】){【文】}
  
 func_call :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 func_call = do{
+ p <- getPosition; 
  name <- try(do{ n <- _ident; __; _paren; return n}); __; -- clear (
  vs   <- getValueList;                                __; -- a , b
  _nerap;                                              __; -- )
  ----- Semicolon is not parsed in order to handle while(a){}. Things like that are done while the conversion.
- return(simple$Call1 name vs);
+ return(simple p$Call1 name vs);
  }
 
 op_call1 :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 op_call1 = do{
+ p <- getPosition; 
  op <- try(do{ _paren; __; o <- _op;return o}); __; -- (+=
  _nerap; __; _paren;                            __; -- ) (
  vs1 <- getValueList;                           __; -- a , b
  _scolon;                                       __; -- ;
  vs2 <- getValueList;                           __; -- 1
  _nerap;                                        __; -- )
- _scolon; return(simple$Call2 op vs1 vs2);
+ _scolon; return(simple p$Call2 op vs1 vs2);
  ----- Semicolon *is* parsed because troubles that can occur in normal functions cannot occur with operators
  }
 
 ---  (値【演算子 値】)演算子(値 【演算子 値】);
 op_call2 :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 op_call2 = try(do{
- 
+ p <- getPosition; 
  _paren;                             __;  
  vs1 <- getValueList;                __;
  _nerap;                             __;
@@ -134,14 +139,14 @@ op_call2 = try(do{
  vs2 <- getValueList;                __;
  _nerap; 
  
- _scolon; return(simple$Call2 op vs1 vs2);  --- Same as op_call1 because it always means the same thing
+ _scolon; return(simple p$Call2 op vs1 vs2);  --- Same as op_call1 because it always means the same thing
  })
  
  
 --- (値【演算子 値】)演算子 値 【演算子 値】 ; 
 op_call3 :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 op_call3 = try(do{
- 
+ p <- getPosition; 
  _paren;                             __;  
  vs1 <- getValueList;                __;
  _nerap;                             __;
@@ -150,7 +155,7 @@ op_call3 = try(do{
  
  vs2 <- getValueList;                __;
 
- _scolon; return(simple$Call3 op vs1 vs2); 
+ _scolon; return(simple p$Call3 op vs1 vs2); 
  })
 
  
@@ -158,18 +163,20 @@ op_call3 = try(do{
 ---   値【演算子 値】 演算子(値 【演算子 値】);
 op_call4 :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 op_call4 = try(do{
+ p <- getPosition; 
  xs <- many(do{a <- value; __; b <- _op; return(a,b)}); __;
  _paren;                                               __;
  vs <- getValueList;                                   __;
  _nerap;                                               __;
- _scolon; return(simple$Call4 xs vs);
+ _scolon; return(simple p$Call4 xs vs);
  
  })
  
 ---   値【演算子 値】 演算子 値 【演算子 値】 ;
 op_call5 :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 op_call5 = try(do{
- vs <- getValueList; __; _scolon; return(simple$Call5 vs)
+ p <- getPosition; 
+ vs <- getValueList; __; _scolon; return(simple p$Call5 vs)
  
  })
  

@@ -1,6 +1,6 @@
 {-# OPTIONS -Wall #-}
 module Camphor.Global.Utilities
-(makeErr,Message(..),readEith,readMay,escStar
+(makeErr,Message(..),readEith,readMay,escStar,newErrorMessage
 )where
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Text.Parsec hiding(token)
