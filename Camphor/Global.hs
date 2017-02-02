@@ -1,23 +1,15 @@
 {-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
 module Camphor.Global
-(identifier
-,identifier'
-,nbsp
-,nbsps
-,nbnls
-,newline'
-,(<++>)
-,(<:>)
+(identifier,identifier'
+,nbsp,nbsps,nbnls,newline'
+,spaces',spaces1'
+,(<++>),(<:>),(>=>),(</>)
 ,strP
-,uint
-,byte
-,Ident
+,uint,byte
 ,isJust
-,Txt
-,(>=>)
 ,lib_dir
-,(</>)
+,Ident,Txt
 )where
 
 import Control.Monad
@@ -52,6 +44,20 @@ nbsp = satisfy (\x->isSpace x && x/='\n')<?>"non-breaking space"
 
 nbsps :: Stream s m Char => ParsecT s u m ()
 nbsps = skipMany nbsp
+
+spaces' :: Stream s m Char => ParsecT s u m ()
+spaces' = skipMany space'
+
+spaces1' :: Stream s m Char => ParsecT s u m ()
+spaces1' = skipMany1 space'
+
+space' :: Stream s m Char => ParsecT s u m Char
+space' = 
+  space <|> 
+  do{string "/*"; manyTill anyChar(try(string "*/"));return ' ';} <|> 
+  do{string "//";many(noneOf "\n");newline;return ' '} <?> "space, block comment or line comment"
+
+
 
 -- non-breaking space or comment
 nbnls :: Stream s m Char => ParsecT s u m ()
