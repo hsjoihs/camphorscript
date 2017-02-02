@@ -19,9 +19,9 @@ import Control.Applicative hiding ((<|>),many)
 import Data.Maybe(isJust)
 import qualified Data.Map as M
 
-data Com3_top=DEF | DEL | REA | WRI | COM | NUL deriving(Show)
-data Com3_mid=ADD | SUB deriving(Show)
-data Com3_bot=WHI | BLO deriving(Show)
+data Com3_top = DEF | DEL | REA | WRI | COM | NUL deriving(Show)
+data Com3_mid = ADD | SUB deriving(Show)
+data Com3_bot = WHI | BLO deriving(Show)
 
 data OneOf a b c = Null | Top a | Mid b | Bot c deriving (Show)
 
