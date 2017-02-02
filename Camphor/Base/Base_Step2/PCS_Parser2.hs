@@ -7,7 +7,7 @@ module Camphor.Base.Base_Step2.PCS_Parser2
 ,_char,_delete,_paren,_nerap,_brace
 ,_ecarb,_scolon,_cnstnt,_infixl,_infixr
 ,_void,_const,_ident,_num,_pragma,_comm,_op,_sp,_nl,__
-,_and,_eq,_zero,_comma,_syntax
+,_and,_eq,_zero,_comma,_syntax,_BLOCK
 
 )where
 
@@ -59,6 +59,9 @@ _infixr = parseIf INFIXR
 
 _void   :: Stream s Identity (SourcePos, Tok) => Parsec s u Tok
 _void   = parseIf VOID
+
+_BLOCK   :: Stream s Identity (SourcePos, Tok) => Parsec s u Tok
+_BLOCK   = parseIf BLOCK
 
 _const  :: Stream s Identity (SourcePos, Tok) => Parsec s u Tok
 _const  = parseIf CONST

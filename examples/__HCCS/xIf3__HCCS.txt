@@ -1,0 +1,23 @@
+char b; char c;
+read(b); read(c);
+{
+	char b__TMP_1; char c__TMP_1; 
+	while(b){b__TMP_1+=1; c__TMP_1+=1; b-=1;}
+	while(c__TMP_1){c__TMP_1-=1; b+=1;}
+	delete c__TMP_1;
+	while(b__TMP_1){
+		while(b__TMP_1){b__TMP_1-=1;}
+		
+	write(b);
+	{
+	while(c){
+		while(c){c-=1;}
+		
+		write(b);	
+	
+	}
+}
+
+	}
+	delete b__TMP_1;
+}

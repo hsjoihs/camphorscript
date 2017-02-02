@@ -2,7 +2,7 @@
 {-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
 {- symbolization -}
 module Camphor.ND_parser
-(parserND,parserND'
+(parserND'
 ,ComNum(..)
 ,Com(..)
 ,Nul(..)
@@ -21,9 +21,6 @@ type Chunk  = ABC (ComNum,Integer) Com (Nul,String)
 
 parserND' :: Stream s m Char => ParsecT s u m [Chunk]
 parserND' = do{sents <- many sentences;eof;return sents}
-
-parserND :: Stream s m Char => ParsecT s u m [Chunk]
-parserND = many sentences
 
 sentences :: Stream s m Char => ParsecT s u m Chunk
 sentences = inc <|> dec <|> loop <|> pool <|> mov <|> assert <|> output <|> input <|> nul <|> comm 

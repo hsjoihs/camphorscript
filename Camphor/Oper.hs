@@ -18,5 +18,3 @@ wrap str = Op (delspace str)
 
 unOp :: Oper -> String
 unOp (Op str) = str
-
- 

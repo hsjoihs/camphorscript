@@ -3,9 +3,9 @@
 {- symbolization -}
 module Camphor.Base.Base_Step7
 (step7
-,parserND'
-,convert7
-,convert7'
+-- ,parserND'
+-- ,convert7
+-- ,convert7'
 ) where
 import Camphor.SafePrelude 
 import Camphor.Global.Synonyms

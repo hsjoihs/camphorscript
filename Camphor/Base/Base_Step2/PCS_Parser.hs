@@ -14,7 +14,7 @@ parser2' :: Stream s m Char => ParsecT s u m [(SourcePos,Tok)]
 parser2' = do{ts <- many tok;eof;return (concat ts);}
 
 tok :: Stream s m Char => ParsecT s u m [(SourcePos,Tok)]
-tok = _char <|> _delete  <|> _num <|> _scolon <|> _syntax <|>
+tok = _char <|> _delete  <|> _num <|> _scolon <|> _syntax <|> _BLOCK <|>
  _paren <|> _nerap <|> _brace <|> _ecarb <|>
  _pragma <|> _comm <|> _op <|> -- _pragma -> _comm -> _op (IMPORTANT)
  _infixl <|> _infixr <|>
@@ -62,6 +62,8 @@ _cnstnt  = do{p <- getPosition; try(do{string "constant" ; notFollowedBy alphaNu
 _const :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
 _const   = do{p <- getPosition; try(do{string "const"    ; notFollowedBy alphaNumBar}); return [(p,CONST)]} 
 
+_BLOCK :: Stream s m Char => ParsecT s u m [(SourcePos,Tok)]
+_BLOCK   = do{p <- getPosition; try(do{string "block"    ; notFollowedBy alphaNumBar}); return [(p,BLOCK)]} 
 
 
 _num :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
@@ -97,6 +99,7 @@ showTok INFIXL    = "token "     ++showStr "infixl"
 showTok INFIXR    = "token "     ++showStr "infixr"
 showTok VOID      = "token "     ++showStr "void"
 showTok SYNTAX    = "token "     ++showStr "syntax"
+showTok BLOCK     = "token "     ++showStr "block"
 showTok CONST     = "token "     ++showStr "const"
 showTok (SP _)    = "space "     
 showTok CNSTNT    = "token "     ++showStr "constant"

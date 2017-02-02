@@ -3,8 +3,8 @@
 {- Desugaring -}
 module Camphor.Base.Base_Step3_II
 (step3_II
-,parser3
-,convert3
+-- ,parser3
+-- ,convert3
 ) where
 
 import Camphor.SafePrelude 

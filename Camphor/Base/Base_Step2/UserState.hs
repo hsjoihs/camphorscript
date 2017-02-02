@@ -1,17 +1,27 @@
 {-# LANGUAGE FlexibleContexts, TypeSynonymInstances, FlexibleInstances, NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
 module Camphor.Base.Base_Step2.UserState
-(OpInfo,MacroId(..),VFInstance,OpInstance,SyntaxInstance
-,emptyState,UserState(),TmpStat
-,getTmp,setTmp,clearTmp,addVar,tailTypelistIdentConflict
-,containsIdent,addIdent,removeIdent,getVFContents,addOpContents,containsAnyIdent
-,addOpFixity,getOpName,containsOp,getOpContents,matches,getFixValue
+(UserState(),emptyState
+,OpInfo,MacroId(..),VFInstance,OpInstance,SyntaxInstance,PrettyPrint,VFInfo(..) -- types
+
+-- accesses private members
+,getTmp,setTmp,clearTmp
+,addVar,addFunSyn
+,containsIdent,containsAnyIdent{- ,containsOp -}
+{- ,addIdent-},removeIdent
+,getVFContents
+,getOpContents,addOpContents,addOpFixity
+,addVFBlock,getTopVFBlock{- ,deleteTopVFBlock-},deleteTopVFBlock_ 
+
+-- does not access private members
 ,isInfixL,isInfixR
-,show',PrettyPrint
-,addVFBlock,getTopVFBlock,deleteTopVFBlock,deleteTopVFBlock_ 
-,overlaps,typelistIdentConflict,valuelistIdentConflict,VFInfo(..)
-,tailValuelistIdentConflict
-,getName,addFunSyn,overlaps',matches2
+,typelistIdentConflict
+,valuelistIdentConflict
+,getName,getOpName
+,getFixValue
+,matches,matches2
+,overlaps,overlaps'
+,show'
 )where
 import Camphor.SafePrelude
 import Camphor.SepList as Sep
@@ -22,12 +32,14 @@ import qualified Data.Map as M
 import Text.Parsec.Pos(newPos)
 import Camphor.NonEmpty as NE
 import Control.Monad.State hiding(fix)
+import Camphor.Listlike
+import Camphor.TailSepList
 
 type VFInstance = (TypeList, Maybe Sent) -- Maybe Sent ::: block or `null function'
 type OpInstance = (TypeList,TypeList, Maybe Sent2)
 type OpInfo = (Fixity,[OpInstance])
 data MacroId = Func Ident2 VFInstance | Operator Oper OpInstance | Syn Ident2 SyntaxInstance deriving(Show,Eq)  
-type SyntaxInstance = (Between TailTypeList TypeList,Ident2, Sent) -- list, arg, block
+type SyntaxInstance = (Between TailTypeList TypeList,Sent) -- list, block
 data VFInfo = Variable | FunSyn [VFInstance] [SyntaxInstance] deriving(Show,Eq)
 
 -- private
@@ -53,7 +65,7 @@ overlaps (SepList (typ,_) xs) (SepList (typ2,_) xs2)
   _           `clashesWith` _             = True
   
 overlaps' :: TailTypeList -> TailTypeList -> Bool
-overlaps' xs xs2 = length xs == length xs2 && all id (zipWith transform xs xs2)
+overlaps' xs xs2 = length' xs == length' xs2 && all id (zipWith transform (unTSL xs) (unTSL xs2))
  where
   transform :: (Oper,(Type,Ident2)) -> (Oper,(Type,Ident2)) -> Bool
   transform (op3,(typ3,_)) (op4,(typ4,_)) = op3 == op4 && typ3 `clashesWith` typ4
@@ -61,17 +73,11 @@ overlaps' xs xs2 = length xs == length xs2 && all id (zipWith transform xs xs2)
   CHAR_AND    `clashesWith` CNSTNT_CHAR   = False 
   _           `clashesWith` _             = True  
 
-typelistIdentConflict :: TypeList -> Bool
+typelistIdentConflict :: (Listlike f) => f (Type,Ident2) -> Bool
 typelistIdentConflict = conflict . map snd . toList'
 
-tailTypelistIdentConflict :: TailTypeList -> Bool
-tailTypelistIdentConflict = conflict . map (snd . snd)
-
-valuelistIdentConflict :: ValueList -> Bool
+valuelistIdentConflict :: (Listlike f) => f Value -> Bool
 valuelistIdentConflict = conflict . filter isVar . toList'
-
-tailValuelistIdentConflict :: TailValueList -> Bool
-tailValuelistIdentConflict = conflict . filter isVar . map snd
   
 isInfixL :: Fixity -> Bool
 isInfixL (InfixL _ _) = True
@@ -104,11 +110,11 @@ instance PrettyPrint Type where
 instance PrettyPrint MacroId where
  show' (Func ident (typelist,_)) = "function "++unId ident++"("++show' typelist++"){ .. }"
  show' (Operator oper (typelist1,typelist2,_)) = "operator ("++unOp oper++")("++show' typelist1++";"++show' typelist2++"){ .. }"
- show' (Syn ident (West tl, arg, _))  = "syntax " ++ unId ident ++ "(" ++ show' tl ++ "){" ++ unId arg ++ "}{ .. }"
- show' (Syn ident (East ttl, arg, _)) = "syntax " ++ unId ident ++ "(" ++ pret ttl ++ "){" ++ unId arg ++ "}{ .. }" 
+ show' (Syn ident (West tl,  _))  = "syntax " ++ unId ident ++ "(" ++ show' tl ++ "){block}{ .. }"
+ show' (Syn ident (East ttl, _)) = "syntax " ++ unId ident ++ "(" ++ show' ttl ++ "){block}{ .. }" 
 
-pret :: TailTypeList -> String
-pret ttl = concatMap (\(o,(t,i)) -> unOp o ++ " " ++ show' t ++ " " ++ unId i ++ " ") ttl
+instance PrettyPrint TailTypeList where
+ show' (TSL ttl) = concatMap (\(o,(t,i)) -> unOp o ++ " " ++ show' t ++ " " ++ unId i ++ " ") ttl
 
 
 getFixValue :: Fixity -> Integer 
@@ -118,6 +124,7 @@ getFixValue (InfixR fix _) = fix
 getOpName :: Fixity -> Oper
 getOpName (InfixL _ op) = op
 getOpName (InfixR _ op) = op
+
 emptyState :: UserState
 emptyState = UserState deffun defop Nothing
  where
@@ -163,8 +170,8 @@ deleteTopVFBlock_ e = StateT $ \s -> do
  s' <- deleteTopVFBlock s e
  return((),s')
 
-addIdent :: UserState -> Ident2 -> VFInfo -> UserState
-addIdent (UserState (vf:|vfs) oplist tmp) ident dat = UserState ((M.insert ident dat vf):|vfs) oplist tmp
+-- addIdent :: UserState -> Ident2 -> VFInfo -> UserState
+-- addIdent (UserState (vf:|vfs) oplist tmp) ident dat = UserState ((M.insert ident dat vf):|vfs) oplist tmp
 
 addVar :: UserState -> Ident2 -> UserState
 addVar (UserState (vf:|vfs) oplist tmp) ident = UserState ((M.insert ident Variable vf):|vfs) oplist tmp
@@ -201,8 +208,8 @@ addOpContents stat@(UserState vflist oplist tmp) op (typelist1,typelist2,sent) (
      | otherwise = Right $ (typelist1,typelist2,sent):list
 
  
-containsOp :: UserState -> Oper -> Bool
-containsOp (UserState _ oplist _) oper = oper `M.member` oplist
+-- containsOp :: UserState -> Oper -> Bool
+-- containsOp (UserState _ oplist _) oper = oper `M.member` oplist
 
 getOpContents :: UserState -> Oper -> Maybe OpInfo
 getOpContents (UserState _ oplist _) oper = M.lookup oper oplist
@@ -219,9 +226,9 @@ matches (SepList val ovs) (SepList (typ,_) otis)
   
 matches2 :: TailValueList -> TailTypeList -> Bool
 matches2 tvl ttl
- | length tvl /= length ttl    = False -- wrong length
- | all id $ zipMatch tvl ttl   = True
- | otherwise                   = False 
+ | length' tvl /= length' ttl                = False -- wrong length
+ | all id $ zipMatch (unTSL tvl) (unTSL ttl) = True
+ | otherwise                                 = False 
 
 isTypeof :: Value -> Type -> Bool
 isTypeof _            CONST_CHAR  = True

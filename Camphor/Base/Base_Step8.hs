@@ -4,8 +4,8 @@
 module Camphor.Base.Base_Step8
 (step8
 
-,parser8
-,convert8
+-- ,parser8
+-- ,convert8
 ) where
 import Camphor.SafePrelude
 import Camphor.Global.Parsers

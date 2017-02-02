@@ -1,0 +1,12 @@
+char b;
+read(b);
+b-=48;
+{
+	char b__TMP_1; char c__TMP_1; 
+	while(b){b__TMP_1+=1; c__TMP_1+=1; b-=1;}
+	while(c__TMP_1){c__TMP_1-=1; b+=1;}
+	delete c__TMP_1;
+	while(b__TMP_1){
+		while(b__TMP_1){b__TMP_1-=1;}
+		char c;c+=48; write(c); delete c;}
+	delete b__TMP_1;}

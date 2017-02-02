@@ -1,7 +1,11 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
 module Camphor.SepList
-(SepList(..),reverse,toList',toSeparatorList,isSingle
+(SepList(..)
+,reverse
+-- ,toList'
+,toSeparatorList
+-- ,isSingle
 ) where
 import Camphor.SafePrelude hiding(reverse)
 import qualified Camphor.SafePrelude as P
@@ -23,9 +27,9 @@ reverse (SepList t ts) = uncurry SepList(reverse' (t,ts))
 instance Listlike(SepList b) where
  toList' (SepList v xs) = v:map snd xs 
 
-isSingle :: SepList a b -> Bool
-isSingle (SepList _ []) = True
-isSingle _ = False 
+-- isSingle :: SepList a b -> Bool
+-- isSingle (SepList _ []) = True
+-- isSingle _ = False 
  
 toSeparatorList :: SepList b a -> [b]
 toSeparatorList (SepList _ xs) = map fst xs

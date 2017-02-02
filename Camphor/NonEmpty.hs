@@ -3,7 +3,10 @@
 module Camphor.NonEmpty
 (NonEmpty(..)
 ,toList'
-,cons,snoc,snoc2,append
+,cons
+-- ,snoc
+,snoc2
+-- ,append
 ,last'
 ,shiftPair
 ,searchBy
@@ -17,7 +20,7 @@ data NonEmpty a = (:|)a [a] deriving(Show)
 infixr 5 :|
 infixr 5 `cons`
 infixr 5 `append`
-infixl 5 `snoc`
+-- infixl 5 `snoc`
 infixl 5 `snoc2`
 
 searchBy :: (a -> Maybe b) -> NonEmpty a -> Maybe b
@@ -44,8 +47,8 @@ cons :: a -> NonEmpty a -> NonEmpty a
 {-# INLINE cons #-}
 x `cons` (y :| ys) = x :| (y:ys)
 
-snoc :: NonEmpty a -> a -> NonEmpty a
-(y :| ys) `snoc` x = y :| (ys++[x])
+-- snoc :: NonEmpty a -> a -> NonEmpty a
+-- (y :| ys) `snoc` x = y :| (ys++[x])
 
 snoc2 :: [a] -> a -> NonEmpty a
 [] `snoc2` a = a :| []

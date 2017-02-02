@@ -17,6 +17,7 @@ import qualified Data.Map as M
 import Control.Monad.State
 import Control.Monad.Reader
 import Camphor.TupleTrans
+import Camphor.TailSepList
 
 unwrapAllMay :: [Value] -> Maybe [Ident2]
 unwrapAllMay vs = mapM unwrap vs
@@ -31,8 +32,8 @@ makeNewIdent clTable ident stat pos = do
   lookup2 :: Maybe Ident2
   lookup2 = fmap fst $ M.lookup ident clTable
 
-type RCMEP = ReaderT (CollisionTable,Maybe TmpStat,Maybe Ident2) (Either ParseError)
-type SCMEP = StateT  (CollisionTable,Maybe TmpStat,Maybe Ident2) (Either ParseError)
+type RCMEP = ReaderT (CollisionTable,Maybe TmpStat,Maybe ()) (Either ParseError)
+type SCMEP = StateT  (CollisionTable,Maybe TmpStat,Maybe ()) (Either ParseError)
  
 {-  -------------------------------------------------------------------------------
    ***************************
@@ -71,8 +72,8 @@ replacer3 _ _ pos (R_Func1 ident _ _   ) _  = err$cantdefine("function " ++ show
 replacer3 _ _ pos (R_Func1Nul ident _  ) _  = err$cantdefine("function " ++ showIdent ident)pos 
 replacer3 _ _ pos (R_Func2 oper _ _ _  ) _  = err$cantdefine("operator " ++ showStr(unOp oper ))pos 
 replacer3 _ _ pos (R_Func2Nul oper _ _ ) _  = err$cantdefine("operator " ++ showStr(unOp oper ))pos 
-replacer3 _ _ pos (R_Syntax1 name _ _ _) _  = err$cantdefine("syntax "   ++ showIdent name)pos 
-replacer3 _ _ pos (R_Syntax2 name _ _ _) _  = err$cantdefine("syntax "   ++ showIdent name)pos 
+replacer3 _ _ pos (R_Syntax1 name _ _  ) _  = err$cantdefine("syntax "   ++ showIdent name)pos 
+replacer3 _ _ pos (R_Syntax2 name _ _  ) _  = err$cantdefine("syntax "   ++ showIdent name)pos 
  
 -- char & delete -- 
 replacer3 stat _ pos (R_Char ident) table  = case M.lookup ident table of
@@ -260,9 +261,9 @@ replaceSingles table vlist = do
  return $ fmap (replaceSingle table coltable) vlist
  
 replaceSingles2 :: ReplTable -> TailValueList -> RCMEP TailValueList
-replaceSingles2 table tvlist = do
+replaceSingles2 table (TSL tvlist) = do
  coltable <- askFst
- return [(o,replaceSingle table coltable v) | (o,v) <- tvlist]
+ return $ TSL[(o,replaceSingle table coltable v) | (o,v) <- tvlist]
   
 --- replaces a value with collision table top -> replacement table -> collision table rest  
 replaceSingle :: ReplTable -> CollisionTable -> Value -> Value 

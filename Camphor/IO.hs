@@ -4,8 +4,8 @@ module Camphor.IO
 (outputParsed
 ,getContentsFrom
 ,abort
-,replaceExtension
-,getDirectoryContents,doesFileExist
+,getDirectoryContents
+,doesFileExist
 ,getArgs
 ,splitFileName
 )where

@@ -1,0 +1,18 @@
+syntax if(char& a){block}
+{
+	char b; char c; 
+	while(a){b+=1; c+=1; a-=1}
+	while(c){c-=1; a+=1}
+	delete c;
+	while(b)
+	{
+		while(b){b-=1}
+		block
+	}
+	delete b
+}
+
+char b;
+read(b);
+b-='0';
+if(b){char c='0'; write(c); delete c}

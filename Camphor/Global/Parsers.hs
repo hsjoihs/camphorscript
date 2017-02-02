@@ -1,11 +1,30 @@
 {-# LANGUAGE FlexibleContexts, NoImplicitPrelude #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
 module Camphor.Global.Parsers
-(alphaBar,alphaNumBar,identifier,identifier'
-,nbsp,nbsps,nbnls,nbnl
-,spaces',spaces1',space',newline'
-,uint,byte,uint'
-,blockComm,lineComm,operator,pragmaComm
+({-alphaBar
+,-}alphaNumBar
+,identifier
+,identifier'
+
+-- ,nbsp
+-- ,nbsps
+,nbnls
+,nbnl
+
+,spaces'
+-- ,spaces1'
+,space'
+,newline'
+
+-- ,uint
+,byte
+,uint'
+
+,blockComm
+-- ,lineComm
+,operator
+,pragmaComm
+
 ,strP
 )where
 import Camphor.SafePrelude 
@@ -35,8 +54,8 @@ identifier' = (alphaBar <:> many alphaNumBar) <?> "identifier"
 nbsp :: Stream s m Char => ParsecT s u m Char
 nbsp = satisfy (\x->isSpace x && x/='\n') <?> "non-breaking space"
 
-nbsps :: Stream s m Char => ParsecT s u m ()
-nbsps = skipMany nbsp
+-- nbsps :: Stream s m Char => ParsecT s u m ()
+-- nbsps = skipMany nbsp
 
 nbnls :: Stream s m Char => ParsecT s u m () -- non-breaking space or comment
 nbnls = skipMany nbnl
@@ -49,8 +68,8 @@ nbnl = ( nbsp <?> "non-breaking space" ) <|> ( blockComm >> return ' ' )
 spaces' :: Stream s m Char => ParsecT s u m ()
 spaces' = skipMany space'
 
-spaces1' :: Stream s m Char => ParsecT s u m ()
-spaces1' = skipMany1 space'
+-- spaces1' :: Stream s m Char => ParsecT s u m ()
+-- spaces1' = skipMany1 space'
 
 space' :: Stream s m Char => ParsecT s u m Char
 space' = space <|> ( blockComm >> return ' ' ) <|> ( lineComm  >> return ' ' )
@@ -60,8 +79,8 @@ newline' = ( newline >> return () ) <|> ( lineComm >> return () )
 
 
 -- -- Chapter 3-4 Parsers parsing numbers
-uint :: Stream s m Char => ParsecT s u m String
-uint = many1 digit <?> "unsigned integer"
+-- uint :: Stream s m Char => ParsecT s u m String
+-- uint = many1 digit <?> "unsigned integer"
 
 
 uint' :: Stream s m Char => ParsecT s u m Integer

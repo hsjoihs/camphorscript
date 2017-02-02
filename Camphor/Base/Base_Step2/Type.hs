@@ -16,8 +16,10 @@ import Camphor.Global.Parsers
 import Camphor.Global.Utilities
 import Text.Parsec hiding(token)
 import Camphor.SepList
+import Camphor.TailSepList
 import Camphor.NonEmpty
 import qualified Data.Map as M
+
 
 
 newtype Ident2 = Ident2{unId :: String} deriving(Show,Ord,Eq)
@@ -33,9 +35,9 @@ type Extra = SourcePos
 type Sent  = Upgrade Extra SimpleSent
 type Sents = [Sent]
 type TypeList = SepList Oper (Type,Ident2)
-type TailTypeList = [(Oper,(Type,Ident2))]
+type TailTypeList = TailSepList Oper (Type,Ident2)
 type ValueList = SepList Oper Value
-type TailValueList = [(Oper,Value)]
+type TailValueList = TailSepList Oper Value
 type Sent2 = Upgrade Extra SimpleSent2
 data SimpleSent =
  Scolon | Char Ident2 | Del Ident2 |   Sp String   | Comm String |
@@ -48,7 +50,7 @@ data SimpleSent =
  Call1 Ident2 ValueList     | Call2 Oper ValueList ValueList  | 
  Call5 ValueList   | Call3 Oper ValueList ValueList   |  Call4 [(Value,Oper)] ValueList |
  Pleq Ident2 Integer | Mneq Ident2 Integer |   Rd Ident2    |  Wrt Ident2 | 
- Syntax1 Ident2 TypeList Ident2 Sent | Syntax2 Ident2 TailTypeList Ident2 Sent | SynBlock
+ Syntax1 Ident2 TypeList Sent | Syntax2 Ident2 TailTypeList Sent | SynBlock 
  deriving(Show,Eq)
  
 data SimpleSent2 = 
@@ -62,7 +64,7 @@ data SimpleSent2 =
  R_Call1 Ident2 ValueList     | R_Call2 Oper ValueList ValueList  | 
  R_Call5 ValueList  | R_Call3 Oper ValueList ValueList   |  R_Call4 [(Value,Oper)] ValueList |
  R_Pleq Value Value | R_Mneq Value Value |   R_Rd Value    |  R_Wrt Value |
- R_Syntax1 Ident2 TypeList Ident2 Sent | R_Syntax2 Ident2 TailTypeList Ident2 Sent | R_SynBlock 
+ R_Syntax1 Ident2 TypeList Sent | R_Syntax2 Ident2 TailTypeList Sent | R_SynBlock 
  deriving(Show,Eq)
 
 data Type = CNSTNT_CHAR | CONST_CHAR | CHAR_AND deriving(Show,Eq)
@@ -78,7 +80,7 @@ data Tok =
  CHAR   | DELETE | IDENT Ident2  |   NUM Integer   |  
  PAREN  | NERAP  | BRACE | ECARB | SCOLON | CNSTNT |
  COMM String     |    OP Oper    | INFIXL | INFIXR |
- SYNTAX | VOID   | CONST |   SP String    | 
+ SYNTAX | VOID   | CONST |   SP String    | BLOCK  |
  PRAGMA PragmaData         deriving(Show,Eq)
 
 {----------------------------------
@@ -114,7 +116,7 @@ toIdent2 "" = Left ""
 toIdent2 i@(x:xs) = maybeToEither i $ do
  guard $ (isAlpha x || x == '_')
  guard $ null[ a | a <- xs, not (isAlphaNum a), a /= '_']
- guard $ i `notElem` ["char","delete","infixl","infixr","void","constant","const","syntax" ]
+ guard $ i `notElem` ["char","delete","infixl","infixr","void","constant","const","syntax", "block" ]
  return(Ident2 i)
 
 toSent2 :: Sent -> Sent2
@@ -131,8 +133,8 @@ toSimpleSent2 (Comm str)         = R_Comm str
 toSimpleSent2 (Pragma p)         = R_Pragma p 
 toSimpleSent2 (Infl f o)         = R_Infl f o 
 toSimpleSent2 (Infr f o)         = R_Infr f o 
-toSimpleSent2 (Syntax1 n t a b)  = R_Syntax1 n t a b 
-toSimpleSent2 (Syntax2 n t a b)  = R_Syntax2 n t a b 
+toSimpleSent2 (Syntax1 n t b)    = R_Syntax1 n t b 
+toSimpleSent2 (Syntax2 n t b)    = R_Syntax2 n t b 
 toSimpleSent2 (Func1 i t s)      = R_Func1 i t s 
 toSimpleSent2 (Func1Nul i t)     = R_Func1Nul i t 
 toSimpleSent2 (Func2 o t1 t2 s)  = R_Func2 o t1 t2 s 

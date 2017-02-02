@@ -10,12 +10,13 @@ import Text.Parsec
 import Text.Parsec.Pos(initialPos) 
 import Camphor.Base.Base_Step2.PCS_Parser2
 import Camphor.Oper
+import Camphor.TailSepList
 
 parser2_2 :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity Sents
 parser2_2 = do{xs <- many sent; eof; return (concat xs);} 
 
 sent :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity [Sent]
-sent = def <|> syntax <|> del <|> scl <|>
+sent = def <|> syntax <|> del <|> scl <|> bLOCK <|>
  infl <|> infr <|> spac <|> block2 <|> comm <|> pragma <|>
  func_def <|> op_def <|> func_call <|> syntax_call <|>
  op_call1 <|> op_call2 <|> op_call3 <|> op_call4 <|> op_call5 
@@ -25,7 +26,7 @@ doWith :: SourcePos -> [Ident2] -> Integer -> [Sent]
 doWith p is 0  =        [  Single p $ Char i | i <- is ] 
 doWith p is nm = concat [ [Single p $ Char i,Single p $ Call2 (wrap "+=") (return$Var i) (return$Constant nm)] | i <- is ] 
 
-syntax_ :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity (SourcePos,Ident2,Ident2,Sent,Between TailTypeList TypeList)
+syntax_ :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity (SourcePos,Ident2,Sent,Between TailTypeList TypeList)
 syntax_ = do{
  p <- getPosition;
  _syntax;          __;  -- syntax
@@ -34,19 +35,27 @@ syntax_ = do{
  list <- eitherTL; __;  -- ~a
  _nerap;           __;  -- )
  _brace;           __;  -- {
- arg <- _ident;    __;  -- block
+ _BLOCK;           __;  -- block
  many ((_scolon >> return "") <|> _nl);
  _ecarb;           __;  -- }
  bl <- block;      __;  -- { ~~~~ }
- return (p,name,arg,bl,list);
+ return (p,name,bl,list);
  }  
   
 syntax :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity [Sent] 
 syntax = try $ do
- (p,name,arg,blk,list) <- syntax_
+ (p,name,blk,list) <- syntax_
  case list of 
-  West tl  -> return [ Single p $ Syntax1 name tl  arg blk ]
-  East ttl -> return [ Single p $ Syntax2 name ttl arg blk ]
+  West tl  -> return [ Single p $ Syntax1 name tl  blk ]
+  East ttl -> return [ Single p $ Syntax2 name ttl blk ]
+
+bLOCK :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity [Sent]
+bLOCK = do{
+ p <- getPosition;
+ _BLOCK; __; 
+ _scolon;
+ return [Single p $ SynBlock]
+ }
   
 def :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity [Sent]
 def = do{
@@ -254,10 +263,7 @@ op_call5 = try(do{
  p <- getPosition; 
  vs <- getValueList; __; 
  _scolon; 
- case vs of {
-  SepList (Var v) [] | unId v == "block" -> return[Single p $ SynBlock];
-  _ -> return[Single p$Call5 vs]
-  }
+ return[Single p$Call5 vs]
  })
 typ :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity Type
 typ = 
@@ -273,7 +279,7 @@ getTypeList = do
  return$SepList (g,h) i
  
 getTailTypeList :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity TailTypeList
-getTailTypeList = many (do{ a <- _op; __; b <- typ; __; c <- _ident; __; return(a,(b,c))}); 
+getTailTypeList = TSL <$> many (do{ a <- _op; __; b <- typ; __; c <- _ident; __; return(a,(b,c))}); 
 
 eitherTL :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity (Between TailTypeList TypeList)
 eitherTL = West <$> try(getTypeList) <|> East <$> try(getTailTypeList) 
@@ -288,7 +294,7 @@ getValueList = do
  return$SepList g h
   
 getTailValueList :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity TailValueList
-getTailValueList = many(do{a <- _op; __; b <- value; __; return(a,b)});
+getTailValueList = TSL <$> many(do{a <- _op; __; b <- value; __; return(a,b)});
 
 eitherVL :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity (Between TailValueList ValueList)
 eitherVL = West <$> try(getValueList) <|> East <$> try(getTailValueList)  

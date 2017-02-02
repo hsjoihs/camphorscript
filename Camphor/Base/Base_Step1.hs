@@ -3,14 +3,14 @@
 {- C macro expansion -}
 module Camphor.Base.Base_Step1
 (step1
-,parser1
-,Pre7(..)
-,line
-,convert1
-,convert1'
-,replaceBy
-,parser1'5
-,token
+-- ,parser1
+-- ,Pre7(..)
+-- ,line
+-- ,convert1
+-- ,convert1'
+-- ,replaceBy
+-- ,parser1'5
+-- ,token
 ) where
 
 import Camphor.SafePrelude

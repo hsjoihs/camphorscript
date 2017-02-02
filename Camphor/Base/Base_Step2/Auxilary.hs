@@ -1,16 +1,26 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
 module Camphor.Base.Base_Step2.Auxilary
-(getOpContents2
-,canBeRightOf
-,canBeLeftOf
-,getOpFixity,getOpsFixities,getOpsFixities'
-,makeReplacerTable,makeReplacerTable2,ReplTable
-,isConsistent
-,NonEmptyValue
+(ReplTable,makeReplacerTable,makeReplacerTable2,makeReplacerTable3
+,getOpFixity{- ,getOpsFixities -},getOpsFixities'
+{- ,canBeRightOf,canBeLeftOf -}
+-- ,getOpContents2
+-- ,isConsistent
+-- ,NonEmptyValue
+
 ,reverse''
-,isValidCall3,getCall4Left,getInstanceOfCall1,getInstanceOfCall2,getInstanceOfSC
-,getLastPos,toSents,err,toState,fromState--,makeReplacerTable3
+
+,isValidCall3
+,getCall4Left
+,getInstanceOfCall1
+,getInstanceOfCall2
+,getInstanceOfSC
+
+,getLastPos
+-- ,toSents
+,err
+,toState
+,fromState
 ) where
 import Camphor.SafePrelude
 import qualified Camphor.SepList as S
@@ -23,44 +33,51 @@ import Camphor.NonEmpty
 import qualified Data.Map as M
 import Control.Monad.State
 import Control.Monad.Reader
+import Camphor.Base.Base_Step2.ErrList
 
 getLastPos :: Sent -> SourcePos
 getLastPos (Single pos _) = pos
 getLastPos (Block  p [] ) = p
 getLastPos (Block  _ (x:xs)) = getLastPos $ last' (x :| xs)
 
+getOpContents2 :: SourcePos -> UserState -> Oper -> Either ParseError OpInfo
+getOpContents2 pos s o = case getOpContents s o of
+ Nothing   -> Left $toPE pos $ Step2 <!> Type <!> WrongCall <!> Notdefined <!> Operat o
+ Just info -> Right$ info
+
+
 getInstanceOfCall2 :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError OpInstance
 getInstanceOfCall2 pos op valuelist1 valuelist2 stat = do
  (_,opinfo) <- getOpContents2 pos stat op
  let matchingOpInstance = [ a | a@(typelist1,typelist2,_) <- opinfo, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ] 
  case matchingOpInstance of 
-  []        -> Left $newErrorMessage(Message$"no type-matching instance of "++showStr (unOp op)++" defined")pos 
+  []        -> Left $toPE pos $ Step2 <!> Type <!> WrongCall <!> Notypematch <!> Operat op
   [instnce] -> return instnce
-  xs        -> Left $newErrorMessage(Message$showNum(length xs)++" type-matching instances of "++showStr (unOp op)++" defined")pos 
+  xs        -> Left $toPE pos $ Step2 <!> Type <!> WrongCall <!> Manytypematches (length xs) <!> Operat op 
 
 getInstanceOfCall1 :: SourcePos -> Ident2 -> ValueList -> UserState -> Either ParseError VFInstance
 getInstanceOfCall1 pos ident valuelist stat = case getVFContents stat ident of -- checks if `ident' is a function; if so, look for all the instances.
- Nothing              -> Left $newErrorMessage(Message$"function "++showIdent ident++" is not defined")pos 
- Just Variable        -> Left $newErrorMessage(Message$"cannot call function "++showIdent ident++" because it is defined as a variable")pos
+ Nothing              -> Left $toPE pos $ Step2 <!> Type <!> WrongCall <!> Notdefined <!> Functi ident
+ Just Variable        -> Left $toPE pos $ Step2 <!> Type <!> WrongCall <!> Definedasvar <!> Functi_2 ident
  Just(FunSyn finfo _) -> do 
   let matchingFuncInstance = [ a | a@(typelist,_) <- finfo, valuelist `matches` typelist ]
   case matchingFuncInstance of
-   []        -> Left $newErrorMessage(Message$"no type-matching instance of function "++showIdent ident++" defined")pos  
+   []        -> Left $toPE pos $ Step2 <!> Type <!> WrongCall <!> Notypematch <!> Functi ident 
    [instnce] -> return instnce
-   xs        -> Left $newErrorMessage(Message$showNum(length xs)++" type-matching instances of function "++showIdent ident++" defined")pos   
+   xs        -> Left $toPE pos $ Step2 <!> Type <!> WrongCall <!> Manytypematches (length xs) <!> Functi ident   
 
 getInstanceOfSC :: SourcePos -> Ident2 -> Between TailValueList ValueList -> UserState -> Either ParseError (SyntaxInstance,ReplTable)  
 getInstanceOfSC pos ident vl_vvl stat = case getVFContents stat ident of -- checks if `ident' is a syntax; if so, look for all the instances.
- Nothing              -> Left $newErrorMessage(Message$"syntax "++showIdent ident++" is not defined")pos 
- Just Variable        -> Left $newErrorMessage(Message$"cannot use syntax "++showIdent ident++" because it is defined as a variable")pos
+ Nothing              -> Left $toPE pos $ Step2 <!> Type <!> WrongCall <!> Notdefined <!> Synt ident
+ Just Variable        -> Left $toPE pos $ Step2 <!> Type <!> WrongCall <!> Definedasvar <!> Synt_2 ident
  Just(FunSyn _ sinfo) -> case getMatchingSyntaxInstRepls sinfo vl_vvl of 
-  []        -> Left $newErrorMessage(Message$"no type-matching instance of syntax "++showIdent ident++" defined")pos 
-  xs@(_:_:_)-> Left $newErrorMessage(Message$showNum(length xs)++" type-matching instances of syntax "++showIdent ident++" defined")pos     
+  []        -> Left $toPE pos $ Step2 <!> Type <!> WrongCall <!> Notypematch <!> Synt ident 
+  xs@(_:_:_)-> Left $toPE pos $ Step2 <!> Type <!> WrongCall <!> Manytypematches (length xs) <!> Synt ident    
   [instrepl]-> return instrepl
 
 getMatchingSyntaxInstRepls :: [SyntaxInstance] -> Between TailValueList ValueList -> [(SyntaxInstance,ReplTable)] 
 getMatchingSyntaxInstRepls sinfo vl_vvl = do
- a@(tl_ttl,_,_) <- sinfo
+ a@(tl_ttl,_) <- sinfo
  case (vl_vvl,tl_ttl) of
   (West _  ,East _  ) -> [] -- failure
   (East _  ,West _  ) -> [] -- failure
@@ -94,10 +111,6 @@ reverse'' :: (a,NonEmpty(b,a)) -> (a,NonEmpty(b,a))
 reverse'' (a,(b,a2):|xs) = (q,ws `snoc2`(b,a))
  where S.SepList q ws = S.reverse (S.SepList a2 xs)
 
-getOpContents2 :: SourcePos -> UserState -> Oper -> Either ParseError OpInfo
-getOpContents2 pos s o = case getOpContents s o of
- Nothing   -> Left $ newErrorMessage(Message$"operator "++showStr (unOp o)++" is not defined")pos
- Just info -> Right$ info
 
  
 canBeRightOf :: SourcePos -> Fixity -> Fixity -> Either ParseError ()
@@ -148,14 +161,14 @@ makeReplacerTable2 :: (TypeList,TypeList) -> (ValueList,ValueList) -> ReplTable
 makeReplacerTable2 (t1,t2)(v1,v2) = M.fromList$zip(toIdentList t1++toIdentList t2)(toList' v1++toList' v2)
 
 makeReplacerTable3 :: TailTypeList -> TailValueList -> ReplTable
-makeReplacerTable3 ttl tvl = M.fromList$zip(map (snd.snd) ttl)(map snd tvl)
+makeReplacerTable3 ttl tvl = M.fromList$zip(map snd $ toList' ttl)(toList' tvl)
 
-isConsistent :: [Fixity] -> Bool
-isConsistent xs = all isInfixL xs || all isInfixR xs
+-- isConsistent :: [Fixity] -> Bool
+-- isConsistent xs = all isInfixL xs || all isInfixR xs
 
 
-toSents :: Extra -> [SimpleSent] -> Sents
-toSents  = map . Single
+-- toSents :: Extra -> [SimpleSent] -> Sents
+-- toSents  = map . Single
 
 err :: MonadTrans t => a1 -> t (Either a1) a
 err = lift . Left 

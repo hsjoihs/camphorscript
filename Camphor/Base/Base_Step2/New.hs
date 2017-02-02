@@ -56,15 +56,15 @@ newF2 pos op typelist1 typelist2 sent stat =
   newErrorMessage(Message$"overlapping parameters of operator "++showStr (unOp op))pos)
 
 -- Syntax1 definition  
-newS1 :: SourcePos -> Ident2 -> TypeList -> Ident2 -> Sent -> UserState -> Either ParseError UserState 
-newS1 pos name tl arg sent stat 
+newS1 :: SourcePos -> Ident2 -> TypeList -> Sent -> UserState -> Either ParseError UserState 
+newS1 pos name tl sent stat 
  | typelistIdentConflict tl = Left $ newErrorMessage(Message$"overlapping parameters of syntax "++showIdent name)pos
  | otherwise = case getVFContents stat name of
   Just Variable  -> Left $newErrorMessage(Message$"cannot define syntax " ++ showIdent name ++ " because it is already defined as a variable")pos
-  Nothing        -> Right$addFunSyn stat name [] [(West tl,arg,sent)]
+  Nothing        -> Right$addFunSyn stat name [] [(West tl,sent)]
   Just(FunSyn xs ys) 
-   | any (\(tlist,_,_) -> tl `overlaps2` tlist) ys -> Left $ newErrorMessage(Message$"type-overlapping definition of syntax"++showIdent name)pos
-   | otherwise                                     -> return $ addFunSyn stat name xs ((West tl,arg,sent):ys)
+   | any (\(tlist,_) -> tl `overlaps2` tlist) ys -> Left $ newErrorMessage(Message$"type-overlapping definition of syntax"++showIdent name)pos
+   | otherwise                                     -> return $ addFunSyn stat name xs ((West tl,sent):ys)
    
 overlaps2 :: TypeList -> Between TailTypeList TypeList -> Bool
 overlaps2 tl (West tl2) = tl `overlaps` tl2
@@ -74,12 +74,12 @@ overlaps3 :: TailTypeList -> Between TailTypeList TypeList -> Bool
 overlaps3 ttl (East ttl2) = ttl `overlaps'` ttl2
 overlaps3 _  _            = False
 
-newS2 :: SourcePos -> Ident2 -> TailTypeList -> Ident2 -> Sent -> UserState -> Either ParseError UserState 
-newS2 pos name ttl arg sent stat
- | tailTypelistIdentConflict ttl = Left $ newErrorMessage(Message$"overlapping parameters of syntax "++showIdent name)pos
+newS2 :: SourcePos -> Ident2 -> TailTypeList -> Sent -> UserState -> Either ParseError UserState 
+newS2 pos name ttl sent stat
+ | typelistIdentConflict ttl = Left $ newErrorMessage(Message$"overlapping parameters of syntax "++showIdent name)pos
  | otherwise = case getVFContents stat name of
   Just Variable  -> Left $newErrorMessage(Message$"cannot define syntax " ++ showIdent name ++ " because it is already defined as a variable")pos
-  Nothing        -> Right$addFunSyn stat name [] [(East ttl,arg,sent)]
+  Nothing        -> Right$addFunSyn stat name [] [(East ttl,sent)]
   Just(FunSyn xs ys) 
-   | any (\(tlist,_,_) -> ttl `overlaps3` tlist) ys -> Left $ newErrorMessage(Message$"type-overlapping definition of syntax"++showIdent name)pos
-   | otherwise                                      -> return $ addFunSyn stat name xs ((East ttl,arg,sent):ys)
+   | any (\(tlist,_) -> ttl `overlaps3` tlist) ys -> Left $ newErrorMessage(Message$"type-overlapping definition of syntax"++showIdent name)pos
+   | otherwise                                      -> return $ addFunSyn stat name xs ((East ttl,sent):ys)
