@@ -7,7 +7,6 @@
 	<title>CamphorScript入門</title>
 </head>
 <body>
-<body>
 <div id="all">
 	<div id="main">
 		<div id="title">
@@ -62,7 +61,7 @@ write(d);</pre>
 			</p>
 			<div class="line"><span>Linuxの場合</span></div>
 			<ol>
-				<li>ターミナルを開き、<span class="console">sudo apt-get install haskell-platform</span>を実行</li>
+				<li>Debian系の場合は、ターミナルを開き、<span class="console">sudo apt-get install haskell-platform</span>を実行。<br>そうでなければ、何らかの方法で <a href="http://www.haskell.org/platform/">Haskell Platform</a>をインストール。</li>
 				<li>同封のフォルダを適切な場所にコピー</li>
 				<li>ターミナルを開き、今コピーしたccsc.hsのあるディレクトリに<span class="console">cd</span></li>
 				<li><span class="console">ghc --make ccsc -o ccsc &amp;&amp; chmod 755 ccsc</span>を実行</li>
@@ -203,11 +202,11 @@ write(d);write(a);write(a);</pre>
 			
 			<div class="line"><span>初期化の省略</span></div>
 			<p>
-				前回のプログラムでは、<span class="code">a</span>を<span class="code">@</span>で初期化していますが、結局使っていません。
+				前回のプログラムでは、<span class="code">a</span>を<span class="code">'@'</span>で初期化していますが、結局使っていません。
 			</p>
 			<p>
-				それもそのはず、3行目で<span class="code">read</span>を使って<span class="code">a</span>を上書きしているので、
-				<span class="code">@</span>は消えてしまいます。
+				それもそのはず、3行目で<span class="code">read</span>を使って<span class="code">a</span>の中身を上書きしているので、
+				<span class="code">'@'</span>は消えてしまいます。
 			</p>
 			<p>
 				消えてしまうのならば、そもそも初期化を省略してしまっても問題ないはずです。ということで、消してみましょう。
@@ -228,22 +227,1829 @@ write(d);write(a);write(a);</pre>
 				<div>&gt;&nbsp;<span class="input">y</span>:yy</div>
 			</div>
 			<p>
-				問題ないみたいですね。
+				動いています。省略しても問題ないみたいですね。
 			</p>
 			<p>
 				このように、変数宣言時の初期化は省略することができます。
 			</p>
 			
+			
+			
+			
+			
 			<br /><h3>2-2. 文字コード</h3>
+			<p>
+				今までのプログラムでは、文字を扱ってきました。では、CamphorScriptでは、文字をどのように扱っているのでしょうか。
+			</p>
+			<p>
+				CamphorScriptに限らず、一般的にコンピュータでは、文字に番号を割り振り、その数値で文字を管理します。この番号のことを「文字コード」と呼びます。
+				文字コードの種類は多くありますが、CamphorScriptでは「ASCIIコード」と言うものを使います。
+			</p>
+			<p>
+				CamphorScriptでは、文字と文字コードは完全に同じものとして扱われます。
+				例えば、文字「a」には文字コード「97」が割り振られているので、
+				<span class="code">char a = 'a'; write(a);</span>と<span class="code">char a = 97; write(a);</span>は完全に同じ動作をします。
+			</p>
+			<table class="te">
+			<caption>文字コード表(一部)</caption>
+			<tbody>
+			<tr>
+				<td>
+					<table class="tc">
+						<tr><td>空白</td><td>32</td></tr>
+						<tr><td>!</td><td>33</td></tr>
+						<tr><td>"</td><td>34</td></tr>
+						<tr><td>#</td><td>35</td></tr>
+						<tr><td>$</td><td>36</td></tr>
+						<tr><td>%</td><td>37</td></tr>
+						<tr><td>&amp;</td><td>38</td></tr>
+						<tr><td>'</td><td>39</td></tr>
+					</table>
+				</td>
+				<td>
+					<table class="tc">
+						<tr><td>(</td><td>40</td></tr>
+						<tr><td>)</td><td>41</td></tr>
+						<tr><td>*</td><td>42</td></tr>
+						<tr><td>+</td><td>43</td></tr>
+						<tr><td>,</td><td>44</td></tr>
+						<tr><td>-</td><td>45</td></tr>
+						<tr><td>.</td><td>46</td></tr>
+						<tr><td>/</td><td>47</td></tr>
+					</table>
+				</td>
+				<td>
+					<table class="tc">
+						<tr><td>0</td><td>48</td></tr>
+						<tr><td>1</td><td>49</td></tr>
+						<tr><td>2</td><td>50</td></tr>
+						<tr><td>3</td><td>51</td></tr>
+						<tr><td>4</td><td>52</td></tr>
+						<tr><td>5</td><td>53</td></tr>
+						<tr><td>6</td><td>54</td></tr>
+						<tr><td>7</td><td>55</td></tr>
+					</table>
+				</td>
+				<td>
+					<table class="tc">
+						<tr><td>8</td><td>56</td></tr>
+						<tr><td>9</td><td>57</td></tr>
+						<tr><td>:</td><td>58</td></tr>
+						<tr><td>;</td><td>59</td></tr>
+						<tr><td>&lt;</td><td>60</td></tr>
+						<tr><td>=</td><td>61</td></tr>
+						<tr><td>&gt;</td><td>62</td></tr>
+						<tr><td>?</td><td>63</td></tr>
+					</table>
+				</td>
+				<td>
+					<table class="tc">
+						<tr><td>@</td><td>64</td></tr>
+						<tr><td>A</td><td>65</td></tr>
+						<tr><td>B</td><td>66</td></tr>
+						<tr><td>C</td><td>67</td></tr>
+						<tr><td>D</td><td>68</td></tr>
+						<tr><td>E</td><td>69</td></tr>
+						<tr><td>F</td><td>50</td></tr>
+						<tr><td>G</td><td>71</td></tr>
+					</table>
+				</td>
+				<td>
+					<table class="tc">
+						<tr><td>H</td><td>72</td></tr>
+						<tr><td>I</td><td>73</td></tr>
+						<tr><td>J</td><td>74</td></tr>
+						<tr><td>K</td><td>75</td></tr>
+						<tr><td>L</td><td>76</td></tr>
+						<tr><td>M</td><td>77</td></tr>
+						<tr><td>N</td><td>78</td></tr>
+						<tr><td>O</td><td>79</td></tr>
+					</table>
+				</td>
+				<td>
+					<table class="tc">
+						<tr><td>P</td><td>80</td></tr>
+						<tr><td>Q</td><td>81</td></tr>
+						<tr><td>R</td><td>82</td></tr>
+						<tr><td>S</td><td>83</td></tr>
+						<tr><td>T</td><td>84</td></tr>
+						<tr><td>U</td><td>85</td></tr>
+						<tr><td>V</td><td>86</td></tr>
+						<tr><td>W</td><td>87</td></tr>
+					</table>
+				</td>
+				<td>
+					<table class="tc">
+						<tr><td>X</td><td>88</td></tr>
+						<tr><td>Y</td><td>89</td></tr>
+						<tr><td>Z</td><td>90</td></tr>
+						<tr><td>[</td><td>91</td></tr>
+						<tr><td>\</td><td>92</td></tr>
+						<tr><td>]</td><td>93</td></tr>
+						<tr><td>^</td><td>94</td></tr>
+						<tr><td>_</td><td>95</td></tr>
+					</table>
+				</td><td>
+					<table class="tc">
+						<tr><td>`</td><td>96</td></tr>
+						<tr><td>a</td><td>97</td></tr>
+						<tr><td>b</td><td>98</td></tr>
+						<tr><td>c</td><td>99</td></tr>
+						<tr><td>d</td><td>100</td></tr>
+						<tr><td>e</td><td>101</td></tr>
+						<tr><td>f</td><td>102</td></tr>
+						<tr><td>g</td><td>103</td></tr>
+					</table>
+				</td>
+				<td>
+					<table class="tc">
+						<tr><td>h</td><td>104</td></tr>
+						<tr><td>i</td><td>105</td></tr>
+						<tr><td>j</td><td>106</td></tr>
+						<tr><td>k</td><td>107</td></tr>
+						<tr><td>l</td><td>108</td></tr>
+						<tr><td>m</td><td>109</td></tr>
+						<tr><td>n</td><td>110</td></tr>
+						<tr><td>o</td><td>111</td></tr>
+					</table>
+				</td>
+				<td>
+					<table class="tc">
+						<tr><td>p</td><td>112</td></tr>
+						<tr><td>q</td><td>113</td></tr>
+						<tr><td>r</td><td>114</td></tr>
+						<tr><td>s</td><td>115</td></tr>
+						<tr><td>t</td><td>116</td></tr>
+						<tr><td>u</td><td>117</td></tr>
+						<tr><td>v</td><td>118</td></tr>
+						<tr><td>w</td><td>119</td></tr>
+					</table>
+				</td>
+				<td>
+					<table class="tc">
+						<tr><td>x</td><td>120</td></tr>
+						<tr><td>y</td><td>121</td></tr>
+						<tr><td>z</td><td>122</td></tr>
+						<tr><td>{</td><td>123</td></tr>
+						<tr><td>|</td><td>124</td></tr>
+						<tr><td>}</td><td>125</td></tr>
+						<tr><td>~</td><td>126</td></tr>
+						<tr><td style="border-color:rgba(0,0,0,0);">&nbsp;</td><td style="border-color:rgba(0,0,0,0);">&nbsp;</td></tr>
+					</table>
+				</td>
+			
+			</tr>
+			</tbody>
+			</table>
+			
+			
+			<div class="line"><span>足し算と引き算</span></div>
+			<p>
+				文字が数で表せるということは、文字で計算ができていいはずです。次のプログラムを見てください。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+char a, b = ':';
+read(a); 
+write(b);
+a-=1; 
+write(a);
+a+=2; 
+write(a);</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果1</span>
+				<div><span class="input">b</span>:ac</div>
+			</div>
+			<div class="exec">
+				<span>実行結果2</span>
+				<div><span class="input">F</span>:EG</div>
+			</div>
+			<div class="line"><span>プログラムの解説</span></div>
+			<p>
+				1行目の宣言は前回と同様です。次の行でreadするのでaの初期化は省略しています。
+			</p>
+			<p>
+				2行目で入力を受け取り、aに格納しています。3行目は<span class="console">:</span>の出力です。
+			</p>
+			<p>
+				4行目では、<span class="code">-=</span>と言うものを使ってaから1を引いています。5行目ではその結果を出力しています。
+			</p>
+			<p>
+				6行目では、<span class="code">+=</span>と言うものを使ってaに2を足しています。7行目ではその結果を出力しています。
+			</p>
+			<p>
+				このように、<span class="code">+=</span>と<span class="code">-=</span>を使って足し算と引き算ができます。
+			</p>
+			<div class="line"><span>効率化</span></div>
+			<p>
+				実は、変数を大きい数で初期化する処理は効率があまり良くありません。足し算と引き算を上手く使うことで、プログラムの効率を上げることができます。
+			</p>
+			<p>
+				例えば、以下の2つのプログラムは共に<span class="console">xyz</span>と出力しますが、前者では3つの変数をそれぞれ120,121,122という大きな数で初期化しているのに対して、後者は120での初期化1回で済んでいるので、後者のほうが格段に効率が良くなっています。
+			</p>
+			<table><tr>
+				<td>
+<pre class="codes">
+char a = 'x', b = 'y', c = 'z';
+write(a); write(b); write(c);
+
+</pre>
+				</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+				<td>
+<pre class="codes">
+char a = 'x';write(a); 
+a += 1; write(a);
+a += 1; write(a);</pre>
+				</td>
+			</tr></table>
 		</div>
 		
+		
+		<div class="chapter">
+			<h2 class="content"><a href="#" id="a3" class="btn">3. 流れを変えろ！</a></h2>
+			<p>
+				今までのプログラムは、単に上から順番に命令を実行するだけでした。しかし、CamphorScriptではそれ以上のこともできるのです。
+			</p>
+			<br /><h3>3-1. while文</h3>
+			<p>
+				CamphorScriptでは、同じ処理を繰り返し実行することができます。次のプログラムを見て下さい。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+char a = 5, b = '*';
+while(a)
+{
+    write(b);
+    a -= 1;
+}</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果</span>
+				<div>*****</div>
+			</div>
+			<div class="line"><span>プログラムの解説</span></div>
+			<p>
+				1行目はいつもの宣言&amp;初期化です。なお、数で初期化していることに注意してください。
+			</p>
+			<p>
+				2行目では、<span class="code">while</span>と言うものを使っています。
+				これは、「変数の中のデータが0でない限り、次に続く<span class="code">{</span>と<span class="code">}</span>の間の処理を繰り返す」という意味です。
+			</p>
+			
+			<p>
+				<span class="code">{</span>と<span class="code">}</span>の間では、<span class="console">*</span>を出力してaから1を引いています。
+			</p>
+			<p>
+				ちなみに、<span class="code">while(a)</span>の後に<strong><span class="code">;</span>を付けてはいけません。</strong>間違えやすいので、気をつけましょう。
+			</p>
+			<div class="line"><span>プログラムの解説2</span></div>
+			<p>
+				さて、ではこのプログラムがどう動くのか、見ていきましょう。重要なのは、「aが0でない限り繰り返す」ということです。
+			</p>
+			<ol>
+				<li>&nbsp;&nbsp;&nbsp;aの値は5。<span class="console">*</span>を出力してaから1を引く。</li>
+				<li>&nbsp;&nbsp;&nbsp;aの値は4。<span class="console">*</span>を出力してaから1を引く。</li>
+				<li>&nbsp;&nbsp;&nbsp;aの値は3。<span class="console">*</span>を出力してaから1を引く。</li>
+				<li>&nbsp;&nbsp;&nbsp;aの値は2。<span class="console">*</span>を出力してaから1を引く。</li>
+				<li>&nbsp;&nbsp;&nbsp;aの値は1。<span class="console">*</span>を出力してaから1を引く。</li>
+				<li>&nbsp;&nbsp;&nbsp;aの値は0。よってここで繰り返しが止まる。</li>
+			</ol>
+			<p>
+				と、このようにして、<span class="console">*****</span>と出力されたわけです。
+			</p>
+			<p>
+				また、<span class="code">while(a)</span>が終了した直後の<span class="code">a</span>の中身は0であることもわかると思います。
+				当たり前に見えるかもしれませんが、後々重要になってきます。
+			</p>
+			
+			<div class="line"><span>無限ループ</span></div>
+			<p>
+				前回のプログラムでは、繰り返し<span class="note">（「ループ」と言います）</span>の中でaの中身を減らしていました。
+				おかげで、5回繰り返した後にaが0になって、無事ループから抜け出すことができました。
+			</p>
+			<p>
+				では、aの中身を減らさなかったらどうなるのでしょう。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+char a = 5, b = '*';
+while(a)
+{
+    write(b);
+}</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果</span>
+				<div>
+					**************************************** <span style="color:#999;">………</span>
+				</div>
+			</div>
+			<p>
+				おっと、出力が止まらなくなってしまいました。aは永久に0になれないのですから、当然ですね。
+			</p>
+			<p>
+				このような状態を「無限ループ」と呼びます。
+				意図的に発生させることもありますが、うっかりミスでこういう状況になってしまうこともよくあるので気をつけましょう。
+			</p>
+			<p>
+				なお、無限ループしたプログラムを強制的に止めるには、Ctrlキーを押しながらCを押してください。
+			</p>
+			
+			
+			<br /><h3>3-2. 関数(1)</h3>
+			<p>
+				前回書いた、「文字を一定回数出力する処理」が気に入って、頻繁に使いたくなったとします。しかし、毎回<span class="code">while</span>を書くのは面倒です。何とかして楽に書けないものでしょうか。
+			</p>
+			<p>
+				<strong>「関数」</strong>と言うものを使うと、頻繁に使う処理に名前を付けて保存することができます。早速、例を見てみましょう。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+void repeat5(char&amp; p)
+{
+    char q = 5;
+    while(q){write(p); q -= 1;}
+    delete q;
+}
 
+char a = '*'; repeat5(a);
+char b = '+'; repeat5(b);</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果</span>
+				<div>*****+++++</div>
+			</div>
+			<p>
+				見たことのないものが沢山ありますね。では、解説です。
+			</p>
+			<div class="line"><span>プログラムの解説</span></div>
+			<p>
+				1行目～6行目では、<span class="code">repeat5</span>という関数を定義しています。詳しく見ていきましょう。
+			</p>
+			<p>
+				1行目では、
+			</p>
+			<ul>
+				<li>関数の名前は<span class="code">repeat5</span></li>
+				<li>受け取るもの<span class="note">（「引数」と言います）</span>は<span class="code">char</span>で宣言された変数</li>
+				<li>その変数を関数内では<span class="code">p</span>という名前で参照する</li>
+			</ul>
+			<p>
+				ということを宣言しています。
+			</p>
+			<p>
+				3行目と4行目は、この前のプログラムと同様です。
+			</p>
+			<div class="line"><span>delete</span></div>
+			<p>
+				さて、5行目では、<span class="code">delete</span>と言うものを使って、宣言した変数を削除しています。
+			</p>
+			<p>
+				関数内で宣言した変数は、必ずdeleteしなくてはいけません。deleteしないとエラーが発生します。
+			</p>
+			<p>
+				そして、これは最も重要な事ですが、<strong class="very">中身が0でない変数を絶対にdeleteしてはいけません。</strong>
+			</p>
+			<p>
+				今回の場合は、<span class="code">while</span>の実行が終わって<span class="code">q</span>の中身が0になっているので、deleteできるわけです。
+			</p>
+			<p>
+				間違ってdeleteしてしまってもエラーは一切出ないので、十分に注意して下さい。
+			</p>
+			
+			<div class="line"><span>プログラムの解説2</span></div>
+			<p>
+				8行目、9行目では、aやbを宣言&amp;初期化し、<span class="code">repeat5</span>に渡しています。これを、「<span class="code">repeat5</span>を呼び出す」と言います。
+			</p>
+			<p>
+				関数を呼び出すと、まるで関数の先頭にジャンプし、受け取った引数を使って処理が行われていくかのように動作します。
+			</p>
+			<p>
+				最後に達したら、関数が呼び出された場所の直後に戻り、<span class="note">（「呼び出し元に戻る」と言います）</span>そのまま次に進んでいきます。
+			</p>
+			<p>
+				わざわざ「まるで～かのように」と書いているのには勿論理由があるのですが、それは後ほど説明します。
+			</p>
+			
+			<br /><h3>3-3. 関数(2)</h3>
+			<p>
+				前回書いた関数では、繰り返しの回数を指定することができませんでした。
+			</p>
+			<p>
+				ということで、引数を2つ渡し、回数を指定できるようにしましょう。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+void repeat(char&amp; p, constant char Q)
+{
+    char q = 0; q += Q;
+    while(q){write(p); q -= 1;}
+    delete q;
+}
+
+char a = '*'; repeat(a,3);
+char b = '+'; repeat(b,10);</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果</span>
+				<div>***++++++++++</div>
+			</div>
+			<div class="line"><span>プログラムの解説</span></div>
+			<p>
+				1行目では、
+			</p>
+			<ul>
+				<li>関数の名前は<span class="code">repeat</span></li>
+				<li>1つ目の引数は、<span class="code">char</span>で宣言された変数</li>
+				<li>その変数を関数内では<span class="code">p</span>という名前で参照する</li>
+				<li>2つ目の引数は、<span class="code">char</span>関連の定数</li>
+				<li>その定数を関数内では<span class="code">Q</span>という名前で参照する</li>
+			</ul>
+			<p>
+				と宣言しています。
+			</p>
+			<p>
+				ちなみに、定数を参照する場合は大文字を使い、「これは定数だ」と分かりやすくするのがお薦めです。
+			</p>
+			<p>
+				後は3行目の<span class="code">5</span>を<span class="code">Q</span>に変えるだけ、のはずなのですが、諸事情により<span class="code">char q = Q;</span>とは書けません。
+			</p>
+			<p>
+				<span class="code">+=</span>は使えるので、面倒でも<span class="code">char q = 0; q += Q;</span>と書いて下さい。
+			</p>
+			<p>
+				あとは、呼び出しの時に渡す引数を増やすだけです。
+			</p>
+			
+			<br /><h3>3-4. 関数(3)</h3>
+			<p>
+				前回までに作った関数では、出力する文字を指定するためにはわざわざ変数を渡す必要がありました。
+			</p>
+			<p>
+				効率化のためにはこの方がいいのですが、せっかくなので定数も渡せるようにしてみましょう。
+			</p>
+			
+			<table><tr><td>
+<pre class="codes">
+void repeat(char&amp; p, constant char Q)
+{
+    char q = 0; q += Q;
+    while(q){write(p); q -= 1;}
+    delete q;
+}
+
+void repeat2(constant char P, constant char Q)
+{
+    char p = 0; p += P;
+    repeat(p,Q);
+    p -= P; delete p;
+}
+
+char a = '*'; repeat(a,3);
+char b = '+'; repeat(b,10);
+repeat2('e',7);</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果</span>
+				<div>***++++++++++eeeeeee</div>
+			</div>
+			<div class="line"><span>プログラムの解説</span></div>
+			<p>
+				<span class="code">repeat</span>を定義しているところと、使っているところは前回と同様です。ということで、<span class="code">repeat2</span>を見ていきましょう。
+			</p>
+			<p>
+				<span class="code">repeat2</span>の宣言の先頭では、恒例のごとく関数名と引数を宣言しています。
+			</p>
+			<p>
+				その後、受け取った<span class="code">P</span>を<span class="code">char p = 0; p += P;</span>で<span class="code">p</span>に渡し、
+				その<span class="code">p</span>を使って<span class="code">repeat(p,Q);</span>を呼んでいます。
+			</p>
+			
+			<p>
+				このように、関数の中で別の関数を呼び出すことで、わざわざ同じような処理を書き直さずに済むわけです。
+			</p>
+			<p>
+				それが終わったら、<span class="code">p -= P;</span>で<strong class="very">pの中身を0にしてから、</strong>deleteしています。
+			</p>
+			<p>
+				そろそろ忘れてきている頃だと思いますが、<strong class="very">deleteする直前に変数の中身を0にするのは義務です。</strong>絶対に忘れないようにしてください。
+			</p>
+			<div class="line"><span>関数オーバーロード</span></div>
+			<p>
+				さて、前回新しく作った関数は<span class="code">repeat2</span>という名前でしたが、<span class="code">repeat</span>との違いといえば、定数を受け取るか変数を受け取るかという点だけです。中で行っている処理にこそ微妙な差はありますが、呼び出す側からすれば殆ど同じです。
+			</p>
+			<p>
+				それなのに、「変数で呼び出すときは<span class="code">repeat</span>、定数で呼び出すときは<span class="code">repeat2</span>」と覚えておくのは面倒です。どちらも<span class="code">repeat</span>で呼び出せるようにできないでしょうか。
+			</p>
+			<p>
+				早速試してみましょう。取りあえず、前回<span class="code">repeat2</span>と書いていたところを<span class="code">repeat</span>に書き換えてみましょう。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+void repeat(char&amp; p, constant char Q)
+{
+    char q = 0; q += Q;
+    while(q){write(p); q -= 1;}
+    delete q;
+}
+
+void repeat(constant char P, constant char Q)
+{
+    char p = 0; p += P;
+    repeat(p,Q);
+    p -= P; delete p;
+}
+
+char a = '*'; repeat(a,3);
+char b = '+'; repeat(b,10);
+repeat('e',7);</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果</span>
+				<div>***++++++++++eeeeeee</div>
+			</div>
+			
+			<p>
+				おや、問題なく動いているようですね。
+			</p>
+			<p>
+				このように、引数の条件が異なっていれば、同じ名前で複数回関数を定義することができます。これを、<strong>「関数オーバーロード」</strong>と言います。
+			</p>
+			
+			<br /><h3>3-5. 関数(4)</h3>
+			<p>
+				前回定義した<span class="code">repeat</span>を使って、「文字を一定回数出力し、直後に改行を出力する」という関数を書いてみましょう。
+			</p>
+			<p>
+				はて、改行の出力はどうやって行えばいいんでしょうね？
+			</p>
+			<table><tr><td>
+<pre class="codes">
+void repeat(char&amp; p, constant char Q)
+{
+    char q = 0; q += Q;
+    while(q){write(p); q -= 1;}
+    delete q;
+}
+
+void repeat(constant char P, constant char Q)
+{
+    char p = 0; p += P;
+    repeat(p,Q);
+    p -= P; delete p;
+}
+
+void repeatLine(char&amp; p, constant char Q)
+{
+    repeat(p,Q); 
+    char r = 10; write(r); r -= 10; delete r;
+}
+
+void repeatLine(constant char P, constant char Q)
+{
+    repeat(P,Q); 
+    char r = 10; write(r); r -= 10; delete r;
+}
+
+char a = '*'; repeatLine(a,3);
+char b = '+'; repeatLine(b,10);
+repeatLine('e',7);
+</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果</span>
+				<div>***<br>++++++++++<br>eeeeeee<br><br></div>
+			</div>
+			
+			<div class="line"><span>プログラムの解説</span></div>
+			<p>
+				結論から言うと、改行を表す文字の文字コードが10なので、10が入った変数を<span class="code">write</span>すれば改行できます。
+			</p>
+			<p>
+				ということで、2つの<span class="code">repeatLine</span>では、それぞれ対応する<span class="code">repeat</span>を呼んだ後に、改行文字を出力しています。
+			</p>
+			<div class="line"><span>const char</span></div>
+			<p>
+				しかし、よく見てみると、関数の中身はほぼ同一です。どうにかしてまとめて書けないものでしょうか。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+void repeat(char&amp; p, constant char Q)
+{
+    char q = 0; q += Q;
+    while(q){write(p); q -= 1;}
+    delete q;
+}
+
+void repeat(constant char P, constant char Q)
+{
+    char p = 0; p += P;
+    repeat(p,Q);
+    p -= P; delete p;
+}
+
+void repeatLine(const char p, constant char Q)
+{
+    repeat(p,Q); 
+    char r = 10; write(r); r -= 10; delete r;
+}
+
+char a = '*'; repeatLine(a,3);
+char b = '+'; repeatLine(b,10);
+repeatLine('e',7);
+</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果</span>
+				<div>***<br>++++++++++<br>eeeeeee<br><br></div>
+			</div>
+			<p>
+				動いていますね。
+			</p>
+			<p>
+				引数のところに<span class="code">const char</span>という指定があります。これを使うと、<span class="code">constant char</span>と<span class="code">char&amp;</span>を統一的に扱うことができます。
+			</p>
+			
+			
+			
+		</div>
+		
+		<div class="chapter">
+			<h2 class="content"><a href="#" id="a4" class="btn">4. 不思議な不思議な演算子</a></h2>
+			<h3>4-1. 演算子(1)</h3>
+			<p>
+				突然ですが、入力から2つの文字を受け取って、その文字コードを足してできる文字を出力するプログラムを書いてみましょう。
+			</p>
+			<p>
+				さて、足し算ってどうやって書けばいいんでしょうか。<span class="code">+=</span>でいいんでしょうか。
+			</p>
+			<p>
+				早速試してみましょう。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+char a, b; 
+read(a); read(b);
+a += b;
+write(a);
+</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果</span>
+				<div>
+					parse error at "C:\Users\abc\Documents\filename.cphs-step2" (line 3, column 1):<br>
+					no type-matching instance of operator "+=" defined
+				</div>
+			</div>
+			<p>
+				おっと、エラーが出てしまいました。どうやら、右に変数があるときには<span class="code">+=</span>が使えないみたいです。どうしましょう。
+			</p>
+			<div class="line"><span>発想の転換</span></div>
+			<p>
+				ここで、発想を転換してみましょう。</p><p>「bを足す」ことができないなら、「『1を足す』という処理をb回繰り返す」ようにすればいいのです。
+			</p>
+			<p>
+				「b回繰り返す」なら<span class="code">while</span>で書けますね。書き直しましょう。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+char a, b; 
+read(a); read(b);
+while(b)
+{
+    a += 1; b -= 1;
+}
+write(a);
+</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果1</span>
+				<div>
+					<span class="input">#!</span>D
+				</div>
+			</div>
+			<div class="exec">
+				<span>実行結果2</span>
+				<div>
+					<span class="input">B+</span>m
+				</div>
+			</div>
+			<div class="exec">
+				<span>実行結果3</span>
+				<div>
+					<span class="input">%,</span>Q
+				</div>
+			</div>
+			<p>
+				今度は動きました。
+				<span class="code">'#'</span>(35) + <span class="code">'!'</span>(33) = <span class="code">'D'</span>(68) 、
+				<span class="code">'B'</span>(66) + <span class="code">'+'</span>(43) = <span class="code">'m'</span>(109) 、
+				<span class="code">'%'</span>(37) + <span class="code">','</span>(44) = <span class="code">'Q'</span>(81) なので、
+				計算も合っていますね。
+			</p>
+			<div class="line"><span>名前を付ける</span></div>
+			<p>
+				さて、今書いた足し算の処理はシンプルですが、頻繁に使いそうなので名前を付けましょう。
+			</p>
+			<p>
+				bの値が移動(move)してaに足される(add)ので、関数名は<span class="code">move_add</span>にしてみます。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+void move_add(char&amp; to, char&amp; from)
+{
+    while(from)
+    {
+        to += 1; from -= 1;
+    }
+}
+
+char a, b; 
+read(a); read(b);
+move_add(a,b);
+write(a);
+</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果1</span>
+				<div>
+					<span class="input">#!</span>D
+				</div>
+			</div>
+			<div class="exec">
+				<span>実行結果2</span>
+				<div>
+					<span class="input">B+</span>m
+				</div>
+			</div>
+			<div class="exec">
+				<span>実行結果3</span>
+				<div>
+					<span class="input">%,</span>Q
+				</div>
+			</div>
+			<p>
+				動いています。
+			</p>
+			<div class="line"><span>演算子定義</span></div>
+			<p>
+				しかし、「似たような処理を行っているのに、定数なら<span class="code">+=</span>、変数なら<span class="code">move_add</span>を使う」というのは不便です。まとめられないでしょうか。
+			</p>
+			<p>
+				要するに、右が変数であっても使える<span class="code">+=</span>を自分で作って定義すればいいのです。
+			</p><p>
+				でも、<span class="code">+=</span>は関数ではありません。<span class="note">（「演算子」と言います。）</span>どうすればいいのか、早速見てみましょう。
+			</p>
+			
+			<table><tr><td>
+<pre class="codes">
+void (+=)(char&amp; to; char&amp; from)
+{
+    while(from)
+    {
+        to += 1; from -= 1;
+    }
+}
+
+char a, b; 
+read(a); read(b);
+a += b;
+write(a);
+</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果</span>
+				<div>
+					<span class="input">#!</span>D
+				</div>
+			</div>
+			<p>
+				奇妙なものが沢山ありますが、とにかく動いています。
+			</p>
+			<div class="line"><span>プログラムの解説</span></div>
+			<p>
+				関数名の代わりに、演算子の名前<span class="code">+=</span>をカッコに入れたものを<span class="code">void</span>の後に書いています。
+			</p>
+			<p>
+				引数を区切る<span class="code">,</span>の代わりに、演算子が実際に入る場所である1つめと2つめの引数の間に<span class="code">;</span>を入れています。
+			</p>
+			<p>
+				これだけで、自分で定義した<span class="code">+=</span>が使えるようになります。
+			</p>
+			
+			<div class="line"><span>文法の解説</span></div>
+			<p>
+				しかし、何故このような奇妙な宣言をするのでしょうか。実は、この宣言方法には深い意味があります。
+			</p>
+			<p>
+				実は、演算子を呼び出すときには、この宣言の構文と同様に呼び出すこともできるのです。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+char a; read(a); 
+(-=)(a;1); 
+write(a);
+</pre>
+			</td></tr></table>	
+			<div class="exec">
+				<span>実行結果</span>
+				<div>
+					<span class="input">i</span>h
+				</div>
+			</div>
+			
+			<p>
+				…微妙な見た目ですね。読みやすくもありません。
+			</p>
+			<p>
+				ただ、この形式で書くと、<strong>「演算子と関数は見た目が違うだけで、本質的には同じものである」</strong>ということは理解しやすいと思います。
+			</p>
+			<br /><h3>4-2. 演算子(2)</h3>
+			<p>
+				前回、<span class="code">+=</span>を定義しましたが、新しい<span class="code">+=</span>を使うと、右の変数の値が0になってしまいます。
+			</p>
+			<p>
+				内部で<span class="code">while</span>を使っているから当然といえば当然なのですが、元の<span class="code">+=</span>とは使い勝手が違うことになります。
+			</p>
+			<p>
+				使い勝手が違うものなら、見た目も変えるべきです。ということで、演算子の名前を取りあえず<span class="code">+=~</span>とかに変えてみましょう。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+void (+=~)(char&amp; to; char&amp; from)
+{
+    while(from)
+    {
+        to += 1; from -= 1;
+    }
+}
+
+char a, b; 
+read(a); read(b);
+a +=~ b;
+write(a);
+</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果</span>
+				<div>
+					parse error at "C:\Users\abc\Documents\filename.cphs-step2" (line 1, column 1):<br>
+					cannot define operator "+=~" because its fixity is not defined
+				</div>
+			</div>
+			<p>
+				あれ、うまく行きませんね。
+			</p>
+			<p>
+				実は、演算子を新たに宣言するときには、その<strong>優先順位と結合性</strong>を定義しなくてはいけません。優先順位と結合性とは、例えば1+2×3は1+(2×3)であって(1+2)×3ではない、ということを定める規則です。
+			</p>
+			<p>
+				ということで結合性宣言を足しましょう。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+infixr 5 (+=~);
+void (+=~)(char&amp; to; char&amp; from)
+{
+    while(from)
+    {
+        to += 1; from -= 1;
+    }
+}
+
+char a, b; 
+read(a); read(b);
+a +=~ b;
+write(a);
+</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果</span>
+				<div>
+					<span class="input">B+</span>m
+				</div>
+			</div>
+			<p>
+				これで動くようになりました！
+			</p>
+			<div class="line"><span>プログラムの解説</span></div>
+			<p>
+				さて、謎の<span class="code">infixr 5 (+=~);</span>を見てみましょう。ここでは、
+			</p>
+			<ul>
+				<li><span class="code">+=~</span>は右結合である。</li>
+				<li><span class="code">+=~</span>の優先順位は5である。</li>
+			</ul>
+			<p>
+				と宣言しています。<span class="code">+=</span>や<span class="code">-=</span>のような、「左側の変数の中身を変更する」演算子は<span class="code">infixr 5</span>で宣言することを推奨します。
+			</p>
+			<p>
+				なお、CamphorScriptでは、演算子の間であれば、<span class="code">a +=~ b;</span>を<span class="code">a +=  ~b;</span>のように、
+				空白を入れることができます。
+			</p>
+			<p>
+				こう書くと、まるで<span class="code">~</span>というのが「後ろの変数の中身を吸い出し、0にする」という独立した演算子のように見えて、プログラムが理解しやすくなります。
+			</p>
+			<div class="line"><span>複数の演算子</span></div>
+			<p>
+				さて、宣言したのはいいのですが、前回のプログラムでは、この宣言を一切活用していません。
+			</p>
+			<p>
+				それもそのはず、1つの文の中で1つの演算子しか使っていないので、優先順位も結合性も関係がないわけです。
+			</p>
+			<p>
+				ということで、複数の演算子を使ってみましょう。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+infixl 35 (+);
+void (+=)(char&amp; to; constant char A + constant char B)
+{
+    to += A;
+    to += B;
+}
+
+char a = 0; 
+a += '!' + '#';
+write(a);
+</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果</span>
+				<div>
+					D
+				</div>
+			</div>
+			<div class="line"><span>プログラムの解説2</span></div>
+			<p>
+				さて、では前回出てきた<span class="code">a += '!' + '#';</span>を詳しく見ていきましょう。
+			</p>
+			<p>
+				まず、この文の中には2つの演算子があります。<span class="code">+=</span>と<span class="code">+</span>です。
+			</p>
+			<p>
+				<span class="code">+=</span>は<span class="code">infixr 5 (+=);</span>、
+				<span class="code">+</span>は<span class="code">infixl 35 (+);</span>なので、
+				<span class="code">+</span>の方が高い優先順位を持ちます。
+			</p>
+			<p>
+				よって、<span class="code">a += '!' + '#';</span>は<span class="code">a += ('!' + '#');</span>として解釈されます。
+			</p>
+			<p>
+				そして、先ほど説明したように、<span class="code">a += ('!' + '#');</span>は<span class="code">(+=)(a ; '!' + '#');</span>と同一です。
+			</p>
+			<p>
+				この形は、見た目が違うだけで、実質<span class="code">plus_equal(a, '!', '#');</span>のような関数呼び出しと同じようなものです。
+			</p>
+			<p>
+				ここから、CamphorScriptの呼び出し処理における重要な2つの事実が見えてきます。
+			</p>
+			<ul>
+				<li>演算子と関数の違いは見た目だけ(前節で説明)</li>
+				<li>引数の区切りには<span class="code">,</span>以外も使える</li>
+			</ul>
+		</div>
+		
+		
+		
+		<div class="chapter">
+			<h2 class="content"><a href="#" id="a5" class="btn">5. 構文拡張</a></h2>
+			<p>
+				CamphorScriptにある機能のうち、
+				<span class="code">read</span>や<span class="code">write</span>のような見た目のものは「関数」として、
+				<span class="code">+=</span>や<span class="code">-=</span>のような見た目のものは「演算子」として、自分で後から追加できることが分かりました。
+				では、<span class="code">while</span>のような見た目のものは、果たして追加できるのでしょうか？
+			</p>
+			<br /><h3>5-1. 複雑なプログラムを書く</h3>
+			<p>
+				入力された文字の文字コードが50より大きいかどうかを判断するプログラムを考えましょう。さて、どうやって書けばいいでしょうか。
+			</p>
+			<p>
+				「変数の中に入っている値で流れを変える」ということをする<span class="note">（「条件分岐する」と言います）</span>には、
+				<span class="code">while</span>を使うしかありません。
+			</p>
+			<p>
+				<span class="code">while</span>には「0か0でないか」という区別しかできないので、よく考える必要があります。
+			</p>
+			<div class="line"><span>考えよう</span></div>
+			<p>
+				処理の内容は、「入力された数から50を引き、残った数が0より大きいかどうかを判断する」とも言えます。
+			</p>
+			<p>ただ、<span class="code">while</span>は「0かどうかを判断する」のであって、「0より大きいかどうかを判断する」ことはできません。
+			</p>
+			<p>
+				要するに、負の数だとうまく扱えません。ということは、負にならないように、「0になったらそれ以上は引かない」とすればいいのです。
+			</p>
+			<p>
+				つまり、「1を引くけど、既に0だったらこれ以上引かない」という処理を50回繰り返し、
+				その後で、「残った数が0かどうか」を調べればいいわけです。
+			</p>
+			<div class="line"><span>書いてみよう</span></div>
+			<p>
+				処理を書きたいのですが、その前に、後で使うことになるので、「コピー元を消去せずに変数を足し合わせる」という演算子を作っておきましょう。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+void (+=)(char&amp; to; char&amp; from)
+{
+    char c2 = 0;
+    while(from){ to += 1; c2 += 1; from -= 1;}
+    while(c2){ from += 1; c2 -= 1;}
+    delete c2;
+}
+</pre>
+			</td></tr></table>
+			<p>
+				3行目では、<span class="code">from</span>を消去しながら<span class="code">to</span>と<span class="code">c2</span>に<span class="code">from</span>を複製しています。
+			</p>
+			<p>
+				その次では、<span class="code">c2</span>を消去しながら元の値を<span class="code">from</span>に復元しています。
+			</p>
+			<div class="hr"></div>
+			<p>
+				次に、「1を引くけど、既に0だったら引かない」という処理を書きます。せっかくなので関数にしましょう。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+void subtract1(char&amp; v)
+{
+    char c = 0; c += v;
+    while(c)
+    {
+        while(c){c -= 1;}
+        v -= 1;
+    }
+    delete c;
+}
+</pre>
+			</td></tr></table>
+			<p>
+				3行目で<span class="code">v</span>の値を<span class="code">c</span>にコピーし、その<span class="code">c</span>を<span class="code">while</span>に通します。
+			</p>
+			<p>
+				<span class="code">c</span>（つまり<span class="code">v</span>）が0であれば、<span class="code">while</span>の中身は飛ばされるので、
+				中に書いてある<span class="code">a -= 1;</span>は実行されません。
+			</p>
+			<p>
+				<span class="code">c</span>（つまり<span class="code">v</span>）が0でなければ、<span class="code">while</span>の中に入ります。
+			</p>
+			<p>
+				<span class="code">while</span>の中には、別の<span class="code">while</span>があります。この内側の<span class="code">while</span>では、<span class="code">c</span>を0にしています。
+			</p>
+			<p>
+				その後、<span class="code">v -= 1;</span>が実行され、外側のループの終わりに辿り着いたため、<span class="code">c</span>が0かどうかが判断されます。
+			</p>
+			<p>
+				しかし、当然ながら、<span class="code">c</span>は先ほど0にされたので、外側の<span class="code">while</span>から抜け出すことができます。
+			</p>
+			<p>
+				最後に、<strong class="very">0であることが確認された</strong><span class="code">c</span>をdeleteして終了です。
+			</p>
+			<p>
+				…とまあ、なかなか複雑な考察の末に、望みの「1を引くけど、既に0だったら引かない」という処理が完成しました。
+			</p>
+			<div class="hr"></div>
+			<p>
+				さて、ここまで書けてしまえば後は楽なものです。
+			</p>
+			<p>
+				入力を受け取り、先ほどの処理を50回ループさせ…
+			</p>
+			<table><tr><td>
+<pre class="codes">
+char a; read(a);
+char num = 50;
+while(num)
+{
+    subtract1(a);
+    num -= 1;
+}
+</pre>
+			</td></tr></table>
+			<p>
+				aの残りが0より大きかったら<span class="console">big</span>と出力するだけです。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+char b = 'b';
+while(a)
+{
+    while(a){a -= 1;}
+    write(b); 
+    b += 7; write(b);
+    b -= 2; write(b);
+}
+</pre>
+			</td></tr></table>
+			<p>
+				ここでも、先ほどのように、<span class="code">while</span>の中で<span class="code">while</span>を使い、ループから抜けだしています。
+			</p>
+			<div class="hr"></div>
+			<p>
+				以上を全て合わせ、プログラムの完成です！
+			</p>
+			<table><tr><td>
+<pre class="codes">
+void (+=)(char&amp; to; char&amp; from)
+{
+    char c2 = 0;
+    while(from){ to += 1; c2 += 1; from -= 1;}
+    while(c2){ from += 1; c2 -= 1;}
+    delete c2;
+}
+
+void subtract1(char&amp; v)
+{
+    char c = 0; c += v;
+    while(c)
+    {
+        while(c){c -= 1;}
+        v -= 1;
+    }
+    delete c;
+}
+
+char a; read(a);
+char num = 50;
+while(num)
+{
+    subtract1(a);
+    num -= 1;
+}
+
+char b = 'b';
+while(a)
+{
+    while(a){a -= 1;}
+    write(b); 
+    b += 7; write(b);
+    b -= 2; write(b);
+}
+</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果1</span>
+				<div>
+					<span class="input">w</span>big
+				</div>
+			</div>
+			<div class="exec">
+				<span>実行結果2</span>
+				<div>
+					<span class="input">H</span>big
+				</div>
+			</div>
+			<div class="exec">
+				<span>実行結果3</span>
+				<div>
+					<span class="input">3</span>big
+				</div>
+			</div>
+			<div class="exec">
+				<span>実行結果4</span>
+				<div>
+					<span class="input">2</span>
+				</div>
+			</div>
+			<div class="exec">
+				<span>実行結果5</span>
+				<div>
+					<span class="input">!</span>
+				</div>
+			</div>
+			<p>
+				きちんと動きました！
+			</p>
+			<br /><h3>5-2. 構文を拡張する</h3>
+			<p>
+				<span class="code">while</span>は便利です。CamphorScriptでプログラムを書くとなると、様々な用途に<span class="code">while</span>を使うことになります。
+			</p>
+			<p>
+				今までも、文字を繰り返し出力したり、変数と変数を足しあわせたり、<span class="code">while</span>は大活躍してきました。
+			</p>
+			<p>しかし、<span class="code">while</span>は余りにも便利なので、後でプログラムを読み直し<span class="code">while</span>を見るたびに、「この<span class="code">while</span>はどういう意図で使っているのか」と考える必要が出てきます。
+			</p>
+			<p>
+				それを考えずに済むように、今まで関数や演算子を定義し、処理の意図を分かりやすくしてきた、と言えるわけです。
+			</p>
+			<div class="line"><span>関数・演算子の限界</span></div>
+			<p>
+				さて、前回のプログラムでは、「変数の値が0であったら、～を実行する」という処理を行うためだけに、<span class="code">while</span>を2回も使っていました。
+			</p>
+			<p>
+				このような処理はよく出てきますし、<span class="code">while</span>を使った書き方は理解に時間がかかりますので、何とか名前を付けてパターン化したいものです。
+			</p>
+			<p>
+				では関数化しよう…と思いたくなりますが、ちょっと待って下さい。
+				今パターン化したいのは「変数の値が0であったら、～を実行する」という処理ですが、この<strong>「～」という部分は、その都度変えたいのです。</strong>
+			</p>
+			<p>
+				実際、前回のプログラムには
+			</p>
+			<table><tr><td>
+<pre class="codes">
+while(c)
+{
+    while(c){c -= 1;}
+    v -= 1;
+}
+</pre>
+			</td></tr></table>
+			<p>
+				と
+			</p>
+			<table><tr><td>
+<pre class="codes">
+while(a)
+{
+    while(a){a -= 1;}
+    write(b); 
+    b += 7; write(b);
+    b -= 2; write(b);
+}
+</pre>
+			</td></tr></table>
+			<p>
+				という処理がありました。これを共通化したくても、条件分岐後にする処理が異なるので、関数化はできません。
+			</p>
+			<p>
+				こういう時には、<strong>「構文拡張」</strong>という機能を使います。例を見てみましょう。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+void (+=)(char&amp; to; char&amp; from)
+{
+    char c2 = 0;
+    while(from){ to += 1; c2 += 1; from -= 1;}
+    while(c2){ from += 1; c2 -= 1;}
+    delete c2;
+}
+syntax if(~ char&amp; a){block;}
+{
+    while(a)
+    {
+        while(a){a -= 1;}
+        block;
+    }
+}
+void subtract1(char&amp; v)
+{
+    char c = 0; c += v;
+    if(~c)
+    {
+        v -= 1;
+    }
+    delete c;
+}
+char b = 'b'; subtract1(b); write(b);
+</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果</span>
+				<div>
+					a
+				</div>
+			</div>
+			<p>
+				<span class="code">if</span>という名前を付けたことで、読みやすくなりました。
+			</p>
+			<p>
+				定義で述べられているのは、要するに、<span class="code">if(~a){block;}</span>と書いてあるところを
+				<span class="code">while(a){        while(a){a -= 1;}        block;    }</span>と書き換える、という意味です。
+				<span class="code">{block;}</span>というのが、先ほど言った「～」に相当するわけです。
+			</p>
+			<p>
+				さて、先ほどのプログラムを構文拡張を使って書き直してみましょう。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+void (+=)(char&amp; to; char&amp; from)
+{
+    char c2 = 0;
+    while(from){ to += 1; c2 += 1; from -= 1;}
+    while(c2){ from += 1; c2 -= 1;}
+    delete c2;
+}
+syntax if(~ char&amp; n){block;}
+{
+    while(n)
+    {
+        while(n){n -= 1;}
+        block;
+    }
+}
+void subtract1(char&amp; v)
+{
+    char c = 0; c += v;
+    if(~c)
+    {
+        v -= 1;
+    }
+    delete c;
+}
+
+char a; read(a);
+char num = 50;
+while(num)
+{
+    subtract1(a);
+    num -= 1;
+}
+
+char b = 'b';
+if(~a)
+{
+    write(b); 
+    b += 7; write(b);
+    b -= 2; write(b);
+}
+</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果1</span>
+				<div>
+					<span class="input">w</span>big
+				</div>
+			</div>
+			<div class="exec">
+				<span>実行結果2</span>
+				<div>
+					<span class="input">H</span>big
+				</div>
+			</div>
+			<div class="exec">
+				<span>実行結果3</span>
+				<div>
+					<span class="input">3</span>big
+				</div>
+			</div>
+			<div class="exec">
+				<span>実行結果4</span>
+				<div>
+					<span class="input">2</span>
+				</div>
+			</div>
+			<div class="exec">
+				<span>実行結果5</span>
+				<div>
+					<span class="input">!</span>
+				</div>
+			</div>
+			<p>
+				問題なく動きました！
+			</p>
+			<p>
+				
+			</p>
+			<p>
+				
+			</p>
+			<p>
+				
+			</p>
+			<p>
+				
+			</p>
+		</div>
+		<div class="chapter">
+			<h2 class="content"><a href="#" id="a6" class="btn">6. 前処理</a></h2>
+			<p>
+				先ほどまでは、プログラムの全てを1つのファイルにまとめて書いていました。しかし、よく使う関数などは別ファイルに分離しておけば、再利用しやすいはず。今回は、そんなお話です。
+			</p>
+			<br /><h3>6-1. ファイルを分割する</h3>
+			<p>
+				前回作ったプログラムを見てみると、関数・演算子・構文拡張を使って、長い処理に名前を付けているお陰で、処理本体は意外にも短いことに気が付きます。しかし、今の状態だと、定義が長すぎるせいで、あまりスッキリしません。
+			</p>
+			<p>
+				しかも、別のプログラムを別のファイルに作った時にこれらの物を使いたいと思ったら、定義を丸々書き写す必要が出てしまいます。
+			</p>
+			<p>
+				そこで、<strong>「ファイル分割」</strong>という方法を使ってみましょう。
+			</p>
+			<p>
+				まず、今までプログラムを書いてきたファイルと同じフォルダの中に、Lib.cphhという名前のファイルを作成して下さい。
+			</p>
+			<p>
+				操作方法を忘れてしまったという方は、第1章を読み直してきて下さい。
+			</p>
+			<p>
+				Lib.cphhの中には、前回のプログラムの定義部分を入れましょう。
+			</p>
+			<table><tr><td style="color:#a00">Lib.cphh:</td></tr><tr><td>
+<pre class="codes">
+void (+=)(char&amp; to; char&amp; from)
+{
+    char c2 = 0;
+    while(from){ to += 1; c2 += 1; from -= 1;}
+    while(c2){ from += 1; c2 -= 1;}
+    delete c2;
+}
+syntax if(~ char&amp; n){block;}
+{
+    while(n)
+    {
+        while(n){n -= 1;}
+        block;
+    }
+}
+void subtract1(char&amp; v)
+{
+    char c = 0; c += v;
+    if(~c)
+    {
+        v -= 1;
+    }
+    delete c;
+}
+</pre>
+			</td></tr></table>
+			<p>
+				プログラムの本体は、以下のように書き換えます。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+#include "Lib.cphh"
+char a; read(a);
+char num = 50;
+while(num)
+{
+    subtract1(a);
+    num -= 1;
+}
+
+char b = 'b';
+if(~a)
+{
+    write(b); 
+    b += 7; write(b);
+    b -= 2; write(b);
+}
+</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果1</span>
+				<div>
+					<span class="input">3</span>big
+				</div>
+			</div>
+			<div class="exec">
+				<span>実行結果2</span>
+				<div>
+					<span class="input">2</span>
+				</div>
+			</div>
+			<p>
+				動いています。
+			</p>
+			<div class="line"><span>解説</span></div>
+			<p>
+				<span class="code">#include "Lib.cphh"</span>という行があります。このように、<span class="code">#</span>で始まる行は特殊な行で、<strong>「前処理指令」</strong>と言います。
+			</p>
+			<p>
+				CamphorScriptのプログラムは、実際に実行される前に、まず「前処理」と呼ばれる操作を受けます。
+			</p>
+			<p>
+				<span class="code">#include</span>という前処理指令は、「直後に書いてあるファイルの中身を取ってきて、それをこのプログラムの中に埋め込め」という意味です。
+			</p>
+			
+			<p>
+				この方法を使えば、プログラムの本体がスッキリするだけでなく、別のプログラムでも関数などを再利用できるようになり、非常に便利です。
+			</p>
+			
+			<p>
+				ちなみに、前処理指令は行単位で処理されるので、前処理指令の後の改行を省略したり、後ろに<span class="code">;</span>を入れたり、途中で改行したりしてはいけません。
+			</p>
+			<div class="line"><span>標準ライブラリ</span></div>
+			<p>
+				<span class="code">#include "Lib.cphh"</span>のように、<span class="code">"</span>を使う代わりに、<span class="code">#include &lt;stdcalc&gt;</span>のように、<span class="code">&lt;</span>と<span class="code">&gt;</span>を使うと、標準で定義されているライブラリを使うことができます。
+			</p>
+			<p>
+				現在使える標準ライブラリ
+			</p>
+			<table class="ta">
+			<tr><td>stdcalc</td><td>基礎的な計算に使える関数や演算子を定義。</td></tr>
+			<tr><td>stdcalc2</td><td>stdcalcがパワーアップしたもの。</td></tr>
+			<tr><td>conditional</td><td>stdcalc2に加えて、<span class="code">if</span>などの条件関連の構文拡張も定義されている。</td></tr>
+			</table>
+			<br /><h3>6-2. デバッグ</h3>
+			<p>
+				プログラムが書けたはずなのに、いざ実行してみると間違った答えが帰ってくる…
+			
+				このようなときに、あちらこちらで<span class="code">write</span>を使って、原因を探し、修正を試みること<span class="note">（「デバッグ」と言います）</span>があります。
+			</p>
+			<p>
+				さて、大量に<span class="code">write</span>を使ったお陰で、無事間違いの原因が分かり、修正できたとします。
+			
+				そうすると、今度は無駄な<span class="code">write</span>を消す作業が始まります。
+			
+				運が悪ければ、この作業時に、無駄でない<span class="code">write</span>を消してしまい、問題が更に深刻化しかねません。
+			</p>
+			<div class="line"><span>解決</span></div>
+			<p>
+				このように、デバッグするときのみ必要で、それ以外の時には無駄なコードを「デバッグコード」と言います。
+			
+				デバッグコードはデバッグ時には必要で、便利なものですが、デバッグが終わった時に一掃できれば理想的です。どうにかできないでしょうか。
+			</p>
+			<p>
+				この問題も、前処理指令を用いれば解決できます。
+			</p>
+			<p>
+				まずは、デバッグ中の時を見てみましょう。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+#ifdef NDEBUG
+void WRITE(char&amp; a){}
+#else
+void WRITE(char&amp; a){write(a);}
+#endif
+
+char a = '*';
+WRITE(a);
+a += 1;
+write(a);
+</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果</span>
+				<div>
+					*+
+				</div>
+			</div>
+			<p>
+				謎めいた前処理指令が沢山ありますね。
+			</p>
+			<div class="hr"></div>
+			<p>
+				さて、このプログラムの先頭に1行足すだけで、デバッグコードを全て消すことができます。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+#define NDEBUG
+#ifdef NDEBUG
+void WRITE(char&amp; a){}
+#else
+void WRITE(char&amp; a){write(a);}
+#endif
+
+char a = '*';
+WRITE(a);
+a += 1;
+write(a);
+</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果</span>
+				<div>
+					+
+				</div>
+			</div>
+			<div class="line"><span>解説</span></div>
+			<p>
+				<span class="code">#ifdef</span>という前処理指令は、
+				「次に続く名前<span class="note">（この場合はNDEBUG）</span>が、<span class="code">#define</span>という前処理指令で定義されている時に限り、以下のプログラムを埋め込む」という意味です。
+			</p>
+			<p>
+				<span class="code">#else</span>という前処理指令は、「上にある<span class="code">#ifdef</span>などが成り立たない時に、以下のプログラムを埋め込む」という意味です。
+				今回の場合は、「<span class="code">NDEBUG</span>が、<span class="code">#define</span>という前処理指令で定義されてい<strong>ない</strong>時に限り、以下のプログラムを埋め込む」という意味です。
+			</p>
+			<p>
+				<span class="code">#endif</span>という前処理指令は、「上にある<span class="code">#ifdef</span>や<span class="code">#else</span>などの効果を止める」という意味です。
+			</p>
+			<p>
+				つまり、最初のプログラムでは<span class="code">NDEBUG</span>が#defineされていないため、<span class="code">void WRITE(char&amp; a){write(a);}</span>という関数が埋め込まれるのに対して、2つ目のプログラムでは<span class="code">NDEBUG</span>が#defineされており、<span class="code">void WRITE(char&amp; a){}</span>という関数が埋め込まれるのです。
+			</p>
+			<p>
+				なお、この他にも、次のような前処理指令が定義されています。
+			</p>
+			<table class="ta">
+			<tr><td><span class="code">#ifndef</span></td><td><span class="code">#ifdef</span>の逆。定義されてい<strong>ない</strong>時に埋め込み。</td></tr>
+			<tr><td><span class="code">#undef</span></td><td><span class="code">#define</span>の逆。定義したのを削除する。</td></tr>
+			<tr><td><span class="code">#if_0</span></td><td>以下のプログラムを埋め込まない。</td></tr>
+			<tr><td><span class="code">#if_1</span></td><td>以下のプログラムを埋め込む。</td></tr>
+			</table>
+			<p>
+				<span class="note">ちなみに、CやC++をご存知の方は「二重インクルード防止コード」という物をご存知かと思われますが、上記の一覧から分かるように、CamphorScriptにおいても使用可能です。CamphorScriptのプリプロセッサには#pragma once などはございませんので、是非二重インクルード防止コードをお書き下さい。
+				</span>
+			</p>
+			
+		</div>
+		
+		<div class="chapter">
+			<h2 class="content"><a href="#" id="a7" class="btn">7. CamphorScriptの正体</a></h2>
+			<p>
+				CamphorScriptについて今まで学んできましたが、実は、CamphorScriptで書ける全てのプログラムは、while文までの機能で全て書くことができます。
+				関数・演算子・構文拡張なども、究極的にはたった数種類の機能に収束します。詳しく見ていきましょう。
+			</p>
+			<h3>7-1. 展開</h3>
+			<p>
+				CamphorScriptで書かれたプログラムは、前処理の後、「コンパイル」という処理により、関数・演算子・構文拡張などが<strong>「展開」</strong>されます。
+			</p>
+			<p>
+				展開とは、呼び出し元を、宣言の中身に書き換えることを言います。
+			</p>
+			<p>
+				前に、以下の様な説明をしました。
+			</p>
+			<div style="border: 1px dotted black; padding: 8px;margin: 10px 0;">
+				関数を呼び出すと、まるで関数の先頭にジャンプし、受け取った引数を使って処理が行われていくかのように動作します。
+			
+				最後に達したら、関数が呼び出された場所の直後に戻り、<span class="note">（「呼び出し元に戻る」と言います）</span>そのまま次に進んでいきます。
+			</div>
+			<p>
+				わざわざ「まるで～かのように」と書いたのは、実際には「ジャンプ」ではなく「展開」によって関数呼び出しが行われているからです。
+			</p>
+			<div class="line"><span>見てみよう</span></div>
+			<p>
+				とは言っても、百聞は一見に如かず、実際にどのように動いているのか見てみましょう。
+			</p>
+			<p>
+				今まで、プログラムを実行するには<span class="console">ccsc -run "ファイル名"</span>と実行していました。
+			</p>
+			<p>
+				今回は、<span class="console">ccsc -C13 -o con "ファイル名"</span>と実行してみましょう。
+			</p>
+			
+			
+			<div class="exec">
+				<span>実行結果</span>
+				<div>
+<pre>
+char a; read(a);
+char num;num+=50;
+while(num){
+    {
+        char c__TMP_1; {
+            char c2__TMP_1;
+            while(a){ c__TMP_1+=1; c2__TMP_1+=1; a-=1;}
+            while(c2__TMP_1){ a+=1; c2__TMP_1-=1;}
+            delete c2__TMP_1;
+        }
+        {
+            while(c__TMP_1){
+                while(c__TMP_1){c__TMP_1-=1;}
+                
+                a-=1;
+                
+            }
+        }
+        delete c__TMP_1;
+    }
+    num-=1;
+}
+
+char b;b+=98;
+{
+    while(a){
+        while(a){a-=1;}
+        
+        write(b); 
+        b+=7; write(b);
+        b-=2; write(b);
+        
+    }
+}
+</pre>
+				</div>
+			</div>
+			<p>
+				関数・演算子・構文拡張などが全て展開され、
+				<span class="code">char</span>
+				<span class="code">delete</span>
+				<span class="code">+=</span>
+				<span class="code">-=</span>
+				<span class="code">read</span>
+				<span class="code">write</span>
+				<span class="code">while</span>というたった7種類の命令の集まりに翻訳されていることが分かります。
+			</p>
+			<p>
+				ちなみに、実際に実行される前には、これを更に簡素化したものに変換されます。
+			</p>
+			<p>
+				<span class="console">ccsc -C18 -o con "ファイル名"</span>と実行すると出力されます。
+			</p>
+			<div class="exec">
+				<span>実行結果</span>
+				<div>
+<pre>
+,&gt;++++++++++++++++++++++++++++++++++++++++++++++++++[&lt;[&gt;&gt;+&gt;+&lt;&lt;&lt;-]&gt;&gt;&gt;[&lt;&lt;&lt;+&gt;&gt;&gt;-]&lt;[
+[-]&lt;&lt;-&gt;&gt;]&lt;-]&gt;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++&lt;&lt;[[-]&gt;&gt;.+++++++.--.&lt;&lt;]
+</pre>
+				</div>
+			</div>
+			<p>
+				数値すら消え、<span class="console">+</span><span class="note">（意味:1増やす）</span>の連続によって表されています。
+			</p>
+			<p>
+				<span class="console">.</span>は<span class="code">write</span>、
+				<span class="console">,</span>は<span class="code">read</span>、
+				<span class="console">[</span>と<span class="console">]</span>は<span class="code">while</span>に対応します。
+			</p>
+			<p>
+				この言語についての詳しい情報は、<a href="http://goo.gl/vwVX4U">こちら</a><span class="note">（外部サイト）</span>のサイトをご参照下さい。
+			</p>
+			
+			
+			<br /><h3>7-2. 効率化</h3>
+			<p>2-2.で、「変数を大きい数で初期化する処理は効率があまり良くない」と言いました。</p>
+			<table><tr>
+				<td>
+<pre class="codes">
+char a = 'x', b = 'y', c = 'z';
+write(a); write(b); write(c);
+
+</pre>
+				</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+				<td>
+<pre class="codes">
+char a = 'x';write(a); 
+a += 1; write(a);
+a += 1; write(a);</pre>
+				</td>
+			</tr></table>
+			<p>左は大きい数での初期化処理が3回も入るので、効率が悪くなります。変換後のコードを見ると分かりやすいでしょう。</p>
+			<table><tr>
+				<td>
+				<div class="console">
+<pre>
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++&gt;+++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+++&gt;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++++++++++++++++++++++++++++++++++++++++++++++&lt;&lt;.&gt;.&gt;.
+</pre></div>
+				</td><td>前者</td></tr><tr>
+				<td>
+				<div class="console">
+<pre>
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++.+.+.</pre></div>
+				</td><td>後者</td>
+			</tr></table>
+			<p>と、明らかに後者のほうが効率がいいわけです。</p>
+			<div class="line"><span>効率化2</span></div>
+			<p>しかし、後者のプログラムも、<span class="console">+</span>が120回並んでいるわけで、無駄に長ったらしくなってしまっています。</p>
+			<p><span class="code">while</span>でも使って、何とか効率を上げられないでしょうか。</p>
+			<div class="hr"></div>
+			<p>結論から言うと、120増やすのではなく、「『12増やす』という処理を10回繰り返す」ようにすればいいのです。</p>
+			<p>早速試してみましょう。</p>
+			<table><tr><td>
+<pre class="codes">
+char a = 0; 
+char b = 10;
+while(b)
+{
+    a += 12; b -= 1;
+}
+write(a); 
+a += 1; write(a);
+a += 1; write(a);</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>変換結果</span>
+				<div>
+					&gt;++++++++++[&lt;++++++++++++&gt;-]&lt;.+.+.
+				</div>
+			</div>
+			
+			<p>標準ライブラリ<span class="code">&lt;stdcalc2&gt;</span>には、この<span class="code">while</span>を読みやすくする演算子が定義されています。書き直してみましょう。</p>
+			<table><tr><td>
+<pre class="codes">
+char a = 0; 
+a += 10 * 12; write(a); 
+a += 1; write(a);
+a += 1; write(a);</pre>
+			</td></tr></table>
+			<p>非常に読みやすくなりました！</p>
+			<p></p>
+			<p></p>
+			<br /><h3>7-3. 最後に</h3>
+			<p>以上で、この入門書は終了です。楽しんでいただけたでしょうか。
+			</p>
+			<p>
+				一部のあまり主要でない機能<span class="note">（ヌル関数、プラグマなど）</span>については説明を割愛しましたが、CamphorScriptの殆どについて説明することができました。
+			</p>
+			<p>
+				読んでいただき、本当にありがとうございました。
+			</p>
+		</div>
+		
+		
 	</div>
-
+		
+		
+		
 	<div id="sidebar">
 		<ul class="links">
 			<li><a href="#a1">1. CamphorScriptの使い方</a></li>
 			<li><a href="#a2">2. CamphorScriptの基本</a></li>
+			<li><a href="#a3">3. 流れを変えろ！</a></li>
+			<li><a href="#a4">4. 不思議な不思議な演算子</a></li>
+			<li><a href="#a5">5. 構文拡張</a></li>
+			<li><a href="#a6">6. 前処理</a></li>
+			<li><a href="#a7">7. CamphorScriptの正体</a></li>
 		</ul>
 	
 		

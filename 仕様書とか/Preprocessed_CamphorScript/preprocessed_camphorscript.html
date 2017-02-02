@@ -30,7 +30,7 @@
 				Preprocessed CamphorScript makes it possible to write programs much easier.
 			</p>
 			<p>
-				One of the most important properties of Preprocessed CamphorScript is that it is <strong>extendable</strong>.
+				One of the most important properties of Preprocessed CamphorScript is that it is <strong>extensible</strong>.
 				It is equipped with many ways to extend this language, 
 				including <strong>user-defined operators</strong> and <strong>customizable syntaxes</strong>.
 			</p>
@@ -404,7 +404,7 @@
 				<span class="pat">num</span>;
 			</p>
 			<br /><h3>4-4. Block</h3>
-			<p>A block wraps zero or more sentences and creates a scope.</p>
+			<p>A block wraps zero or more sentences and creates a scope. A semicolon is implicitly inserted before a <span class="str">'}'</span>.</p>
 			<p>
 				<span class="pat">block2</span> = 
 				<span class="str">'{'</span>, 
@@ -567,7 +567,7 @@
 			<p>There are two types of fixity, namely <strong>left fixity</strong> and <strong>right fixity</strong>.</p>
 			<p>An operator's fixity can be defined more than once, but they all have to be the same.</p>
 			<p>
-			The fixity of built-in operators 
+			The fixities of built-in operators 
 			<span class="code">+=</span> and <span class="code">-=</span> are implicitly defined as 
 			<span class="code">infixr 5 (+=);</span> and <span class="code">infixr 5 (-=);</span>
 			</p>
@@ -620,7 +620,7 @@
 			
 			<br /><h3>6-5. BLOCK Statement</h3>
 			<p>A BLOCK statement, not to be confused with a block, is a statement made by appending a semicolon 
-			after the reseved word <span class="code">block</span>.</p>
+			after the reserved word <span class="code">block</span>.</p>
 			<p>It can only be used inside the latter block of block syntax definition.</p>
 			<p>
 				<span class="pat">resblc</span> = 
@@ -778,7 +778,7 @@
 			<h2 class="content"><a href="#" id="a7" class="btn">7. Pragmas</a></h2>
 			
 			<h3>7-1. Pragmas</h3>
-			<p>Pragmas are special statements used to give additional instuctions to the compiler. </p>
+			<p>Pragmas are special statements used to give additional instructions to the compiler. </p>
 			<p>A compiler does not need to implement any pragmas, though unimplemented pragmas should be ignored.</p>
 			<p>
 				<span class="pat">pragma</span> = 
