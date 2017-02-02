@@ -14,7 +14,7 @@ import Camphor.Global.Synonyms
 import Camphor.Base.Base_Step1
 import Camphor.Base.Base_Step2.Base_Step2
 import Camphor.Base.Base_Step3_I
-import Camphor.Base.Base_Step4
+import Camphor.Base.Base_Step4.Base_Step4
 import Camphor.Base.Base_Step5
 import Camphor.Base.Base_Step6
 import Camphor.Base.Base_Step7
@@ -80,11 +80,11 @@ dispatch5 xs = case optionParse xs defaultStat of
  Right stat@S{inputFile = Just infile, outputFile = Just outf, fromTo = (a,b)} -> do 
   let fds = includeDirs stat; lds = libraryDirs stat; wnum = warnNum stat; idm = incDecMerge stat  -- results
   let file_dir = fst $ splitFileName infile
-  let to5 = idm
+  let to4 = idm
   contents  <- getContentsFrom infile
   includer  <- getManyLibs (if noStdLib stat then lds else  lib_dir:lds)
   includer2 <- getManyLibs (if noStdInc stat then fds else file_dir:fds)
-  let result = runWriterT $ fromTo' a b (step infile (memSize stat) (includer,includer2,macroTable stat) {-to5-}) contents
+  let result = runWriterT $ fromTo' a b (step infile (memSize stat) (includer,includer2,macroTable stat) to4) contents
   let (parsed,warns') = (fst <$> result, snd <$> result)
   case (warnTill stat,warns') of (Just lv, Right warns) -> outputWarn wnum lv warns; _ -> return ()
   res <- outputParsed outf parsed
@@ -95,8 +95,8 @@ dispatch5 xs = case optionParse xs defaultStat of
 lft :: (Monoid s,Monad m) => (a -> b -> m c) -> a -> b -> WriterT s m c
 lft f a b = lift(f a b)
    
-step :: FilePath -> Maybe MemSize -> Includers -> {-To5 ->-} [  Txt -> WriterT Warnings (Either ParseError) Txt  ]   
-step file mem includers {-to5-} = map ($file) [step1 includers,step2,lft$step3_I,lft$step4,lft$step5 mem,lft$step6,lft step7,lft$step8]
+step :: FilePath -> Maybe MemSize -> Includers -> To4 -> [  Txt -> WriterT Warnings (Either ParseError) Txt  ]   
+step file mem includers to4 = map ($file) [step1 includers,step2,lft$step3_I,lft$step4 to4,lft$step5 mem,lft$step6,lft step7,lft$step8]
 
 -- starts with xth(1-indexed) and ends with yth(1-indexed)
 fromTo' :: Monad m => Int -> Int -> [a -> m a] -> a -> m a

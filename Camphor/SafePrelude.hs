@@ -44,7 +44,7 @@ Bool(..),(&&),(||),not,otherwise
 ,comparing
 ,ap,liftM,Applicative,(>=>),(<=<),unless
 ,first,second
-,(<++>),(<:>),(<$$>),(</>)
+,(<++>),(<:>),(<$$>),(</>),(<++$$>)
 ,(<*)
 ,ord,chr
 ,filterM
@@ -91,6 +91,10 @@ infixl 4 <$$>
 infixl 4 <++$>
 (<++$>) :: (Functor f, Monoid b) => b -> f b -> f b
 a <++$> b = mappend a <$> b
+
+infixl 4 <++$$>
+(<++$$>) :: (Functor f, Functor f1, Monoid b) => b -> f (f1 b) -> f (f1 b)
+a <++$$> b = mappend a <$$> b
 
 
 data Between a b = East a | West b deriving(Show, Eq, Ord)
