@@ -8,7 +8,7 @@ import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,s
 import Camphor.Global.Synonyms
 import Text.Parsec hiding(token)
 import Control.Applicative hiding ((<|>),many)
-import Camphor.ND_parser
+import Camphor.Base.ND_parser
 import qualified Data.Set as S
 
 -- type Chunk = Either (ComNum,Integer) (Com7,String)

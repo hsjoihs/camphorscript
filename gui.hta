@@ -1,11 +1,31 @@
 ﻿<head>
 <script type="text/javascript" src="js/langselect.js"></script>
 <script type="text/javascript" src="js/core.js"></script>
+<hta:application
+    applicationname="CHAtsFtD CamphorScript Compiler GUI"
+    border="thick"
+    borderstyle="normal"
+    caption="yes"
+    contextmenu="yes"
+    icon="value"
+    id="value"
+    innerborder="yes"
+    maximizebutton="yes"
+    minimizebutton="yes"
+    navigable="no"
+    scroll="yes"
+    scrollflat="no" 
+    selection="yes"
+    showintaskbar="yes" 
+    singleinstance="no" 
+    sysmenu="yes" 
+    version="value"
+    windowstate="maximize" />
 </head>
-<body onload="init()">
+<body onload="init()" style="background-color:#465DAA">
 <div width="100%">
 	<form name="c">
-		<table width="100%">
+		<table width="100%" height="100%">
 			<tr>
 			<td colspan=2 width="5">
 				<select name="from" onchange="setTo()">
@@ -39,12 +59,13 @@
 	
 		<tr><td colspan=6 >
 			<input type="file" name="path" style="width:100%" onchange="openFile(this.value)">
-		</td></tr><tr><td style="width:50%" colspan=3>
-			<textarea name="inp" style="width:100%" rows=20 readonly></textarea>
+		</td></tr><tr style="width:100%;height:100%"><td style="width:50%;" colspan=3>
+			<textarea name="inp" style="width:100%;height:100%" readonly></textarea>
+			&nbsp;<!-- no collapse -->
 		</td><td style="width:50%" colspan=3>	
-			<textarea name="out" style="width:100%" rows=20></textarea>
+			<textarea name="out" style="width:100%;height:100%" ></textarea>
 		</td></tr><tr><td colspan=6>
-			<textarea name="err" style="width:100%" rows=5></textarea>
+			<textarea name="err" style="width:100%" rows=4></textarea>
 		</td></tr>
 	</table>
 	</form>

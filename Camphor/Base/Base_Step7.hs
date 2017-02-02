@@ -10,7 +10,7 @@ module Camphor.Base.Base_Step7
 import Camphor.SafePrelude 
 import Camphor.Global.Synonyms
 import Text.Parsec hiding(token)
-import Camphor.ND_parser
+import Camphor.Base.ND_parser
 import Camphor.Transformer
 
 step7 :: Stream s Identity Char => FilePath -> s -> Either ParseError Txt
