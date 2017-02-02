@@ -31,8 +31,8 @@ makeNewIdent clTable ident stat pos = do
   lookup2 :: Maybe Ident2
   lookup2 = fmap fst $ M.lookup ident clTable
 
-type RCMEP = ReaderT (CollisionTable,Maybe TmpStat,()) (Either ParseError)
-type SCMEP = StateT  (CollisionTable,Maybe TmpStat,()) (Either ParseError)
+type RCMEP = ReaderT (CollisionTable,Maybe TmpStat,Maybe Ident2) (Either ParseError)
+type SCMEP = StateT  (CollisionTable,Maybe TmpStat,Maybe Ident2) (Either ParseError)
  
 {-  -------------------------------------------------------------------------------
    ***************************
@@ -170,6 +170,7 @@ replacer3 stat narr pos (R_SynCall1 ident valuelist pos2 block) table = toState 
    replaced <- forM xs makeNewBlock2 
    return $ concat replaced
    
+
 replacer3 stat narr pos (R_SynCall2 ident tvaluelist pos2 block) table = toState $ do  -- FIXME: syntax is not replaced
  newTValuelist <- replaceSingles2 table tvaluelist
  newblock <- fromState $ makeNewBlock2(Block pos2 block)
@@ -182,6 +183,10 @@ replacer3 stat narr pos (R_SynCall2 ident tvaluelist pos2 block) table = toState
   makeNewBlock2 (Block  _ xs) = do
    replaced <- forM xs makeNewBlock2 
    return $ concat replaced
+   
+replacer3 _ _ pos R_SynBlock   _     = do
+ 
+ return[Single pos $ SynBlock]
 
   
 {-  -------------------------------------------------------------------------------

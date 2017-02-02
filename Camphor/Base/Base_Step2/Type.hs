@@ -38,17 +38,17 @@ type ValueList = SepList Oper Value
 type TailValueList = [(Oper,Value)]
 type Sent2 = Upgrade Extra SimpleSent2
 data SimpleSent =
- Scolon | Char Ident2 |   Del Ident2   |   Sp String   | Comm String |
- Pragma PragmaData   | Infl Fix Oper | Infr Fix Oper | 
+ Scolon | Char Ident2 | Del Ident2 |   Sp String   | Comm String |
+ Pragma PragmaData | Infl Fix Oper | Infr Fix Oper | 
  Func1 Ident2 TypeList Sent | Func1Nul Ident2 TypeList |
- Func2 Oper TypeList TypeList Sent   | 
- Func2Nul Oper TypeList TypeList     |
- SynCall1 Ident2 ValueList  SourcePos  Sents  |    
+ Func2 Oper TypeList TypeList Sent | 
+ Func2Nul Oper TypeList TypeList   |
+ SynCall1 Ident2 ValueList SourcePos Sents |    
  SynCall2 Ident2 TailValueList  SourcePos  Sents  |    
  Call1 Ident2 ValueList     | Call2 Oper ValueList ValueList  | 
- Call5 ValueList  | Call3 Oper ValueList ValueList   |  Call4 [(Value,Oper)] ValueList |
+ Call5 ValueList   | Call3 Oper ValueList ValueList   |  Call4 [(Value,Oper)] ValueList |
  Pleq Ident2 Integer | Mneq Ident2 Integer |   Rd Ident2    |  Wrt Ident2 | 
- Syntax1 Ident2 TypeList Ident2 Sent | Syntax2 Ident2 TailTypeList Ident2 Sent 
+ Syntax1 Ident2 TypeList Ident2 Sent | Syntax2 Ident2 TailTypeList Ident2 Sent | SynBlock
  deriving(Show,Eq)
  
 data SimpleSent2 = 
@@ -62,7 +62,7 @@ data SimpleSent2 =
  R_Call1 Ident2 ValueList     | R_Call2 Oper ValueList ValueList  | 
  R_Call5 ValueList  | R_Call3 Oper ValueList ValueList   |  R_Call4 [(Value,Oper)] ValueList |
  R_Pleq Value Value | R_Mneq Value Value |   R_Rd Value    |  R_Wrt Value |
- R_Syntax1 Ident2 TypeList Ident2 Sent | R_Syntax2 Ident2 TailTypeList Ident2 Sent  
+ R_Syntax1 Ident2 TypeList Ident2 Sent | R_Syntax2 Ident2 TailTypeList Ident2 Sent | R_SynBlock 
  deriving(Show,Eq)
 
 data Type = CNSTNT_CHAR | CONST_CHAR | CHAR_AND deriving(Show,Eq)
@@ -123,6 +123,7 @@ toSent2 (Block a xs) = Block a (map toSent2 xs)
 
 toSimpleSent2 :: SimpleSent -> SimpleSent2
 toSimpleSent2 Scolon             = R_Scolon
+toSimpleSent2 SynBlock           = R_SynBlock
 toSimpleSent2 (Char i)           = R_Char i
 toSimpleSent2 (Del i)            = R_Del i
 toSimpleSent2 (Sp str)           = R_Sp str

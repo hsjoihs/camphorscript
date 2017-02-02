@@ -1,0 +1,16 @@
+syntax if(~char& a){block;}
+{
+	while(a)
+	{
+		while(a){a-=1;}
+		block;
+	}
+}
+
+char b;
+read(b);
+b-='0';
+if(~b)
+{
+	char c; c+='0'; write(c); delete c;
+}

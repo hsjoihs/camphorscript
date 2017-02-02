@@ -14,7 +14,7 @@ parser2' :: Stream s m Char => ParsecT s u m [(SourcePos,Tok)]
 parser2' = do{ts <- many tok;eof;return (concat ts);}
 
 tok :: Stream s m Char => ParsecT s u m [(SourcePos,Tok)]
-tok = _char <|> _delete  <|> _num <|> _scolon <|>
+tok = _char <|> _delete  <|> _num <|> _scolon <|> _syntax <|>
  _paren <|> _nerap <|> _brace <|> _ecarb <|>
  _pragma <|> _comm <|> _op <|> -- _pragma -> _comm -> _op (IMPORTANT)
  _infixl <|> _infixr <|>

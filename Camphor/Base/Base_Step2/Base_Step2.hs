@@ -22,7 +22,6 @@ import Text.Parsec
 import qualified Data.Map as M
 import Control.Monad.State
 import Control.Monad.Reader
-
  
 step2 ::  FilePath -> Txt -> Either ParseError Txt
 step2 file txt = do
@@ -73,6 +72,7 @@ complex3 g f = do
 convert2_2 :: Sents -> StateT UserState (Either ParseError) Txt
 convert2_2 []                                    = return "" 
 convert2_2 (Single _    (Comm comm):xs)          = ("/*" ++ comm ++ "*/")                         <++?> convert2_3 xs 
+convert2_2 (Single _    (SynBlock ):xs)          = ("/*block*/")                                  <++?> convert2_3 xs 
 convert2_2 (Single _    (Sp   sp  ):xs)          = sp                                             <++?> convert2_2 xs  -- convert2_2 INTENTIONAL
 convert2_2 (Single _    (Scolon   ):xs)          = ""                                             <++?> convert2_3 xs 
 convert2_2 (Single _    (Pleq ident integer):xs) = (unId ident ++ "+=" ++ showNum integer ++ ";") <++?> convert2_3 xs 
@@ -105,20 +105,88 @@ convert2_2 (Single pos (Call2 op valuelist1 valuelist2):xs) = complex2 (convert2
 convert2_2 (Single pos (Call3 op valuelist1 valuelist2):xs) = complex2 (convert2_3 xs) (newK3 pos op valuelist1 valuelist2) --- (val [op val])op val [op val] ; 
 convert2_2 (Single pos (Call4 list valuelist)          :xs) = complex2 (convert2_3 xs) (newK4 pos list valuelist) --- [val op] (val [op val]) ; 
 convert2_2 (Single pos (Call5 valuelist)               :xs) = complex2 (convert2_3 xs) (newK5 pos valuelist) --- val [op val] op val [op val] ;
-convert2_2 (Single _ (SynCall1 name valuelist pos2 block):xs) = showCall name valuelist <++?> convert2_3 (Block pos2 block:xs) -- FIXME
- where 
-  showCall :: Ident2 -> ValueList -> String
-  showCall nm (SepList v ovs) = unId nm ++ "(" ++ show' v ++ concat[ (unOp o2) ++ show' v2 | (o2,v2) <- ovs ] ++ ")"
+convert2_2 (Single _   (SynCall1 name vl pos2 block)   :xs) = complex2 (convert2_3 xs) (newSC1 pos2 name vl (pos2,block)) 
+convert2_2 (Single _   (SynCall2 name tvl pos2 block)  :xs) = complex2 (convert2_3 xs) (newSC2 pos2 name tvl (pos2,block))
 
-convert2_2 (Single _ (SynCall2 name tvaluelist pos2 block):xs) = showCall name tvaluelist <++?> convert2_3 (Block pos2 block:xs) -- FIXME
- where
-  showCall :: Ident2 -> TailValueList -> String
-  showCall nm tvlist = unId nm ++ "(" ++ concat[ (unOp o2) ++ show' v2 | (o2,v2) <- tvlist ] ++ ")"
  
 convert2_2 (Block p ys:xs) = complex3 (convert2_3 xs) (newStat3getter p ys)
 {-----------------------------------------------------------
  -                   * end of convert2_2 *                 -
  -----------------------------------------------------------}
+
+
+ 
+
+ 
+-- Function call
+newK1 :: SourcePos -> Ident2 -> ValueList -> ReaderT UserState (Either ParseError) Txt
+newK1 pos ident valuelist   
+ | valuelistIdentConflict valuelist = err$newErrorMessage(Message$"overlapping arguments of function "++showIdent ident)pos 
+ | otherwise = do
+  stat <- ask
+  instnce <- lift $ getInstanceOfCall1 pos ident valuelist stat
+  let funcname = Func ident instnce; (typelist,sent') = instnce
+  case sent' of
+   Nothing   -> err$newErrorMessage(Message$"cannot call function "++getName funcname++" because it is defined as null")pos
+   Just sent -> replacer funcname (toSent2 sent) (makeReplacerTable typelist valuelist)   
+   
+-- normalized operator call
+newK2 :: SourcePos -> Oper -> ValueList -> ValueList -> ReaderT UserState (Either ParseError) Txt
+newK2 pos op valuelist1 valuelist2
+ | conflict $ filter isVar $ (toList' valuelist1 ++ toList' valuelist2) = err$newErrorMessage(Message$"overlapping arguments of operator "++showStr(unOp op))pos 
+ | otherwise = do
+  stat <- ask
+  instnce <- lift $ getInstanceOfCall2 pos op valuelist1 valuelist2 stat
+  let opname = Operator op instnce; (typelist1,typelist2,sent') = instnce
+  case sent' of 
+   Nothing   -> err$newErrorMessage(Message$"cannot call operator "++getName opname++" because it is defined as null")pos 
+   Just sent -> replacer opname sent (makeReplacerTable2 (typelist1,typelist2) (valuelist1,valuelist2)) 
+ 
+-- left-parenthesized operator call
+newK3 :: SourcePos -> Oper -> ValueList -> ValueList -> ReaderT UserState (Either ParseError) Txt
+newK3 pos op valuelist1 valuelist2 = do
+ stat <- ask
+ lift $ isValidCall3 pos op valuelist2 stat
+ newK2 pos op valuelist1 valuelist2
+
+--- Call4 [(Value,Oper)] ValueList
+--- right-parenthesized operator call
+newK4 :: SourcePos -> [(Value,Oper)] -> ValueList -> ReaderT UserState (Either ParseError) Txt
+newK4 pos [] valuelist = newK5 pos valuelist -- (val op val); thus is a Call5
+newK4 pos (x:xs) valuelist2 = do
+ stat <- ask
+ (valuelist1,op) <- lift $ getCall4Left pos (x:|xs) stat
+ newK2 pos op valuelist1 valuelist2 
+
+--- no-parenthesized operator call  
+newK5 :: SourcePos -> ValueList -> ReaderT UserState (Either ParseError) Txt
+newK5 _   (SepList(Constant _)[])      = return "" -- 123; is a nullary sentence
+newK5 pos (SepList(Var ident )[])      = do
+ stat <- ask
+ case getVFContents stat ident of
+  Nothing           -> err$newErrorMessage(Message$"identifier "++showIdent ident++" is not defined")pos 
+  Just Variable     -> return "/*aaa*/"
+  Just (FunSyn _ _) -> err$newErrorMessage(Message$"cannot use variable "++showIdent ident++" because it is already defined as a function")pos  
+
+newK5 pos (SepList x(ov:ovs)) = do
+ stat <- ask
+ (oper,vlist1,vlist2) <- lift $ getCall5Result pos (x,ov:|ovs) stat
+ newK2 pos oper vlist1 vlist2
+{-
+-- Function call
+newK1 :: SourcePos -> Ident2 -> ValueList -> ReaderT UserState (Either ParseError) Txt
+newK1 pos ident valuelist   
+ | valuelistIdentConflict valuelist = err$newErrorMessage(Message$"overlapping arguments of function "++showIdent ident)pos 
+ | otherwise = do
+  stat <- ask
+  instnce <- lift $ getInstanceOfCall1 pos ident valuelist stat
+  let funcname = Func ident instnce; (typelist,sent') = instnce
+  case sent' of
+   Nothing   -> err$newErrorMessage(Message$"cannot call function "++getName funcname++" because it is defined as null")pos
+   Just sent -> replacer funcname (toSent2 sent) (makeReplacerTable typelist valuelist)  
+-}
+
+ 
 newStat3getter :: SourcePos -> Sents -> StateT UserState (Either ParseError) Txt
 newStat3getter p ys = do
  let pos = getLastPos (Block p ys)
@@ -130,97 +198,61 @@ newStat3getter p ys = do
  if not $ M.null remainingVars then err$newErrorMessage(Message$"identifiers not deleted")pos else return ()
  deleteTopVFBlock_ (newErrorMessage(Message$"FIXME: code 0004 ")pos)
  return result
- 
 
- 
--- Function call
-newK1 :: SourcePos -> Ident2 -> ValueList -> ReaderT UserState (Either ParseError) Txt
-newK1 pos name valuelist = do
- result <- replaceFuncMacro pos name valuelist 
- return result -- stat is unchanged
-   
--- normalized operator call
-newK2 :: SourcePos -> Oper -> ValueList -> ValueList -> ReaderT UserState (Either ParseError) Txt
-newK2 pos op valuelist1 valuelist2 = do
- result <- replaceOpMacro pos op valuelist1 valuelist2
- return result -- stat is unchanged
- 
--- left-parenthesized operator call
-newK3 :: SourcePos -> Oper -> ValueList -> ValueList -> ReaderT UserState (Either ParseError) Txt
-newK3 pos op valuelist1 valuelist2 = do
- stat <- ask
- lift $ isValidCall3 pos op valuelist2 stat
- result <- replaceOpMacro pos op valuelist1 valuelist2
- return result -- stat is unchanged
 
---- Call4 [(Value,Oper)] ValueList
---- right-parenthesized operator call
-newK4 :: SourcePos -> [(Value,Oper)] -> ValueList -> ReaderT UserState (Either ParseError) Txt
-newK4 pos [] valuelist = newK5 pos valuelist -- (val op val); thus is a Call5
-newK4 pos (x:xs) valuelist2 = do
- stat <- ask
- (valuelist1,op) <- lift $ getCall4Left pos (x:|xs) stat
- result          <- replaceOpMacro pos op valuelist1 valuelist2 
- return result
-
---- no-parenthesized operator call  
-newK5 :: SourcePos -> ValueList -> ReaderT UserState (Either ParseError) Txt
-newK5 _   (SepList(Constant _)[])      = return "" -- 123; is a nullary sentence
-newK5 pos (SepList(Var ident )[])      = do
- stat <- ask
- case getVFContents stat ident of
-  Nothing           -> err$newErrorMessage(Message$"identifier "++showIdent ident++" is not defined")pos 
-  Just Variable     -> return ""
-  Just (FunSyn _ _) -> err$newErrorMessage(Message$"cannot use variable "++showIdent ident++" because it is already defined as a function")pos  
-
-newK5 pos (SepList x(ov:ovs)) = do
- stat <- ask
- (oper,vlist1,vlist2) <- lift $ getCall5Result pos (x,ov:|ovs) stat
- result <- newK2 pos oper vlist1 vlist2
- return result
-
---- macro-replacing function for operator
-replaceOpMacro :: SourcePos -> Oper -> ValueList -> ValueList -> ReaderT UserState (Either ParseError) Txt
-replaceOpMacro pos op valuelist1 valuelist2 
- | conflict $ filter isVar $ (toList' valuelist1 ++ toList' valuelist2) = err$newErrorMessage(Message$"overlapping arguments of operator "++showStr(unOp op))pos 
+--- syntax call 1
+newSC1 :: SourcePos -> Ident2 -> ValueList -> (SourcePos,Sents) -> ReaderT UserState (Either ParseError) String
+newSC1 _   name (SepList (Var i) _) (pos2,block)
+ | unId name == "while" = do
+  res <- fromState $ newStat3getter pos2 block 
+  return $ "while(" ++ unId i ++ ")" ++ res
+newSC1 pos name vl (pos2,block)
+ | valuelistIdentConflict vl = err$newErrorMessage(Message$"overlapping arguments of syntax "++showIdent name)pos  
  | otherwise = do
   stat <- ask
-  instnce <- lift $ getInstanceOfCall2 pos op valuelist1 valuelist2 stat
-  result <- replacerOfOp (Operator op instnce) instnce valuelist1 valuelist2 pos 
-  return result
-   
---- macro-replacing function for operator   
-replaceFuncMacro :: SourcePos -> Ident2 -> ValueList -> ReaderT UserState (Either ParseError) Txt   
-replaceFuncMacro pos ident valuelist  
- | valuelistIdentConflict valuelist = err$newErrorMessage(Message$"overlapping arguments of function "++showIdent ident)pos 
+  (instnce,repl) <- lift $ getInstanceOfSC pos name (West vl) stat
+  syntaxer name instnce repl (pos2,block) 
+
+--- syntax call 2  
+newSC2 :: SourcePos -> Ident2 -> TailValueList -> (SourcePos,Sents) -> ReaderT UserState (Either ParseError) String
+newSC2 pos name tvl (pos2,block)
+ | tailValuelistIdentConflict tvl = err$newErrorMessage(Message$"overlapping arguments of syntax "++showIdent name)pos 
  | otherwise = do
   stat <- ask
-  instnce <- lift $ getInstanceOfCall1 pos ident valuelist stat
-  replacerOfFunc (Func ident instnce) instnce valuelist pos		
+  (instnce,repl) <- lift $ getInstanceOfSC pos name (East tvl) stat
+  syntaxer name instnce repl (pos2,block)  
 
-replacerOfOp :: MacroId -> OpInstance -> ValueList -> ValueList -> SourcePos -> ReaderT UserState (Either ParseError) Txt
-replacerOfOp opname (typelist1,typelist2,sent') valuelist1 valuelist2 pos =   
- case sent' of 
-  Nothing   -> err$newErrorMessage(Message$"cannot call operator "++getName opname++" because it is defined as null")pos 
-  Just sent -> replacer opname sent (makeReplacerTable2 (typelist1,typelist2) (valuelist1,valuelist2)) 
+  
+syntaxer :: Ident2 -> SyntaxInstance -> ReplTable -> (SourcePos,Sents) -> ReaderT UserState (Either ParseError) String
+syntaxer name instnce@(_, arg, block1) table (_,block2) = do
+ let mname = Syn name instnce
+ result <- simplyReplace mname (toSent2 block1) table (Just arg)
+ block3 <- blockInsert result block2
+ stat <- ask
+ lift $ convert2 stat block3 -- fixme :: state of convert2 not passed
+ 
+blockInsert :: Sents -> Sents -> ReaderT UserState (Either ParseError) Sents
+blockInsert host guest = return $ concatMap (blockInsert' guest) host
 
-replacerOfFunc :: MacroId -> VFInstance -> ValueList -> SourcePos -> ReaderT UserState (Either ParseError) Txt
-replacerOfFunc funcname (typelist,sent') valuelist pos =
- case sent' of
-  Nothing   -> err$newErrorMessage(Message$"cannot call function "++getName funcname++" because it is defined as null")pos
-  Just sent -> replacer funcname (toSent2 sent) (makeReplacerTable typelist valuelist) 
+blockInsert' :: Sents -> Sent -> Sents
+blockInsert' guest (Single _ SynBlock) = guest
+blockInsert' guest (Single p (SynCall1 i vl  p2 sents)) = [Single p (SynCall1 i vl  p2$concat[ blockInsert' guest sent | sent <- sents])]
+blockInsert' guest (Single p (SynCall2 i tvl p2 sents)) = [Single p (SynCall2 i tvl p2$concat[ blockInsert' guest sent | sent <- sents])]
+blockInsert' _ a@(Single _ _) = [a]
+blockInsert' guest (Block p sents) = [Block p $ concat[ blockInsert' guest sent | sent <- sents] ]
+
  
 replacer :: MacroId -> Sent2 -> ReplTable -> ReaderT UserState (Either ParseError) Txt
 replacer mname sent table = do
- result <- simplyReplace mname sent table
+ result <- simplyReplace mname sent table Nothing
  stat <- ask
- lift $ convert2 stat result -- FIXME:: state of convert2 not passed
+ lift $ convert2 stat result -- fixme :: state of convert2 not passed
  
-simplyReplace :: MacroId -> Sent2 -> ReplTable -> ReaderT UserState (Either ParseError) Sents
-simplyReplace mname sent table = ReaderT $ \stat -> evalStateT (simplyReplaceRVC mname sent stat table) (M.empty,getTmp stat,())
+simplyReplace :: MacroId -> Sent2 -> ReplTable -> Maybe Ident2 -> ReaderT UserState (Either ParseError) Sents
+simplyReplace mname sent table mi = ReaderT $ \stat -> evalStateT (simplyReplaceRVC mname sent stat table) (M.empty,getTmp stat,mi)
  
 -- simplyReplaceRegardingVariableCollision 
-simplyReplaceRVC :: MacroId -> Sent2 -> UserState -> ReplTable -> StateT (CollisionTable,Maybe TmpStat,()) (Either ParseError) Sents
+simplyReplaceRVC :: MacroId -> Sent2 -> UserState -> ReplTable -> StateT (CollisionTable,Maybe TmpStat,Maybe Ident2) (Either ParseError) Sents
 simplyReplaceRVC mname (Single pos2 ssent) stat table = do
  newSents <- replacer3 (clearTmp stat) (nE mname) pos2 ssent table
  return newSents

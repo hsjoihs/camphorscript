@@ -9,8 +9,8 @@ module Camphor.Base.Base_Step2.Auxilary
 ,isConsistent
 ,NonEmptyValue
 ,reverse''
-,isValidCall3,getCall4Left,getInstanceOfCall1,getInstanceOfCall2
-,getLastPos,toSents,err,toState,fromState
+,isValidCall3,getCall4Left,getInstanceOfCall1,getInstanceOfCall2,getInstanceOfSC
+,getLastPos,toSents,err,toState,fromState--,makeReplacerTable3
 ) where
 import Camphor.SafePrelude
 import qualified Camphor.SepList as S
@@ -39,19 +39,35 @@ getInstanceOfCall2 pos op valuelist1 valuelist2 stat = do
   xs        -> Left $newErrorMessage(Message$showNum(length xs)++" type-matching instances of "++showStr (unOp op)++" defined")pos 
 
 getInstanceOfCall1 :: SourcePos -> Ident2 -> ValueList -> UserState -> Either ParseError VFInstance
-getInstanceOfCall1 pos ident valuelist stat = do
- finfo <- finfo' -- checks if `ident' is a function; if so, look for all the instances.
- let matchingFuncInstance = [ a | a@(typelist,_) <- finfo, valuelist `matches` typelist ]
- case matchingFuncInstance of
-  []        -> Left $newErrorMessage(Message$"no type-matching instance of "++showIdent ident++" defined")pos  
-  [instnce] -> return instnce
-  xs        -> Left $newErrorMessage(Message$showNum(length xs)++" type-matching instances of "++showIdent ident++" defined")pos   
- where
-  finfo' :: Either ParseError [VFInstance]
-  finfo' = case getVFContents stat ident of 
-   Nothing             -> Left $newErrorMessage(Message$"function "++showIdent ident++" is not defined")pos 
-   Just Variable       -> Left $newErrorMessage(Message$"cannot call "++showIdent ident++" because it is defined as a variable")pos
-   Just(FunSyn info _) -> Right $ info 
+getInstanceOfCall1 pos ident valuelist stat = case getVFContents stat ident of -- checks if `ident' is a function; if so, look for all the instances.
+ Nothing              -> Left $newErrorMessage(Message$"function "++showIdent ident++" is not defined")pos 
+ Just Variable        -> Left $newErrorMessage(Message$"cannot call function "++showIdent ident++" because it is defined as a variable")pos
+ Just(FunSyn finfo _) -> do 
+  let matchingFuncInstance = [ a | a@(typelist,_) <- finfo, valuelist `matches` typelist ]
+  case matchingFuncInstance of
+   []        -> Left $newErrorMessage(Message$"no type-matching instance of function "++showIdent ident++" defined")pos  
+   [instnce] -> return instnce
+   xs        -> Left $newErrorMessage(Message$showNum(length xs)++" type-matching instances of function "++showIdent ident++" defined")pos   
+
+getInstanceOfSC :: SourcePos -> Ident2 -> Between TailValueList ValueList -> UserState -> Either ParseError (SyntaxInstance,ReplTable)  
+getInstanceOfSC pos ident vl_vvl stat = case getVFContents stat ident of -- checks if `ident' is a syntax; if so, look for all the instances.
+ Nothing              -> Left $newErrorMessage(Message$"syntax "++showIdent ident++" is not defined")pos 
+ Just Variable        -> Left $newErrorMessage(Message$"cannot use syntax "++showIdent ident++" because it is defined as a variable")pos
+ Just(FunSyn _ sinfo) -> case getMatchingSyntaxInstRepls sinfo vl_vvl of 
+  []        -> Left $newErrorMessage(Message$"no type-matching instance of syntax "++showIdent ident++" defined")pos 
+  xs@(_:_:_)-> Left $newErrorMessage(Message$showNum(length xs)++" type-matching instances of syntax "++showIdent ident++" defined")pos     
+  [instrepl]-> return instrepl
+
+getMatchingSyntaxInstRepls :: [SyntaxInstance] -> Between TailValueList ValueList -> [(SyntaxInstance,ReplTable)] 
+getMatchingSyntaxInstRepls sinfo vl_vvl = do
+ a@(tl_ttl,_,_) <- sinfo
+ case (vl_vvl,tl_ttl) of
+  (West _  ,East _  ) -> [] -- failure
+  (East _  ,West _  ) -> [] -- failure
+  (West vl ,West tl ) -> guard (vl `matches` tl) >> return (a,makeReplacerTable tl vl)
+  (East tvl,East ttl) -> guard (tvl `matches2` ttl) >> return (a,makeReplacerTable3 ttl tvl)
+
+
 
 getCall4Left :: SourcePos -> NonEmpty (Value, Oper) -> UserState -> Either ParseError (ValueList, Oper)
 getCall4Left pos (x:|xs) stat = do  
@@ -130,6 +146,9 @@ makeReplacerTable tlist vlist = M.fromList$zip(toIdentList tlist)(toList' vlist)
 
 makeReplacerTable2 :: (TypeList,TypeList) -> (ValueList,ValueList) -> ReplTable
 makeReplacerTable2 (t1,t2)(v1,v2) = M.fromList$zip(toIdentList t1++toIdentList t2)(toList' v1++toList' v2)
+
+makeReplacerTable3 :: TailTypeList -> TailValueList -> ReplTable
+makeReplacerTable3 ttl tvl = M.fromList$zip(map (snd.snd) ttl)(map snd tvl)
 
 isConsistent :: [Fixity] -> Bool
 isConsistent xs = all isInfixL xs || all isInfixR xs

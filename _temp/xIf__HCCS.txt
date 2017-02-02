@@ -1,0 +1,11 @@
+char b;
+read(b);
+b-=48;
+{
+	while(b){
+		while(b){b-=1;}
+		
+	char c; c+=48; write(c); delete c;
+
+	}
+}

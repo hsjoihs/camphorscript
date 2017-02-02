@@ -15,10 +15,10 @@ parser2_2 :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identit
 parser2_2 = do{xs <- many sent; eof; return (concat xs);} 
 
 sent :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity [Sent]
-sent = def <|> del <|> scl <|>
+sent = def <|> syntax <|> del <|> scl <|>
  infl <|> infr <|> spac <|> block2 <|> comm <|> pragma <|>
  func_def <|> op_def <|> func_call <|> syntax_call <|>
- op_call1 <|> op_call2 <|> op_call3 <|> op_call4 <|> op_call5 <|> syntax
+ op_call1 <|> op_call2 <|> op_call3 <|> op_call4 <|> op_call5 
 
  
 doWith :: SourcePos -> [Ident2] -> Integer -> [Sent] 
@@ -42,7 +42,7 @@ syntax_ = do{
  }  
   
 syntax :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity [Sent] 
-syntax = do
+syntax = try $ do
  (p,name,arg,blk,list) <- syntax_
  case list of 
   West tl  -> return [ Single p $ Syntax1 name tl  arg blk ]
@@ -252,7 +252,12 @@ op_call4 = try(do{
 op_call5 :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity [Sent]
 op_call5 = try(do{
  p <- getPosition; 
- vs <- getValueList; __; _scolon; return[Single p$Call5 vs]
+ vs <- getValueList; __; 
+ _scolon; 
+ case vs of {
+  SepList (Var v) [] | unId v == "block" -> return[Single p $ SynBlock];
+  _ -> return[Single p$Call5 vs]
+  }
  })
 typ :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity Type
 typ = 
