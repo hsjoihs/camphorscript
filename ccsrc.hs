@@ -6,6 +6,7 @@ import Text.Parsec
 import Camphor.IO
 import CamphorR.R_Step8
 import CamphorR.R_Step7
+import CamphorR.R_Step4
 
 
 info :: [String]
@@ -17,8 +18,8 @@ info = [
 -- ,"-X debug"
  ]
 
-step :: [String -> Either ParseError String]
-step=[step8_R,step7_R]
+step :: FilePath -> [String -> Either ParseError String]
+step file=[step8_R,step7_R file,Right,Right]
 
 fromTo'::Monad m=>Int->Int->[a->m a]->a->m a
 fromTo' x y xs
@@ -49,6 +50,6 @@ dispatch5 (['-','C',x]  :xs)(inf        ,outf,_         ) = dispatch5 xs (inf,ou
 dispatch5 (inf:xs)          (_          ,outf,frmTo     ) = dispatch5 xs (Just inf,outf      ,frmTo)
 dispatch5 []                (Just infile,outf,(a,b)     ) = do
    contents <- getContentsFrom infile
-   outputParsed (maybe (replaceExtension infile "bf") id outf) (fromTo' a  b step contents)
+   outputParsed (maybe (replaceExtension infile "bf") id outf) (fromTo' a  b (step infile) contents)
 
 dispatch5 []                (Nothing    ,_   ,_        )  = abort "no input files"

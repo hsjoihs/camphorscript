@@ -2,7 +2,14 @@
 エラーテスト充実化
 Step2作成
 R_Step4(NouDarake -> CompiledCamphorScript)の作成
+エラーメッセージの可読性向上
 
+ver 0.5.1   1:00 2014/04/28 (月)
+autotest.batのファイル一覧はbat\autotestlist.txtから読み取るように変更
+NouDarakeパーサをStep7から丸コピしてR_Step4を作ろうとするも、
+モジュール化できることに気づきCamphor.ND_parserとして分離
+と思ったらエスケープを忘れていて見事にエラーが出た
+多分テストが無かったら気付かなかった。
 
 ver 0.5.0  20:05 2014/04/27 (日)
 定数最適化のための資料を入手し、元サイトのURLを参考文献に追加
