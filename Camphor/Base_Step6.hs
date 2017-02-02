@@ -1,5 +1,5 @@
 {-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
-{-# OPTIONS -Wall -fno-warn-unused-do-bind  -fno-warn-missing-signatures -fno-warn-unused-imports #-}
+{-# OPTIONS -Wall -fno-warn-unused-do-bind  -fno-warn-unused-imports #-}
 {- (in|de)crement optimization -}
 module Camphor.Base_Step6
 (
@@ -11,4 +11,5 @@ import Camphor.Global
 import Text.Parsec hiding(token)
 import Control.Applicative hiding ((<|>),many)
 
-step6=Right
+step6 :: FilePath -> Txt -> Either s Txt
+step6 _ = Right

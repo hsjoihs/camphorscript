@@ -11,4 +11,5 @@ import Camphor.Global
 import Text.Parsec hiding(token)
 import Control.Applicative hiding ((<|>),many)
 
-step5 = Right
+step5 :: FilePath -> Txt -> Either s Txt
+step5 _ = Right

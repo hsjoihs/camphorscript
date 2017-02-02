@@ -2,7 +2,8 @@
 
 import Text.Parsec
 import Camphor.Global
-import Camphor.Base_Step1
+import Camphor.Step1
+import Camphor.Step3
 import Camphor.Step4
 import Camphor.Step5
 import Camphor.Step6
@@ -31,8 +32,7 @@ info=[
  "Usage: ccsc [options] [-o outfilepath] infile",
  "options: ",
  "-Cnum[num]  compile from step 'num' to step 'num'",
- "-E          C preprocess only",
- "-X          Debug"
+ "-E          C preprocess only"
  ]
  
 main :: IO()
@@ -42,7 +42,7 @@ main = do
 
 
 step :: FilePath -> (M.Map FilePath Txt) -> [Txt -> Either ParseError Txt]   
-step file includer = [step1 file includer,undefined,undefined,step4,step5,step6,step7,step8]
+step file includer = map ($file) [step1 includer,undefined,step3,step4,step5,step6,step7,step8]
 
 
 -- starts with xth(1-indexed) and ends with yth(1-indexed)
@@ -67,7 +67,6 @@ dispatch5 ["-o"]             _                            = abort("argument to '
 dispatch5 (['-','C',x,y]:xs)(inf        ,outf,_         ) = dispatch5 xs (     inf,outf      ,Right(read[x],read[y]))
 dispatch5 (['-','C',x]  :xs)(inf        ,outf,_         ) = dispatch5 xs (     inf,outf      ,Right(read[x],read[x]))
 dispatch5 ("-E":xs)         (inf        ,outf,_         ) = dispatch5 xs (     inf,outf      ,Right(1      ,1      ))
-dispatch5 ("-X":xs)         (inf        ,outf,_         ) = dispatch5 xs (     inf,outf      ,Left "X")
 dispatch5 (inf:xs)          (_          ,outf,frmTo     ) = dispatch5 xs (Just inf,outf      ,frmTo)
 
 dispatch5 []                (Just infile,outf,Right(a,b)) = do
@@ -75,9 +74,6 @@ dispatch5 []                (Just infile,outf,Right(a,b)) = do
    includer <- getLibs3
    outputParsed (maybe (replaceExtension infile "bf") id outf) (fromTo' a  b (step infile includer) contents)
    
-dispatch5 []                (Just infile,_   ,Left "X")   = do
-   contents <- getContentsFrom infile
-   print$parse parser1 "step1" $ contents ++ "\n";
    
 dispatch5 []                (Nothing    ,_   ,_        )  = abort "no input files"
 dispatch5 []                (_          ,_   ,Left _)     = return ()

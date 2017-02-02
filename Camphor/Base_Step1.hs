@@ -25,8 +25,8 @@ import Control.Monad(join)
 import qualified Data.Map as M
 
 {- C macro  -}
-step1 :: FilePath -> (M.Map FilePath Txt) -> String -> Either ParseError String
-step1 file includer str = join (convert1 file includer <$> parse parser1 (file ++ "--step1") (str ++ "\n"))
+step1 :: (M.Map FilePath Txt) -> FilePath -> Txt -> Either ParseError Txt
+step1 includer file str = join (convert1 file includer <$> parse parser1 (file ++ "--step1") (str ++ "\n"))
 
 -- PARSING
 
@@ -164,12 +164,12 @@ replaceTokenBy table x = case M.lookup x table of
 
 
   
-parser1'5::Stream s m Char=>ParsecT s u m [String]
-parser1'5=many token
+parser1'5 :: Stream s m Char => ParsecT s u m [String]
+parser1'5 = many token
 
 
-token::Stream s m Char=>ParsecT s u m String
-token = tIdentifier<|>tOperator<|>tChar<|>tString<|>tSpecial<|>tSpace<|>tNumeral<|>tComment<|>tComment2
+token :: Stream s m Char => ParsecT s u m String
+token = tIdentifier <|> tOperator <|> tChar <|> tString <|> tSpecial <|> tSpace <|> tNumeral <|> tComment <|> tComment2
  where
   tIdentifier = identifier
   tNumeral    = try(many1 digit)
@@ -184,4 +184,3 @@ token = tIdentifier<|>tOperator<|>tChar<|>tString<|>tSpecial<|>tSpace<|>tNumeral
 esc :: Char -> String
 esc '*' = "_star_"
 esc x   = [x]
-

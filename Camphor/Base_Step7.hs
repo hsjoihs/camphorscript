@@ -17,8 +17,8 @@ import Data.List(genericTake)
 import Data.Functor.Identity
 
 
-step7 :: Stream s Identity Char => s -> Either ParseError String
-step7 str=convert7 <$> (parse parser7 "step7" str)  
+step7 :: Stream s Identity Char => FilePath -> s -> Either ParseError Txt
+step7 file str=convert7 <$> (parse parser7 (file++"--step7") str)  
 
 
 
@@ -39,21 +39,21 @@ parser7 = many sentences
   output = do{string "output";spaces;char ';'; return (OUT,"")}
   nul    = do{sp<-many1 space;return (NUL,sp)}
   comm   = do{string "/*";comment<-many(noneOf "*");string "*/";return(NUL,"/*"++(comment>>=escape)++"*/")}
-  escape '+' ="_plus_" 
-  escape '-' ="_minus_" 
-  escape ',' ="_comma_" 
-  escape '.' ="_dot_" 
-  escape '[' ="{(" 
-  escape ']' =")}" 
-  escape '>' ="_gt_" 
-  escape '<' ="_lt_" 
-  escape x = [x]
+  escape '+' = "_plus_" 
+  escape '-' = "_minus_" 
+  escape ',' = "_comma_" 
+  escape '.' = "_dot_" 
+  escape '[' = "{(" 
+  escape ']' = ")}" 
+  escape '>' = "_gt_" 
+  escape '<' = "_lt_" 
+  escape  x  = [x]
 
-convert7::[(Com7,String)]->String
-convert7 x=convert7'(0,x)
+convert7 :: [(Com7,String)]->String
+convert7 x = convert7'(0,x)
 
   
-convert7'::(Integer,[(Com7,String)])->String
+convert7' :: (Integer,[(Com7,String)])->String
 convert7' (_,[]             )  = ""
 convert7' (n,((INC ,num):xs))  = genericTake(read num::Integer)(repeat '+') ++ convert7'(n,xs)
 convert7' (n,((DEC ,num):xs))  = genericTake(read num::Integer)(repeat '-') ++ convert7'(n,xs)
@@ -65,5 +65,5 @@ convert7' (n,((NUL ,sp ):xs))  = sp                                         ++ c
 convert7' (n,((MOV ,num):xs))  
  |                  n<=num'    = genericTake(num'-n)(repeat '>')            ++ convert7'(num',xs)
  |                  otherwise  = genericTake(n-num')(repeat '<')            ++ convert7'(num',xs)
- where num' = read num ::Integer
+ where num' = read num :: Integer
 
