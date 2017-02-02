@@ -5,7 +5,11 @@ Bool(..),(&&),(||),not,otherwise
 ,Either(..),either
 ,Ordering(..)
 ,Char,String
-,fst,snd,curry,uncurry
+,fst,snd,trd
+,pt1,pt2,pt3
+,md1,md2,md3
+,Fst,Snd,Trd
+,curry,uncurry
 ,Eq,(==),(/=)
 ,Ord,compare,(<),(>=),(>),(<=),max,min
 ,Int,Integer
@@ -36,6 +40,8 @@ Bool(..),(&&),(||),not,otherwise
 ,catMaybes,fromMaybe,isJust,isNothing,listToMaybe,mapMaybe,maybeToList
 ,isSpace
 )where
+import Prelude hiding(fst,snd)
+import Camphor.Tuple
 import Control.Monad(join,ap,guard)
 import Control.Applicative((<*>),(<$>),pure)
 import Data.List(genericLength,genericReplicate)

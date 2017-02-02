@@ -60,6 +60,7 @@ isInfixL (InfixR _ _) = False
 isInfixR :: Fixity -> Bool
 isInfixR = not . isInfixL
 
+
 class PrettyPrint a where
  show' :: a -> String
 

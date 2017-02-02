@@ -5,15 +5,12 @@ module Camphor.Base.Base_Step2.New
 (newC,newD,newL,newR,newF1,newF2,getCall5Result
 ) where 
 
-import qualified Camphor.SepList as S
 import Camphor.Base.Base_Step2.Type
 import Camphor.SafePrelude
-import Data.Ord(comparing)
-import Camphor.Base.Base_Step2.Auxilary
 import Camphor.Base.Base_Step2.UserState
+import Camphor.Base.Base_Step2.Call5Result(getCall5Result)
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
-import Camphor.NonEmpty
 import Text.Parsec 
 
 newC :: SourcePos -> Ident2 -> UserState -> Either ParseError UserState
@@ -59,27 +56,4 @@ newF2 pos op typelist1 typelist2 sent stat =
   (newErrorMessage(Message$"fixity of operator "++showStr (unOp op)++" is not defined")pos,
   newErrorMessage(Message$"type-overlapping definition of operator "++showStr (unOp op))pos,
   newErrorMessage(Message$"overlapping parameters of operator "++showStr (unOp op))pos)
-   
-getCall5Result :: SourcePos -> NonEmptyValue -> UserState -> Either ParseError (Oper,ValueList,ValueList)
-getCall5Result pos nEvaluelist stat = do
- fixes <- getOpsFixities' pos stat nEvaluelist
- let minOps = minimumsBy (comparing getFixValue) fixes
- case minOps of 
-  k               :| [] -> newK5_2 nEvaluelist (getOpName k) pos
-  k@(InfixL _ op) :| ks -> case contradiction(k:ks) of
-   Nothing -> newK5_2 nEvaluelist op pos
-   Just k2 -> Left $newErrorMessage(Message$"cannot mix "++show' k++" and "++show' k2++" in the same infix expression")pos -- message borrowed from GHC
-  k@(InfixR _ op) :| ks -> case contradiction(k:ks) of
-   Nothing -> newK5_3 nEvaluelist op pos
-   Just k2 -> Left $newErrorMessage(Message$"cannot mix "++show' k++" and "++show' k2++" in the same infix expression")pos -- message borrowed from GHC
- 
-newK5_2 :: NonEmptyValue -> Oper -> SourcePos -> Either ParseError (Oper,ValueList,ValueList)
-newK5_2 nEvaluelist oper pos = case breakBy' oper nEvaluelist of
- Just (vlist1,vlist2) -> return(oper,vlist1,vlist2)
- Nothing              -> Left $ newErrorMessage(Message$"FIXME:: code 0010")pos -- should be dead
- 
-newK5_3 :: NonEmptyValue -> Oper -> SourcePos -> Either ParseError (Oper,ValueList,ValueList)
-newK5_3 nEvaluelist oper pos = case breakBy' oper (reverse'' nEvaluelist) of
- Just (vlist2',vlist1') -> return(oper,vlist1,vlist2) where (vlist1,vlist2) = (S.reverse vlist1',S.reverse vlist2')
- Nothing                -> Left $ newErrorMessage(Message$"FIXME:: code 0010")pos -- should be dead
-  
+

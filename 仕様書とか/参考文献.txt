@@ -25,3 +25,5 @@ http://www7b.biglobe.ne.jp/~robe/cpphtml/html01/cpp01078.html
 
 http://esolangs.org/wiki/Brainfuck_constants
 Brainfuck constants - Esolang
+
+http://hackage.haskell.org/package/tuple-0.2.0.1/docs/

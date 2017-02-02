@@ -6,9 +6,8 @@ module Camphor.Base.Base_Step2.Auxilary
 ,canBeLeftOf
 ,getOpFixity,getOpsFixities,getOpsFixities'
 ,makeReplacerTable,makeReplacerTable2,ReplTable
-,isConsistent,contradiction
+,isConsistent
 ,NonEmptyValue
-,breakBy'
 ,reverse''
 ,isValidCall3,getCall4Left,getInstanceOfCall1,getInstanceOfCall2
 ,getLastPos,toSents,err,toState,fromState
@@ -82,24 +81,6 @@ reverse'' :: (a,NonEmpty(b,a)) -> (a,NonEmpty(b,a))
 reverse'' (a,(b,a2):|xs) = (q,ws `snoc2`(b,a))
  where S.SepList(q,ws) = S.reverse (S.SepList(a2,xs))
 
-
--- if Oper is not found, it returns Nothing. You must be sure that Oper `elem` NonEmptyValue.
-breakBy' :: (Eq o) => o -> (v,NonEmpty(o,v)) -> Maybe (S.SepList o v,S.SepList o v)
-breakBy' o (v,list) = do
- (a,b,c) <- breakBy2 o list
- return (S.SepList(v,a),S.SepList(b,c))
-
-breakBy2 :: (Eq o) => o -> NonEmpty(o,v) -> Maybe ([(o,v)],v,[(o,v)]) 
-breakBy2 o ((o2,v2):|[])  
- | o == o2    = Just ([],v2,[]) 
- | otherwise  = Nothing 
-breakBy2 o ((o2,v2):|(ov3:ovs)) 
- | o == o2    = Just ([]       ,v2,ov3:ovs)
- | otherwise  = do
-  (a,b,c) <- breakBy2 o (ov3:|ovs)
-  return ((o2,v2):a,b,c) 
-  
-
 getOpContents2 :: SourcePos -> UserState -> Oper -> Either ParseError OpInfo
 getOpContents2 pos s o = case getOpContents s o of
  Nothing   -> Left $ newErrorMessage(Message$"operator "++showStr (unOp o)++" is not defined")pos
@@ -156,11 +137,6 @@ makeReplacerTable2 (t1,t2)(v1,v2) = M.fromList$zip(toIdentList t1++toIdentList t
 isConsistent :: [Fixity] -> Bool
 isConsistent xs = all isInfixL xs || all isInfixR xs
 
-contradiction :: [Fixity] -> Maybe Fixity
-contradiction [ ] = Nothing
-contradiction [_] = Nothing
-contradiction (InfixL _ _:xs) = listToMaybe $ filter isInfixR xs 
-contradiction (InfixR _ _:xs) = listToMaybe $ filter isInfixL xs 
 
 toSents :: Extra -> [SimpleSent] -> Sents
 toSents  = map . Single

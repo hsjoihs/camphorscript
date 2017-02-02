@@ -4,10 +4,12 @@ module Camphor.Base.Base_Step3_I
 (step3_I
 )where
 import Camphor.SafePrelude
+import Camphor.TupleTrans
 import Camphor.Global.Parsers
 import Camphor.Global.Synonyms
-import Text.Parsec hiding(token)
+import Text.Parsec hiding(token,State)
 import Control.Applicative hiding ((<|>),many)
+import Control.Monad.State
 {- 
 	For now, it will delete lines and automatically adds indentation. 
 	As character literals are already processed in Base_Step2,
@@ -32,7 +34,7 @@ line :: Stream s m Char => ParsecT s Stat m Txt
 line = do
  res <- other'
  stt@(n,r) <- getState
- let (ans,newS) = process res stt
+ let (ans,newS) = runState(process res) stt
  putState newS
  let ans' = dropWhile isSpace ans
  let tabnum = case ans' of  '}':_ -> n-1; _     -> n
@@ -47,17 +49,26 @@ blank (East x:xs)
 blank (West _:xs) = blank xs 
  
 -- I wanna use State 
-process :: Data -> Stat -> (Txt,Stat)
-process [] stt = ("",stt)
-process (East x:xs) stt = (x++rest,(newN,r)) 
- where 
-  (rest,(n,r)) = process xs stt
-  newN = n + genericLength(filter(=='{')x) - genericLength(filter(=='}')x)
+process :: Data -> State Stat Txt
+process [] = return ""
+process (East x:xs) = do
+ rest <- process xs
+ modifyFst(genericLength(filter(=='{')x) - genericLength(filter(=='}')x)+)
+ return $ x ++ rest
   
-process (West(Comm c):xs) stt = case words c of 
- ["#","LINE","start",path,"#"] -> (rest,(n,r2))where (rest,(n,r)) = process xs stt; r2 = path:r 
- ["#","LINE","end"  ,_   ,"#"] -> (rest,(n,r2))where (rest,(n,r)) = process xs stt; r2 = drop 1 r 
- _                             -> ("/*"++c++"*/"++rest,(n,r)) where (rest,(n,r)) = process xs stt
+process (West(Comm c):xs) = case words c of 
+ ["#","LINE","start",path,"#"] -> do
+  rest <- process xs
+  modifySnd(path:)
+  return rest 
+
+ ["#","LINE","end"  ,_   ,"#"] -> do
+  rest <- process xs
+  modifySnd(drop 1)
+  return rest
+ _  -> do
+  rest <- process xs
+  return ("/*" ++ c ++ "*/" ++ rest) 
 
  
 other' :: Stream s m Char => ParsecT s u m Data
