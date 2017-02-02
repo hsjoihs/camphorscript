@@ -1,0 +1,6 @@
+ mov 0; inc 5;  mov 0; output; 
+ mov 1; inc 5;  mov 1; output; 
+ mov 2; inc 5;  mov 2; output;  
+	mov 1; output; 
+
+ mov 2; inc 5; 

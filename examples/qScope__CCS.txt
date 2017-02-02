@@ -1,0 +1,7 @@
+char a; a+=5; write(a);
+char d; d+=5; write(d);
+{
+	char a; a+=5; write(a); delete a;
+	write(d);
+}
+char b; b+=5;

@@ -81,7 +81,7 @@ minUnused xs = head$filter(`notElem` xs) [0..]
 remove :: VarNum->[VarNum]->[VarNum]
 remove x xs = filter (/=x) xs
 
-lookup'::Ord k=>k->[M.Map k a]->Maybe a
+lookup'::Ord k=>k->[M.Map k a]->Maybe a -- lookup towards the outer scope until you find a variable
 lookup' _ []     = Nothing
 lookup' i (t:ts) = case(M.lookup i t)of Just a->Just a; Nothing-> lookup' i ts
 
@@ -145,7 +145,5 @@ convert3' f((n ,st    ,ls),(Bot(BLO,_  ,Ns v):xs)) =  do
 message :: [String] -> String
 message qs = case qs of 
  [] -> "" 
- [q] -> " "++q++"is"
- rs -> "s "++show rs++"are" 
- 
- 
+ [q] -> " "++q++" is"
+ rs -> "s "++show rs++" are" 

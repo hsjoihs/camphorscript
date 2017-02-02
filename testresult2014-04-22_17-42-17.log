@@ -1,8 +1,0 @@
-success: "ccsc -C48 examples\xIsNumber__CCS.txt -o bat\C48test.tmp" 
-success: "ccsc -C48 examples\xEscSeq__CCS.txt -o bat\C48test2.tmp" 
-FAILURE: "ccsc -C48 examples\xAtoI__CCS.txt -o bat\C48test3.tmp" 
-success: "ccsc -C88 examples\xIsNumber__BF.txt -o bat\C88test.tmp" 
-success: "ccsc -C88 examples\xIsNumber__BF_i.txt -o bat\C88test2.tmp" 
-success: "ccsc -C88 examples\xAtoI__BF_i.txt -o bat\C88test3.tmp" 
-success: "ccsc -C88 examples\xEcho__BF_i.txt -o bat\C88test4.tmp" 
-success: "ccsc -C88 examples\xEcho__BF.txt -o bat\C88test5.tmp" 

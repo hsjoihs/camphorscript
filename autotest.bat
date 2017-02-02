@@ -15,8 +15,9 @@ if exist %FAIL% del %FAIL%
 
 rem  :compile compiler option source                  tmp        judger
 call :compile ccsc     -C48   xIsNumber__CCS.txt      C48test    xIsNumber__BF_c.txt
-call :compile ccsc     -C48   xEscSeq__CCS.txt        C48test2   xEscSeq__BF_c.txt
-call :compile ccsc     -C48   xAtoI__CCS.txt          C48test3   xAtoI__BF_c.txt
+call :compile ccsc     -C48   qEscSeq__CCS.txt        C48test2   qEscSeq__BF_c.txt
+call :compile ccsc     -C48   qScope__CCS.txt         C48test3   qScope__BF_c.txt
+call :compile ccsc     -C48   xAtoI__CCS.txt          C48test4   xAtoI__BF_c.txt
 
 call :compile ccsc     -C88   xIsNumber__BF.txt       C88test    xIsNumber__BF_c.txt
 call :compile ccsc     -C88   xIsNumber__BF_i.txt     C88test2   xIsNumber__BF_c.txt
@@ -29,9 +30,10 @@ call :compile ccsc     -C78   xIsNumber__ND.txt       C78test2   xIsNumber__BF_c
 call :compile ccsc     -C78   xAtoI__ND_rev.txt       C78test3   xAtoI__BF_c.txt
 call :compile ccsc     -C78   xAtoI__ND.txt           C78test4   xAtoI__BF_c.txt
 call :compile ccsc     -C78   xEcho__ND.txt           C78test5   xEcho__BF_c.txt
-call :compile ccsc     -C78   xEscSeq__ND.txt         C78test6   xEscSeq__BF_c.txt
-call :compile ccsc     -C78   xHello__ND_rev.txt      C78test7   xHello__BF_c.txt
-call :compile ccsc     -C78   xtoLower__ND_rev.txt    C78test8   xtoLower__BF_c.txt
+call :compile ccsc     -C78   qEscSeq__ND.txt         C78test6   qEscSeq__BF_c.txt
+call :compile ccsc     -C78   qScope__ND.txt          C78test7   qScope__BF_c.txt
+call :compile ccsc     -C78   xHello__ND_rev.txt      C78test8   xHello__BF_c.txt
+call :compile ccsc     -C78   xtoLower__ND_rev.txt    C78test9   xtoLower__BF_c.txt
 
 call :compile ccsc     -E     yPreProcess__CS.txt     C11test    yPreProcessed.txt
 call :compile ccsc     -E     yInclude__CS.txt        C11test2   yIncluded.txt
@@ -69,7 +71,8 @@ set tmp=bat\%4.tmp
 set judger=examples\%5
 set test=%compiler% %option% %source%
 
-echo testing %test%:
+rem print without linefeed
+set /p out=testing %test%: < nul
 %test% -o %tmp%
 fc /n %tmp% %judger% > nul
 call :output %errorlevel% "%test% -o %tmp%"
@@ -78,9 +81,11 @@ exit /b
 
 :output
 if     %1 == 0 (
+echo success
 echo success: %2 >> %LOG%
 )
 if not %1 == 0 (
+echo FAILURE
 echo FAILURE: %2 >> %LOG%
 type nul > %FAIL%
 ) 

@@ -49,17 +49,21 @@ call :compileErr ccsc     %2     %~n1.txt
 exit /b
 
 :compileErr
-echo testing %3:
+setlocal
+set /p out=testing %3: < nul
+endlocal
 %1 %2 examples\error\%3  -o bat\k.tmp > bat\%~n3.tmp
 call :output2 "%1 %2 examples\error\%3  -o bat\k.tmp"
 exit /b
 
 :output2
 if exist bat\k.tmp (
+echo SUCCEEDED
 echo SUCCEEDED %1 >> %LOG%
 del bat\k.tmp
 type nul > %FAIL%
 ) else (
+echo failed
 echo failed    %1 >> %LOG%
 )
 exit /b
