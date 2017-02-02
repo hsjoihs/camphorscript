@@ -42,6 +42,8 @@ type ValueList = SepList Oper Value
 data SimpleSent =
  Char Ident | Del Ident | Scolon | Infl Fix Oper | Infr Fix Oper | Sp String | Comm String | 
  Func1 Ident TypeList Sent | Func2 Oper TypeList TypeList Sent | Call1 Ident ValueList |
- Call2 Oper ValueList ValueList | Call3 Oper ValueList ValueList | Call4 [(Value,Oper)] ValueList | Call5 ValueList deriving(Show,Eq)
+ Call2 Oper ValueList ValueList | Call3 Oper ValueList ValueList | Call4 [(Value,Oper)] ValueList | Call5 ValueList |
+ Pleq Value Value | Mneq Value Value | Rd Value | Wrt Value
+ deriving(Show,Eq)
 data Type = CNSTNT_CHAR | CONST_CHAR | CHAR_AND deriving(Show,Eq)
 data Value = Var Ident | Constant Integer deriving(Show,Eq)

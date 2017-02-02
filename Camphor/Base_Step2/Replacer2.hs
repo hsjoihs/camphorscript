@@ -38,6 +38,48 @@ replacer2 _ _ pos (Del ident) table = case M.lookup ident table of
  Nothing -> return(Del ident:|[])
  Just _  -> Left$newErrorMessage(Message$"cannot delete an argument"++show ident)pos 
 
+replacer2 _ _ pos (Pleq (Var v1) (Constant v2)) table = case M.lookup v1 table of
+ Nothing      -> return(Pleq (Var v1)(Constant v2):|[])
+ Just (Var x) -> return(Pleq (Var x) (Constant v2):|[])
+ Just _       -> Left $newErrorMessage(Message$show v1++" is a constant and thus cannot be the left side op operator \"+=\"")pos 
+replacer2 stat ns pos (Pleq (Var v1) (Var v2)) table = case M.lookup v1 table of
+ Nothing -> res v1
+ Just (Var x) -> res x
+ Just _       -> Left $newErrorMessage(Message$show v1++" is a constant and thus cannot be the left side op operator \"+=\"")pos 
+ where
+ res var = case M.lookup v2 table of
+  Nothing      -> Left $newErrorMessage(Message$"FIXME:: code 0001")pos 
+  Just (Var y) -> replacer2 stat ns pos (Call2 (wrap "+=") (SepList((Var var),[])) (SepList((Var y),[]))) table 
+  Just c       -> return(Pleq (Var var) c:|[])
+replacer2 _ _ pos (Pleq (Constant c) _) _ = Left $newErrorMessage(Message$show c++" is a constant and thus cannot be the left side op operator \"+=\"")pos 
+  
+replacer2 _ _ pos (Mneq (Var v1) (Constant v2)) table = case M.lookup v1 table of
+ Nothing      -> return(Mneq (Var v1)(Constant v2):|[])
+ Just (Var x) -> return(Mneq (Var x) (Constant v2):|[])
+ Just _       -> Left $newErrorMessage(Message$show v1++" is a constant and thus cannot be the left side op operator \"-=\"")pos 
+replacer2 stat ns pos (Mneq (Var v1) (Var v2)) table = case M.lookup v1 table of
+ Nothing -> res v1
+ Just (Var x) -> res x
+ Just _       -> Left $newErrorMessage(Message$show v1++" is a constant and thus cannot be the left side op operator \"-=\"")pos 
+ where
+ res var = case M.lookup v2 table of
+  Nothing      -> Left $newErrorMessage(Message$"FIXME:: code 0001")pos 
+  Just (Var y) -> replacer2 stat ns pos (Call2 (wrap "-=") (SepList((Var var),[])) (SepList((Var y),[]))) table 
+  Just c       -> return(Mneq (Var var) c:|[])
+replacer2 _ _ pos (Mneq (Constant c) _) _ = Left $newErrorMessage(Message$show c++" is a constant and thus cannot be the left side op operator \"-=\"")pos 
+ 
+replacer2 stat ns pos (Rd (Var ident)) table = case M.lookup ident table of
+ Nothing     -> Left $newErrorMessage(Message$"identifier "++show ident++" is not defined")pos 
+ Just(Var x) -> return(Rd (Var x):|[]) 
+ Just c      -> replacer2 stat ns pos (Call1 "read" (SepList (c,[]))) table 
+replacer2 stat ns pos (Rd c) table = replacer2 stat ns pos (Call1 "read" (SepList (c,[]))) table
+ 
+replacer2 stat ns pos (Wrt (Var ident)) table = case M.lookup ident table of
+ Nothing     -> Left $newErrorMessage(Message$"identifier "++show ident++" is not defined")pos 
+ Just(Var x) -> return(Wrt (Var x):|[])  
+ Just c      -> replacer2 stat ns pos (Call1 "write" (SepList (c,[]))) table 
+replacer2 stat ns pos (Wrt c) table = replacer2 stat ns pos (Call1 "write" (SepList (c,[]))) table 
+
 replacer2 _ _ pos (Func1 ident _ _) _ = 
  Left$newErrorMessage(Message$"cannot define function "++show ident++"inside function/operator definition ")pos
  

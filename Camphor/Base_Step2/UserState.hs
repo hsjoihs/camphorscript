@@ -12,6 +12,7 @@ import Camphor.Base_Step2.Type
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Camphor.Global.Synonyms
 import qualified Data.Map as M
+import Text.Parsec.Pos(newPos)
 
 isInfixL :: Fixity -> Bool
 isInfixL (InfixL _ _) = True
@@ -54,8 +55,21 @@ getOpName :: Fixity -> Oper
 getOpName (InfixL _ op) = op
 getOpName (InfixR _ op) = op
 
+-- FIXME:: a hack using Sp to represent a non-space string
 emptyState :: UserState
-emptyState = UserState M.empty M.empty
+emptyState = UserState deffun defop
+ where
+  deffun :: M.Map Ident VFInfo
+  deffun = M.fromList[
+   ("read" ,Right[(single CHAR_AND "bbbb",Single(newPos "__DEFAULT__" 0 0,Rd (Var "bbbb")))]),
+   ("write",Right[(single CHAR_AND "bbbb",Single(newPos "__DEFAULT__" 0 0,Wrt(Var "bbbb")))])
+   ]
+  defop :: M.Map Oper OpInfo
+  defop = M.fromList[defau "+="$Pleq (Var "aaaa") (Var "NNNN") ,defau "-="$Mneq(Var "aaaa")(Var "NNNN")]
+  defau :: String -> SimpleSent -> (Oper,OpInfo)
+  defau a s = (wrap a,(InfixR 5 (wrap a),[(single CHAR_AND "aaaa",single CNSTNT_CHAR "NNNN", Single(newPos "__DEFAULT__" 0 0,s))]))
+  single :: Type -> Ident -> TypeList
+  single a b = SepList ((a,b),[])
 
 containsIdent :: UserState -> Ident -> Bool
 containsIdent (UserState vflist _) ident = ident `M.member` vflist 

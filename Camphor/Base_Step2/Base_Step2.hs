@@ -19,6 +19,7 @@ import Camphor.Global.Utilities
 import Camphor.Global.Operators
 import Camphor.NonEmpty
 import Text.Parsec  
+import Text.Parsec.Pos(newPos)
  
 step2 ::  FilePath -> Txt -> Either ParseError Txt
 step2 file txt = do
@@ -39,9 +40,18 @@ convert xs = convert2 defaultStat xs
 
 convert2 :: UserState -> Sents -> Either ParseError Txt
 convert2 _    []                         = Right "" 
-convert2 stat (Single(_  ,Comm comm):xs) = ("/*"++comm++"*/") <++$> convert2 stat xs
-convert2 stat (Single(_  ,Sp   sp  ):xs) = sp                 <++$> convert2 stat xs
-convert2 stat (Single(_  ,Scolon   ):xs) = ";"                <++$> convert2 stat xs
+convert2 stat (Single(_  ,Comm comm):xs) = ("/*" ++ comm ++ "*/") <++$> convert2 stat xs
+convert2 stat (Single(_  ,Sp   sp  ):xs) = sp                     <++$> convert2 stat xs
+convert2 stat (Single(_  ,Scolon   ):xs) = ";"                    <++$> convert2 stat xs
+convert2 stat (Single(_  ,Pleq (Var ident) (Constant integer)):xs) = (ident ++ "+=" ++ show integer ++ ";") <++$> convert2 stat xs
+convert2 stat (Single(_  ,Mneq (Var ident) (Constant integer)):xs) = (ident ++ "-=" ++ show integer ++ ";") <++$> convert2 stat xs
+convert2 stat (Single(_  ,Rd   (Var idnt)):xs) = ("read("  ++ idnt ++ ")" ++ ";") <++$> convert2 stat xs
+convert2 stat (Single(_  ,Wrt  (Var idnt)):xs) = ("write(" ++ idnt ++ ")" ++ ";") <++$> convert2 stat xs
+convert2 _ (Single(_  ,Pleq _ _):_) = Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
+convert2 _ (Single(_  ,Mneq _ _):_) = Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
+convert2 _ (Single(_  ,Rd  _ ):_   )= Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
+convert2 _ (Single(_  ,Wrt  _ ):_ ) = Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
+
 convert2 stat (Single(pos,Char iden):xs) = do
  newStat <- newC pos iden stat 
  left <- convert2 newStat  xs
@@ -94,6 +104,10 @@ convert2 _    (Single(pos,Call1 _ _):Single(_,Call2 op _ _  ):_) = Left$newError
 convert2 _    (Single(pos,Call1 _ _):Single(_,Call3 op _ _  ):_) = Left$newErrorMessage(UnExpect$"call of operator "++show op)pos
 convert2 _    (Single(pos,Call1 _ _):Single(_,Call4 _ _     ):_) = Left$newErrorMessage(UnExpect$"call of operator ")pos
 convert2 _    (Single(pos,Call1 _ _):Single(_,Call5 _       ):_) = Left$newErrorMessage(UnExpect$"call of operator ")pos
+convert2 _    (Single(pos,Call1 _ _):Single(_,Pleq  _ _     ):_) = Left$newErrorMessage(UnExpect$"call of operator ")pos
+convert2 _    (Single(pos,Call1 _ _):Single(_,Mneq  _ _     ):_) = Left$newErrorMessage(UnExpect$"call of operator ")pos
+convert2 _    (Single(pos,Call1 _ _):Single(_,Rd  _         ):_) = Left$newErrorMessage(UnExpect$"call of function ")pos
+convert2 _    (Single(pos,Call1 _ _):Single(_,Wrt _         ):_) = Left$newErrorMessage(UnExpect$"call of function ")pos
 
 convert2 stat (c@(Single(_,Call1 _ _)):Single(_,Comm _):xs) = convert2 stat (c:xs) 
 convert2 stat (c@(Single(_,Call1 _ _)):Single(_,Sp   _):xs) = convert2 stat (c:xs) 
