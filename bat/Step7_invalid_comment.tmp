@@ -1,0 +1,3 @@
+parse error at "examples\error\Step7_invalid_comment.txt--step7" (line 1, column 3):
+unexpected end of input
+expecting "*/"

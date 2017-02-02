@@ -1,0 +1,3 @@
+parse error at "examples\error\Step7_invalid_inc.txt--step7" (line 1, column 5):
+unexpected "$"
+expecting space, unsigned integer, white space or ";"

@@ -15,9 +15,14 @@ call bat\setlogname terrresult
 type nul > %LOG% 
 if exist %FAIL% del %FAIL%
 
-for /F "usebackq" %%i in (`dir /A-D /s /b examples\error\S*.txt`) do (
- call :filename %%i
+for /F "usebackq" %%i in (`dir /A-D /s /b examples\error\Step1_*.txt`) do (
+ call :filename %%i -E
 )
+
+for /F "usebackq" %%i in (`dir /A-D /s /b examples\error\Step7_*.txt`) do (
+ call :filename %%i -C78
+)
+
 echo.
 echo %LOG2%:
 type %LOG%
@@ -36,7 +41,7 @@ rem #$#$#$#$#$#$# MAIN THINGS END HERE $#$#$#$#$#$#$
 rem #$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$#$
 
 :filename
-call :compileErr ccsc     -E     %~n1.txt 
+call :compileErr ccsc     %2     %~n1.txt 
 exit /b
 
 :compileErr
