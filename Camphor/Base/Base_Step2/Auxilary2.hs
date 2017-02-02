@@ -106,8 +106,8 @@ class PrettyPrint a where
  show' :: a -> String
 
 instance PrettyPrint Fixity where
- show' (InfixL int op) = showStr(unOp op)++"[infixl "++showNum int++"]"
- show' (InfixR int op) = showStr(unOp op)++"[infixr "++showNum int++"]"
+ show' (InfixL int op) = showStr(unOp op)++" [infixl "++showNum int++"]"
+ show' (InfixR int op) = showStr(unOp op)++" [infixr "++showNum int++"]"
  
 instance PrettyPrint Value where
  show'(Var x) = unId x

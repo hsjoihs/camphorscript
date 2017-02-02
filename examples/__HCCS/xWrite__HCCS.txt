@@ -1,0 +1,8 @@
+
+
+char c; assert_zero c; {
+	/*char c;*/
+	c+=52;
+	write(c);
+	/*delete c;*/
+}

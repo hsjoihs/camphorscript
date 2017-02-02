@@ -1,0 +1,6 @@
+void foo(char&a)
+{
+	syntax bar(char&b){block}{}
+}
+
+char c; foo(c); /* must be called */

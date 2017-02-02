@@ -30,7 +30,7 @@ unwrapAllMay (Constant c:vs) = case unwrapAllMay vs of Right _ -> Left(nE c); Le
 makeNewIdent :: CollisionTable -> Ident2 -> UserState -> SourcePos -> Either ParseError Ident2  
 makeNewIdent clTable ident stat pos = do
  let identEggs = [ new | n <- [1..] :: [Integer], let new = tmpIdent ident n, not (stat `containsAnyIdent` new), Just new /= lookup2 ]
- maybeToEither (newErrorMessage(Message$"FIXME: code 0011")pos)(listToMaybe identEggs) 
+ maybeToEither (toPE pos$Step2 <!> Impossible <!> Integerranout)(listToMaybe identEggs) 
  where
   lookup2 :: Maybe Ident2
   lookup2 = fmap fst $ M.lookup ident clTable

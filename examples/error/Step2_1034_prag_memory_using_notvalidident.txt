@@ -1,0 +1,9 @@
+void write(constant char N)
+{
+	char a;
+	a+=N;
+	write(a);
+	delete a;
+}
+
+char c; /*# MEMORY using block #*/ write('4');

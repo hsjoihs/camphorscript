@@ -1,0 +1,11 @@
+void foo(char& a)
+{
+	bar(a);
+}
+
+void bar(char& a)
+{
+	foo(a);
+}
+
+char c; foo(c);

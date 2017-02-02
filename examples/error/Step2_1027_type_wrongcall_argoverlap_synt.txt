@@ -1,0 +1,5 @@
+syntax foo(char& a, char& b){block}
+{
+	write(a); block; write(b);
+}
+char d; foo(d,d){}

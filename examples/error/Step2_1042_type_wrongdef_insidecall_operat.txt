@@ -1,0 +1,7 @@
+infixl 20 (%%);
+void foo(char&a)
+{
+	void (%%)(char& b;char& c){}
+}
+
+char c; foo(c); /* must be called */

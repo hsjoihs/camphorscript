@@ -1,0 +1,14 @@
+void foo(char& a, constant char N)
+{
+	/*# MEMORY using N #*/ bar(a);
+}
+
+void bar(char& c)
+{
+	char d = 42;
+	write(d);
+	write(c);
+	delete d;
+}
+
+char q = '4'; foo(q,'2'); /* needs to be called */

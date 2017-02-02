@@ -1,0 +1,2 @@
+char foo;
+syntax foo(char& c){block}{read(c); block;}

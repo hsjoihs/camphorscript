@@ -1,0 +1,8 @@
+char foo;
+
+void bar(char&a)
+{
+	delete foo;
+}
+
+bar(foo);/* needs to be called */

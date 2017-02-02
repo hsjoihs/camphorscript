@@ -1,0 +1,6 @@
+void foo(char&a)
+{
+	void bar(char&b){}
+}
+
+char c; foo(c); /* must be called */

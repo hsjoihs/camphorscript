@@ -19,8 +19,8 @@ module Camphor.Base.Base_Step2.Auxilary
 ,getLastPos
 -- ,toSents
 ,err
-,toState
-,fromState
+,toState,fromState,changeState
+
 ) where
 import Camphor.SafePrelude
 import qualified Camphor.SepList as S
@@ -42,13 +42,14 @@ getLastPos (Block  _ (x:xs)) = getLastPos $ last' (x :| xs)
 
 getOpContents2 :: SourcePos -> UserState -> Oper -> Either ParseError OpInfo
 getOpContents2 pos s o = case getOpContents s o of
- Nothing   -> Left $toPE pos $ Step2 <!> Type <!> WrongCall <!> Notdefined <!> Operat o
- Just info -> Right$ info
+ Nothing     -> Left $toPE pos $ Step2 <!> Type <!> WrongCall <!> Fixnotdefined_2 <!> Operat_3 o
+ Just info   -> Right$ info
 
 
 getInstanceOfCall2 :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError OpInstance
 getInstanceOfCall2 pos op valuelist1 valuelist2 stat = do
  (_,opinfo) <- getOpContents2 pos stat op
+ when(null opinfo) $ Left $toPE pos $ Step2 <!> Type <!> WrongCall <!> Notdefined <!> Operat op 
  let matchingOpInstance = [ a | a@(typelist1,typelist2,_) <- opinfo, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ] 
  case matchingOpInstance of 
   []        -> Left $toPE pos $ Step2 <!> Type <!> WrongCall <!> Notypematch <!> Operat op
@@ -178,7 +179,10 @@ toState (ReaderT f) = StateT $ \s -> do
  a <- f s
  return (a,s)
  
-fromState :: (Monad m) => StateT r m a -> ReaderT r m a
-fromState (StateT f) = ReaderT $ \s -> do
- (a,_) <- f s
- return a
+fromState :: (Functor m,Monad m) => StateT r m a -> ReaderT r m a
+fromState (StateT f) = ReaderT $ (fst <$>) . f
+ 
+changeState :: (Monad m) => (r -> s) -> (s -> r) -> StateT r m a -> StateT s m a
+changeState for back (StateT f) = StateT $ \s -> do
+ (a,r) <- f (back s)
+ return (a,for r)

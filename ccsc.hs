@@ -5,14 +5,14 @@ import Camphor.SafePrelude
 import Text.Parsec
 import Camphor.Global.Operators    
 import Camphor.Global.Synonyms
-import Camphor.Step.Step1
-import Camphor.Step.Step2
-import Camphor.Step.Step3_I
-import Camphor.Step.Step3_II
-import Camphor.Step.Step5
-import Camphor.Step.Step6
-import Camphor.Step.Step7
-import Camphor.Step.Step8
+import Camphor.Base.Base_Step1
+import Camphor.Base.Base_Step2.Base_Step2
+import Camphor.Base.Base_Step3_I
+import Camphor.Base.Base_Step3_II
+import Camphor.Base.Base_Step5
+import Camphor.Base.Base_Step6
+import Camphor.Base.Base_Step7
+import Camphor.Base.Base_Step8
 import Camphor.IO
 import Camphor.Lib
 import Camphor.CmdOptions
@@ -49,8 +49,8 @@ dispatch4 [] = mapM_ putStrLn info
 dispatch4 xs = case catMaybes $ map toDoubleOption xs of
  (o:os) -> do -- double option overwrites everything
   case last' (o:|os) of
-   Version -> putStrLn $ "CHAtsFtD CamphorScript Compiler, version "++version_num
- []     -> case optionParse xs (S Nothing Nothing (4,8) Nothing [] [] False False M.empty) of
+   Version -> putStrLn $ "CHAtsFtD CamphorScript Compiler, version " ++ version_num
+ []     -> case optionParse xs (S Nothing Nothing (1,8) Nothing [] [] False False M.empty) of
   Left e -> abort e
   Right (infile,outf,(a,b),mem,fds,lds,ni,nl,t) -> do
    let file_dir = fst $ splitFileName infile

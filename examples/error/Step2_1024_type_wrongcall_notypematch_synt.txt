@@ -1,0 +1,6 @@
+syntax foo(~char& a){block}
+{
+	block;
+}
+
+char d; foo(d){}

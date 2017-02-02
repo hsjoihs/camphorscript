@@ -10,13 +10,13 @@ module Camphor.IO
 ,splitFileName
 )where
 import Camphor.SafePrelude
-import Prelude(error,show)
+import Prelude(error)
+import Camphor.Show
 import Camphor.Global.Synonyms
 import Text.Parsec
 import System.FilePath
 import System.Directory(getDirectoryContents,doesFileExist)
 import System.Environment(getArgs)
-import Data.Char(toLower)
 import System.IO(hPutStrLn,stderr)
 
 outputParsed :: FilePath -> Either ParseError Txt -> IO()

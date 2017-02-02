@@ -20,8 +20,6 @@ import Camphor.TailSepList
 import Camphor.NonEmpty
 import qualified Data.Map as M
 
-
-
 newtype Ident2 = Ident2{unId :: String} deriving(Show,Ord,Eq)
 
 -- Auxilary

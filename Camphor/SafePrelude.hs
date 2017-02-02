@@ -38,7 +38,7 @@ Bool(..),(&&),(||),not,otherwise
 ,showStr,showNum
 ,genericLength,genericReplicate,genericTake,genericDrop
 ,catMaybes,fromMaybe,isJust,isNothing,listToMaybe,mapMaybe,maybeToList
-,isSpace,isAlpha,isAlphaNum
+,isSpace,isAlpha,isAlphaNum,toLower,toUpper
 ,Identity(..),when
 ,mappend,mempty,mconcat,Monoid
 ,comparing
@@ -50,7 +50,7 @@ import Control.Monad(join,guard,when,ap,liftM,(>=>),(<=<),unless)
 import Control.Applicative((<*>),(<$>),pure,Applicative)
 import Data.List(genericLength,genericReplicate,genericTake,genericDrop)
 import Data.Maybe(catMaybes,fromMaybe,isJust,isNothing,listToMaybe,mapMaybe,maybeToList)
-import Data.Char(isSpace,isAlpha,isAlphaNum)
+import Data.Char(isSpace,isAlpha,isAlphaNum,toLower,toUpper)
 import Data.Functor.Identity(Identity(..))
 import Data.Monoid(mappend,mempty,mconcat,Monoid)
 import Data.Ord(comparing)

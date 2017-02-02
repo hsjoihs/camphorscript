@@ -1,0 +1,2 @@
+syntax foo(char& a){block}{}
+syntax foo(char& a){block}{}

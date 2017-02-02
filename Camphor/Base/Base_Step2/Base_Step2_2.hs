@@ -29,7 +29,7 @@ doWith p is nm = concat [ [Single p $ Char i,Single p $ Call2 (wrap "+=") (retur
 syntax_ :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity (SourcePos,Ident2,Sent,Between TailTypeList TypeList)
 syntax_ = do{
  p <- getPosition;
- _syntax;          __;  -- syntax
+ try(_syntax);     __;  -- syntax
  name <- _ident;   __;  -- if
  _paren;           __;  -- (
  list <- eitherTL; __;  -- ~a
@@ -43,7 +43,7 @@ syntax_ = do{
  }  
   
 syntax :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity [Sent] 
-syntax = try $ do
+syntax = do
  (p,name,blk,list) <- syntax_
  case list of 
   West tl  -> return [ Single p $ Syntax1 name tl  blk ]

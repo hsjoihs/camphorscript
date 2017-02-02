@@ -1,0 +1,2 @@
+void foo(char& a) = 0;
+char d; foo(d);
