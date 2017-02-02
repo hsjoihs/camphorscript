@@ -25,21 +25,23 @@ step2 file txt = do
  zs <- convert ys
  return zs
  
-
- 
 defaultStat :: UserState 
 defaultStat = emptyState
 
 convert :: Sents -> Either ParseError Txt
 convert xs = convert2 defaultStat xs 
 
-convert2 :: UserState -> Sents -> Either ParseError Txt
+{-  ------------------------------------------------------------------------------- 
+   **************************
+   * definition of convert2 *
+   **************************
+----------------------------------------------------------------------------------}
 
+convert2 :: UserState -> Sents -> Either ParseError Txt
 convert2 _    []                       = Right "" 
 convert2 stat (Single(_,Comm comm):xs) = (("/*"++comm++"*/")++) <$> convert2 stat xs
 convert2 stat (Single(_,Sp   sp  ):xs) = (sp++)                 <$> convert2 stat xs
 convert2 stat (Single(_,Scolon   ):xs) = (";"++)                <$> convert2 stat xs
-
 convert2 stat (Single(pos,Char iden):xs) = do
  newStat <- newC pos iden stat 
  left <- convert2 newStat  xs
@@ -49,7 +51,7 @@ convert2 stat (Single(pos,Del  iden):xs) = do
  newStat <- newD pos iden stat -- FIXME
  left <- convert2 newStat  xs
  return ("delete " ++iden++";"++left)
-
+ 
 convert2 stat (Single(pos,Infl fixity op):xs) = do
  newStat <- newL pos fixity op stat 
  left <- convert2 newStat xs 
@@ -60,25 +62,75 @@ convert2 stat (Single(pos,Infr fixity op):xs) = do
  left <- convert2 newStat xs 
  return left
  
+
+convert2 stat (Single(pos,Func1 name typelist sent):xs) = do
+ newStat <- newF1 pos name typelist sent stat 
+ left <- convert2 newStat xs
+ return left
+ 
+
 convert2 stat (Single(pos,Func2 op typelist1 typelist2 sent):xs) = do
  newStat <- newF2 pos op typelist1 typelist2 sent stat
  left <- convert2 newStat xs
  return left
  
-convert2 stat (Single(pos,Func1 ident typelist sent):xs) = undefined
-convert2 stat (Single(pos,Call1 ident valuelist):xs) = undefined
-
---- (val [op val])op(val [op val]);
-convert2 stat (Single(pos,Call2 op valuelist1 valuelist2):xs) = do
- (result,newStat) <- newK2 pos op valuelist1 valuelist2 stat
+convert2 stat (Block ys:xs) = do
+ (newStat,result) <- newB stat ys
  left <- convert2 newStat xs
- return(result ++ left)
+ return$ result ++ left
 
+convert2 _    (Single(pos,Call1 _ _):[]) = Left$newErrorMessage(UnExpect$"end of input")pos
+
+convert2 _    (Single(pos,Call1 _ _):Single(_,Char v        ):_) = Left$newErrorMessage(UnExpect$"definition of variable "++show v)pos
+convert2 _    (Single(pos,Call1 _ _):Single(_,Del  v        ):_) = Left$newErrorMessage(UnExpect$"deletion of variable "  ++show v)pos
+convert2 _    (Single(pos,Call1 _ _):Single(_,Infl _ op     ):_) = Left$newErrorMessage(UnExpect$"fixity declaration of operator "++show op)pos
+convert2 _    (Single(pos,Call1 _ _):Single(_,Infr _ op     ):_) = Left$newErrorMessage(UnExpect$"fixity declaration of operator "++show op)pos
+convert2 _    (Single(pos,Call1 _ _):Single(_,Func1 name _ _):_) = Left$newErrorMessage(UnExpect$"definition of function "++show name)pos
+convert2 _    (Single(pos,Call1 _ _):Single(_,Func2 op _ _ _):_) = Left$newErrorMessage(UnExpect$"definition of operator "++show op)pos
+convert2 _    (Single(pos,Call1 _ _):Single(_,Call1 name _  ):_) = Left$newErrorMessage(UnExpect$"call of function "++show name)pos
+convert2 _    (Single(pos,Call1 _ _):Single(_,Call2 op _ _  ):_) = Left$newErrorMessage(UnExpect$"call of operator "++show op)pos
+convert2 _    (Single(pos,Call1 _ _):Single(_,Call3 op _ _  ):_) = Left$newErrorMessage(UnExpect$"call of operator "++show op)pos
+convert2 _    (Single(pos,Call1 _ _):Single(_,Call4 _ _     ):_) = Left$newErrorMessage(UnExpect$"call of operator ")pos
+convert2 _    (Single(pos,Call1 _ _):Single(_,Call5 _       ):_) = Left$newErrorMessage(UnExpect$"call of operator ")pos
+
+
+convert2 stat (c@(Single(_,Call1 _ _)):Single(_,Comm _):xs) = convert2 stat (c:xs) 
+convert2 stat (c@(Single(_,Call1 _ _)):Single(_,Sp   _):xs) = convert2 stat (c:xs) 
+
+convert2 stat (Single(_,Call1 name valuelist):Block ys:xs) = do -- FIXME: does not replace a function call when it's followed by a block
+ left <- convert2 stat (Block ys:xs)
+ return$ showCall name valuelist ++ left
+  where 
+   showCall nm (v,ovs) = nm ++ "(" ++ show' v ++ concat[ o2 ++ show' v2 | (o2,v2) <- ovs ] ++ ")"
+   show'(Var x) = x; show'(Constant n) = show n
+
+{-- 
+convert2 stat (Single(pos,Call1 name valuelist):Single(_,Scolon):xs) = undefined
 
 convert2 stat (Single(pos,Call3 op  valuelist1 valuelist2):xs) = undefined
 convert2 stat (Single(pos,Call4 list  valuelist):xs) = undefined
 convert2 stat (Single(pos,Call5 valuelist):xs) = undefined
-convert2 stat (Block ys:xs) = undefined
+
+--}
+
+
+ 
+
+--- (val [op val])op(val [op val]);
+convert2 stat (Single(pos,Call2 op valuelist1 valuelist2):xs) = do
+ result <- newK2 pos op valuelist1 valuelist2 stat
+ left <- convert2 stat xs
+ return(result ++ left)
+
+ 
+
+
+{-  -------------------------------------------------------------------------------
+   *******************
+   * end of convert2 *
+   *******************
+----------------------------------------------------------------------------------}
+
 
 
 newC :: SourcePos -> Ident -> UserState -> Either ParseError UserState
@@ -92,25 +144,35 @@ newD pos ident stat
  | otherwise                  = Left $newErrorMessage(Message$"identifier "++show ident++" is not defined")pos
 
 newL :: SourcePos -> Fix -> Oper -> UserState -> Either ParseError UserState
-newL pos fixity op stat = case findOpContents stat op of
+newL pos fixity op stat = case getOpContents stat op of
  Just(fix,_) -> 
   if fix == InfixL fixity op 
   then Right stat 
   else Left$newErrorMessage(Message$"conflicting fixity definitions of operator "++show op)pos
  Nothing     -> Right$addOpFixity stat (InfixL fixity op)
 
+newB :: UserState -> Sents -> Either ParseError (UserState,Txt)
+newB stat ys = undefined
 
 newR :: SourcePos -> Fix -> Oper -> UserState -> Either ParseError UserState
-newR pos fixity op stat = case findOpContents stat op of
+newR pos fixity op stat = case getOpContents stat op of
  Just(fix,_) -> 
   if fix == InfixR fixity op 
   then Right stat 
   else Left$newErrorMessage(Message$"conflicting fixity definitions of operator "++show op)pos
  Nothing     -> Right$addOpFixity stat (InfixR fixity op)
- 
+
+-- Function definition
+newF1 :: SourcePos -> Ident -> TypeList -> Sent -> UserState -> Either ParseError UserState
+newF1 pos name typelist sent stat = case getVFContents stat name of
+ Just(Left ())  -> Left $newErrorMessage(Message$"cannot define function"++show name++" because "++show name++" is already defined as a variable")pos
+ Nothing        -> Right$addIdent stat name (Right[(typelist,sent)])
+ Just(Right xs) -> Right$addIdent stat name (Right$(typelist,sent):xs)
+   
+
 -- Operator definition 
 newF2 :: SourcePos -> Oper -> TypeList -> TypeList -> Sent -> UserState -> Either ParseError UserState
-newF2 pos op typelist1 typelist2 sent stat@(UserState vflist oplist) = case findOpContents stat op of
+newF2 pos op typelist1 typelist2 sent stat@(UserState vflist oplist) = case getOpContents stat op of
  Nothing        -> Left $newErrorMessage(Message$"fixity of operator "++show op++" is not defined")pos
  Just(fix,list) -> Right$UserState vflist newOplist 
   where 
@@ -118,10 +180,10 @@ newF2 pos op typelist1 typelist2 sent stat@(UserState vflist oplist) = case find
    newlist = (typelist1,typelist2,sent):list -- FIXME : does not check the double definition
 
 -- normalized operator call
-newK2 :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError (Txt,UserState)   
+newK2 :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError Txt 
 newK2 pos op valuelist1 valuelist2 stat = do
  result <- replaceOpMacro pos op valuelist1 valuelist2 stat
- return(result,stat) -- stat is unchanged
+ return result -- stat is unchanged
 
 
 --- macro-replacing function for operator
@@ -131,10 +193,10 @@ replaceOpMacro pos op valuelist1 valuelist2 stat = do
  let matchingOpInstance = [ a | a@(typelist1,typelist2,_) <- opinfo, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ] 
  case matchingOpInstance of 
   []        -> Left $newErrorMessage(Message$"no type-matching instance of "++show op)pos 
-  [instnce] -> replacer instnce valuelist1 valuelist2 stat
+  [instnce] -> replacerOfOp instnce valuelist1 valuelist2 stat
   xs        -> Left $newErrorMessage(Message$show(length xs)++" type-matching instances of "++show op++" defined")pos 
  where
-  opinfo' = case findOpContents stat op of  -- Either ParseError [(TypeList,TypeList, Sent)]
+  opinfo' = case getOpContents stat op of  -- Either ParseError [(TypeList,TypeList, Sent)]
    Nothing       -> Left $newErrorMessage(Message$"operator "++show op++" is not defined")pos 
    Just (_,info) -> Right info
 
@@ -143,27 +205,62 @@ replaceOpMacro pos op valuelist1 valuelist2 stat = do
 -- type ValueList = (Value,[(Oper,Value)])   
 -- type Sent  = Upgrade (Extra,SimpleSent) = Single (Extra,SimpleSent) | Block [Upgrade (Extra,SimpleSent)]
 -- type Extra = SourcePos
-replacer :: (TypeList,TypeList, Sent) -> ValueList -> ValueList -> UserState -> Either ParseError Txt
-replacer (typelist1,typelist2,Single(pos2,ssent)) valuelist1 valuelist2 stat = do
- newSSent <- replacer2 pos2 ssent $makeReplacerTable2 (typelist1,typelist2) (valuelist1,valuelist2)
+type ReplTable = M.Map Ident Value
+
+replacerOfOp :: (TypeList,TypeList, Sent) -> ValueList -> ValueList -> UserState -> Either ParseError Txt
+replacerOfOp (typelist1,typelist2,sent) valuelist1 valuelist2 stat = 
+ replacer sent stat  (makeReplacerTable2 (typelist1,typelist2) (valuelist1,valuelist2))
+
+
+replacer :: Sent -> UserState -> ReplTable -> Either ParseError Txt
+replacer (Single(pos2,ssent)) stat table = do
+ newSSent <- replacer2 pos2 ssent table
  convert2 stat [Single(pos2,newSSent)]
- 
-replacer (typelist1,typelist2,Block xs) valuelist1 valuelist2 stat = do 
- result <- sequence [replacer (typelist1,typelist2,x) valuelist1 valuelist2 stat | x <- xs] -- :: Either ParseError [Txt]
+replacer (Block xs) stat table = do
+ result <- sequence [replacer ssent stat table | ssent <- xs]
  return$concat(["{"]++result++["}"])
+
+
+
+{-  -------------------------------------------------------------------------------
+   ***************************
+   * definition of replacer2 *
+   ***************************
+----------------------------------------------------------------------------------}   
+replacer2 :: SourcePos -> SimpleSent -> M.Map Ident Value ->  Either ParseError SimpleSent
 
 {- 
 data SimpleSent =
- Char Ident | Del Ident | Scolon | Infl Fix Oper | Infr Fix Oper | Sp String | Comm String | 
  Func1 Ident TypeList Sent | Func2 Oper TypeList TypeList Sent | Call1 Ident ValueList |
  Call2 Oper ValueList ValueList | Call3 Oper ValueList ValueList | Call4 [(Value,Oper)] ValueList | Call5 ValueList deriving(Show)
 -} 
-replacer2 :: SourcePos -> SimpleSent -> M.Map Ident Value ->  Either ParseError SimpleSent
+
+replacer2 _ Scolon   _ = return Scolon
+replacer2 _ (Sp x)   _ = return (Sp x)
+replacer2 _ (Comm x) _ = return (Comm x)
+replacer2 pos (Infl _ _) _ = Left$newErrorMessage(Message$"cannot decleare fixity inside function/operator definition ")pos  
+replacer2 pos (Infr _ _) _ = Left$newErrorMessage(Message$"cannot decleare fixity inside function/operator definition ")pos  
+
 replacer2 pos (Char ident) table = case M.lookup ident table of
  Nothing -> return(Char ident)
- Just _  -> Left$newErrorMessage(Message$"cannot redefine argument "++show ident)pos 
+ Just _  -> Left$newErrorMessage(Message$"cannot redefine an argument "++show ident)pos 
+ 
+replacer2 pos (Del ident) table = case M.lookup ident table of
+ Nothing -> return(Del ident)
+ Just _  -> Left$newErrorMessage(Message$"cannot delete an argument"++show ident)pos 
  
 
+
+{-  -------------------------------------------------------------------------------
+   ********************
+   * end of replacer2 *
+   ********************
+----------------------------------------------------------------------------------}
+ 
+ 
+ 
+ 
+ 
 toList1 :: TypeList -> [Ident]
 toList1 (_,t,xs) = t:[x|(_,_,x)<-xs]
  

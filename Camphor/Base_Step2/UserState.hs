@@ -4,8 +4,8 @@ module Camphor.Base_Step2.UserState
 (Fixity(..)
 ,UserState(..),VFInfo,OpInfo,VFList,OpList
 ,emptyState
-,containsIdent,addIdent,removeIdent,getIdentContents
-,addOpFixity,getOpName,containsOp,findOpContents,matches
+,containsIdent,addIdent,removeIdent,getVFContents
+,addOpFixity,getOpName,containsOp,getOpContents,matches
 )where
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Camphor.Base_Step2.Base_Step2_2
@@ -45,8 +45,8 @@ containsIdent (UserState vflist _) ident = ident `M.member` vflist
 addIdent :: UserState -> Ident -> VFInfo -> UserState
 addIdent      (UserState vflist oplist) ident dat = UserState (M.insert ident dat vflist) oplist 
 
-getIdentContents :: UserState -> Ident -> Maybe VFInfo
-getIdentContents (UserState vflist _) ident = M.lookup ident vflist
+getVFContents :: UserState -> Ident -> Maybe VFInfo
+getVFContents (UserState vflist _) ident = M.lookup ident vflist
 
 removeIdent :: UserState -> Ident -> UserState
 removeIdent (UserState vflist oplist) ident     = UserState (M.delete ident vflist) oplist
@@ -58,8 +58,8 @@ addOpFixity (UserState vflist oplist) fixity =
 containsOp :: UserState -> Oper -> Bool
 containsOp (UserState _ oplist) oper = oper `M.member` oplist
 
-findOpContents :: UserState -> Oper -> Maybe OpInfo
-findOpContents (UserState _ oplist) oper = M.lookup oper oplist
+getOpContents :: UserState -> Oper -> Maybe OpInfo
+getOpContents (UserState _ oplist) oper = M.lookup oper oplist
 
 matches :: ValueList -> TypeList -> Bool
 matches (val,ovs) (typ,_,otis) 
