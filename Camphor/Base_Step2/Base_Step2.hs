@@ -258,16 +258,23 @@ newK5' :: SourcePos -> NonEmptyValue -> UserState -> NonEmpty Fixity -> Either P
 newK5' pos nEvaluelist stat fixes = do
  let minOps = minimumsBy (comparing getFixValue) fixes
  case minOps of 
-  k                 :| [] -> newK5_2 pos nEvaluelist (getOpName k) stat
-  k@(InfixL int op) :| ks -> case contradiction(k:ks) of
-   Nothing -> undefined;
+  k               :| [] -> newK5_2 pos nEvaluelist (getOpName k) stat
+  k@(InfixL _ op) :| ks -> case contradiction(k:ks) of
+   Nothing -> newK5_2 pos nEvaluelist op stat
    Just k2 -> Left $newErrorMessage(Message$"cannot mix "++show' k++" and "++show' k2++" in the same infix expression")pos -- message borrowed from GHC
-  k@(InfixR int op) :| ks -> undefined;
- undefined
+  k@(InfixR _ op) :| ks -> case contradiction(k:ks) of
+   Nothing -> newK5_3 pos nEvaluelist op stat
+   Just k2 -> Left $newErrorMessage(Message$"cannot mix "++show' k++" and "++show' k2++" in the same infix expression")pos -- message borrowed from GHC
  
 newK5_2 :: SourcePos -> NonEmptyValue -> Oper -> UserState -> Either ParseError Txt
 newK5_2 pos nEvaluelist oper stat = newK2 pos oper vlist1 vlist2 stat
  where (vlist1,vlist2) = breakBy' oper nEvaluelist 
+ 
+newK5_3 :: SourcePos -> NonEmptyValue -> Oper -> UserState -> Either ParseError Txt
+newK5_3 pos nEvaluelist oper stat = newK2 pos oper vlist1 vlist2 stat
+ where 
+  (vlist2',vlist1') = breakBy' oper (reverse'' nEvaluelist)
+  (vlist1,vlist2) = (reverse' vlist1',reverse' vlist2')
 
 
 --- macro-replacing function for operator

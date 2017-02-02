@@ -9,7 +9,7 @@ module Camphor.Base_Step2.Auxilary
 ,makeReplacerTable,makeReplacerTable2,ReplTable
 ,isConsistent,contradiction
 ,NonEmptyValue
-,breakBy'
+,breakBy',reverse',reverse''
 ) where
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Camphor.Base_Step2.Base_Step2_2
@@ -21,6 +21,20 @@ import Camphor.NonEmpty
 import qualified Data.Map as M
 
 type NonEmptyValue = (Value,NonEmpty (Oper,Value))
+
+
+reverse' :: (a,[(b,a)]) -> (a,[(b,a)])
+reverse' k = (e,reverse rev)
+ where 
+  (e,rev) = tmp k
+  tmp (a,[])        = (a,[])
+  tmp (a,(b,a2):xs) = (q,(b,a):w)
+   where (q,w) = reverse' (a2,xs)
+
+-- FIXME :: SLOW
+reverse'' :: (a,NonEmpty(b,a)) -> (a,NonEmpty(b,a))
+reverse'' (a,(b,a2):|xs) = (q,ws `snoc2`(b,a))
+ where (q,ws) = reverse' (a2,xs)
 
 --breakBy' :: Oper -> NonEmptyValue -> (ValueList,ValueList)
 -- FIXME: if Oper is not found, the list will be split by the last op. This can cause bugs, so you must be sure that Oper is in NonEmptyValue.
