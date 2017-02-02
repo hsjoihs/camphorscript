@@ -13,8 +13,8 @@ import Camphor.Global
 import Text.Parsec hiding(token)
 import Control.Applicative hiding ((<|>),many)
 import Camphor.NonEmpty
+import Data.Maybe(isJust)
 import qualified Data.Map as M
-import Text.Parsec.Error
 
 data Com3_top=DEF | DEL | REA | WRI | COM | NUL deriving(Show)
 data Com3_mid=ADD | SUB deriving(Show)
@@ -82,11 +82,11 @@ minUnused(Just x) = minUnused' [0..(x-1)]
 minUnused' :: [Address] -> [Address] -> FilePath -> Either ParseError Address
 minUnused' list used f= let filtered = filter(`notElem` used) list in
  case filtered of 
-  [] -> makeErr(message$ "memory ran out")(f++"--step3_II'") 0 0
+  [] -> makeErr(Message "memory ran out")(f++"--step3_II'") 0 0
   x:_ -> Right x
   
 msgIde :: Show a => a -> String -> Message
-msgIde ide left= message$"identifier "++show ide++left
+msgIde ide left= Message$"identifier "++show ide++left
 
 
 lookup'::Ord k=>k->[M.Map k a]->Maybe a -- lookup towards the outer scope until you find a variable
@@ -137,7 +137,7 @@ convert3' m f((n ,st    ,ls),(Bot(WHI,ide,Ns v):xs)) = case (lookup' ide (toList
     (table1,res1) <- convert3'  m f((n+1,M.empty `cons` st,ls),v ) -- inside the loop
     if not(M.null table1) 
      then let leftList = map fst $ M.toList table1 in 
-     makeErr(message$identMsg leftList)(f++"--step3_II'") 0 0
+     makeErr(Message$identMsg leftList)(f++"--step3_II'") 0 0
      else do
     (table2,res2) <- convert3'  m f((n  ,st               ,ls),xs) -- left
     return $ (table2,"mov " ++ show k ++ "; loop; " ++ res1 ++ "mov " ++ show k ++ "; pool; " ++ res2)
@@ -147,7 +147,7 @@ convert3' m f((n ,st    ,ls),(Bot(BLO,_  ,Ns v):xs)) =  do
     (table1,res1) <- convert3'  m f((n+1,M.empty `cons` st,ls),v ) -- inside the loop
     if not(M.null table1) 
      then let leftList = map fst $ M.toList table1 in 
-     makeErr(message$identMsg leftList)(f++"--step3_II'") 0 0
+     makeErr(Message$identMsg leftList)(f++"--step3_II'") 0 0
      else do
     (table2,res2) <- convert3'  m f((n  ,st               ,ls),xs) -- left
     return $ (table2,res1 ++ res2)

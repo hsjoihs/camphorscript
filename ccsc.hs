@@ -11,6 +11,7 @@ import Camphor.Step6
 import Camphor.Step7
 import Camphor.Step8
 import Camphor.IO
+import Camphor.Lib
 import Data.List(isPrefixOf)
 import qualified Data.Map as M
 

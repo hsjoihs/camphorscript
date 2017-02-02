@@ -47,8 +47,8 @@ convert2' path (NULL     ,s)(CHAR       :xs) =                              conv
 convert2' path (Def1     ,s)(IDENT idnt :xs) =                              convert2' path (Def2 idnt,s)xs
 convert2' path (Def2 idnt,s)(SCOLON     :xs) = (("char "++idnt++";")++)  <$>convert2' path (NULL     ,s)xs --
 
-convert2' path (Def1     ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
-convert2' path (Def2 _   ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Def1     ,_)(x          :_ ) = makeErr (UnExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Def2 _   ,_)(x          :_ ) = makeErr (UnExpect$show' x)(path++"step2'") 0 1 
 
 
 -- delete a;
@@ -56,8 +56,8 @@ convert2' path (NULL     ,s)(DELETE     :xs) =                              conv
 convert2' path (Del1     ,s)(IDENT idnt :xs) =                              convert2' path (Del2 idnt,s)xs
 convert2' path (Del2 idnt,s)(SCOLON     :xs) = (("delete "++idnt++";")++)<$>convert2' path (NULL     ,s)xs --
 
-convert2' path (Del1     ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
-convert2' path (Del2 _   ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Del1     ,_)(x          :_ ) = makeErr (UnExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Del2 _   ,_)(x          :_ ) = makeErr (UnExpect$show' x)(path++"step2'") 0 1 
 
 
 -- ;
@@ -73,11 +73,11 @@ convert2' path (Ifxl4 n op,s)(NERAP      :xs) =                              con
 convert2' path (Ifxl5 n op,s)(SCOLON     :xs) =                              convert2' path (NULL      ,q)xs 
  where q = undefined s n op
 
-convert2' path (Ifxl1     ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
-convert2' path (Ifxl2 _   ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
-convert2' path (Ifxl3 _   ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
-convert2' path (Ifxl4 _ _ ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
-convert2' path (Ifxl5 _ _ ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Ifxl1     ,_)(x          :_ ) = makeErr (UnExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Ifxl2 _   ,_)(x          :_ ) = makeErr (UnExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Ifxl3 _   ,_)(x          :_ ) = makeErr (UnExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Ifxl4 _ _ ,_)(x          :_ ) = makeErr (UnExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Ifxl5 _ _ ,_)(x          :_ ) = makeErr (UnExpect$show' x)(path++"step2'") 0 1 
 
 
 -- infixr
@@ -89,11 +89,11 @@ convert2' path (Ifxr4 n op,s)(NERAP      :xs) =                              con
 convert2' path (Ifxr5 n op,s)(SCOLON     :xs) =                              convert2' path (NULL      ,q)xs 
  where q = undefined s n op
 
-convert2' path (Ifxr1     ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
-convert2' path (Ifxr2 _   ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
-convert2' path (Ifxr3 _   ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
-convert2' path (Ifxr4 _ _ ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
-convert2' path (Ifxr5 _ _ ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Ifxr1     ,_)(x          :_ ) = makeErr (UnExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Ifxr2 _   ,_)(x          :_ ) = makeErr (UnExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Ifxr3 _   ,_)(x          :_ ) = makeErr (UnExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Ifxr4 _ _ ,_)(x          :_ ) = makeErr (UnExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Ifxr5 _ _ ,_)(x          :_ ) = makeErr (UnExpect$show' x)(path++"step2'") 0 1 
 
 -- void
 convert2' path (NULL     ,s)(VOID       :xs) = undefined path xs s
@@ -112,7 +112,7 @@ convert2' path (NULL     ,s)(BRACE      :xs) = undefined path xs s
 
 
 -- others(NUM,NERAP,ECARB,CNSTNT,OP,CONST)
-convert2' path (NULL     ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
+convert2' path (NULL     ,_)(x          :_ ) = makeErr (UnExpect$show' x)(path++"step2'") 0 1 
 
 
 

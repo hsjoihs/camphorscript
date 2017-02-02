@@ -37,5 +37,5 @@ convert7' (n,(B IN       :xs))  = ","                                        ++ 
 convert7' (n,(B OUT      :xs))  = "."                                        ++ convert7'(n,xs)
 convert7' (n,(C(NUL ,sp ):xs))  = sp                                         ++ convert7'(n,xs)
 convert7' (n,(A(MOV ,num):xs))  
- |                       n<=num     = genericTake(num-n)(repeat '>')             ++ convert7'(num,xs)
- |                       otherwise  = genericTake(n-num)(repeat '<')             ++ convert7'(num,xs)
+ |                   n<=num     = genericTake(num-n)(repeat '>')             ++ convert7'(num,xs)
+ |                   otherwise  = genericTake(n-num)(repeat '<')             ++ convert7'(num,xs)
