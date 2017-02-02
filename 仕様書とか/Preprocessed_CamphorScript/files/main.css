@@ -1,0 +1,26 @@
+body {margin: 0; padding: 20px 0; font: 84%; background-color: #ddd; color: #222; font-family: 'Times New Roman';}
+h1,h2,h3 {font-weight: 400;}
+h1 {font-size: 3.2em; font-weight: bold;}
+h2 {margin: 0 0 5px 0; font-size: 1.6em; font-weight: bold;}
+h3 {margin: 20px 0 10px 0; font-size: 1.4em; font-weight: bold;}
+a {text-decoration: none;}
+a.btn {color: #39c; font-weight: bold;}
+a: hover {text-decoration: underline;}
+p {margin: 0 0 15px 0; line-height: 1.4em;}
+.chapter {margin-bottom: 20px;}
+.content {margin: 0 0 10px 0; padding: 10px 0 10px 10px; background-color: #d6e6cc; color: #555; text-decoration: none; border-radius: 10px; -webkit-border-radius: 10px; -moz-border-radius: 10px;}
+.source {font-size: 0.8em;}
+.footnote {font-size: 14px;}
+.str {color: #a00; font-family: monospace; font-size: 10pt;}
+.pat {font-style: italic;}
+.code {background-color: #d7d7d7; font-family: monospace; font-size: 10pt; padding: 1px 5px 1px 5px; white-space: nowrap;}
+table.ta {border-collapse: collapse; margin: 15px 0 15px 0;}
+table.ta tr td {border-bottom: 1px solid gray; border-right: 1px solid gray; padding: 4px 4px 4px 4px;}
+table.ta tr:first-child td {border-top: 1px solid gray;}
+table.ta tr td:last-child {border-right-width: 0;}
+strong.very {font-style: italic;}
+h1#titletxt {margin: 0 0 0 0; padding: 0; text-align: center; line-height: 1.1em;}
+div#title {width: 820px; padding: 10px 0 10px 0; background-color: #d6e6cc; text-align: center; border-radius: 10px; -webkit-border-radius: 10px; -moz-border-radius: 10px;}
+div#introtext {font-family: Georgia,'Times New Roman',serif; font-style: italic; font-size: 1.2em; color: #555; margin: 40px 40px; text-align: center;}
+div#all {width: 1080px; margin: 0 auto; padding: 0; background-color: #e6f6dc; border-radius: 15px; -webkit-border-radius: 15px; -moz-border-radius: 15px;}
+div#main {width: 820px; margin: 20px 20px 20px 20px; padding: 0; float: right; line-height: 1.3em;}

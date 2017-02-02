@@ -82,11 +82,12 @@ singleDef = do{
    return j;
    });
   n <- _num;                        -- 5
-  return(js,n)
+  return(js,mod256 n)
   });
  return(i:is,nm)
  }
 
+ 
 
 del :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity [Sent]
 del = do{p <- getPosition; _delete; __; i <-_ident; __;_scolon;return[Single p$Del i]}

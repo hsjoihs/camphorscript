@@ -1,18 +1,16 @@
 {-# LANGUAGE FlexibleContexts, NoImplicitPrelude #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
 module Camphor.Base.Base_Step2.Type
-(ident_parser
-,Tok(..)
+(Tok(..)
 ,Type(..),Value(..)
 ,NonEmptyValue,ReplTable,CollisionTable
 ,PragmaData,ParserState,TailTypeList,TailValueList
 ,Upgrade(..),Extra,Sent,Sent2,Sents,TypeList,ValueList,SimpleSent(..),Fixity(..),isVar,TmpStat
 ,Ident2(),toIdent2,unId,SimpleSent2(..),toSimpleSent2,toSent2
-,bbbb,aaaa,nnnn,readI,writeI,tmpIdent,showIdent,ident_parser'
+,bbbb,aaaa,nnnn,readI,writeI,tmpIdent,showIdent
 )where
 import Camphor.Global.Synonyms
 import Camphor.SafePrelude 
-import Camphor.Global.Parsers
 import Text.Parsec hiding(token)
 import Camphor.SepList
 import Camphor.TailSepList
@@ -87,14 +85,7 @@ data Tok =
 isVar :: Value -> Bool
 isVar (Var _) = True; isVar _ = False
  
-ident_parser :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
-ident_parser   = do
- p <- getPosition
- x <- identifier
- return(p,IDENT(Ident2 x))
- 
-ident_parser' :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
-ident_parser' = (:[]) <$> ident_parser
+
 
  
 bbbb, aaaa, nnnn, readI, writeI :: Ident2
@@ -108,12 +99,15 @@ tmpIdent :: Ident2 -> Integer -> Ident2
 tmpIdent ident n = Ident2(unId ident ++ "__TMP_" ++ showNum n)
 
 
+reservedList :: [String]
+reservedList = ["char","delete","infixl","infixr","void","constant","const","syntax", "block" ]
+
 toIdent2 :: String -> Either String Ident2
 toIdent2 "" = Left ""
 toIdent2 i@(x:xs) = maybeToEither i $ do
  guard (isAlpha x || x == '_')
  guard $ null[ a | a <- xs, not (isAlphaNum a), a /= '_']
- guard $ i `notElem` ["char","delete","infixl","infixr","void","constant","const","syntax", "block" ]
+ guard $ i `notElem` reservedList
  return(Ident2 i)
 
 toSent2 :: Sent -> Sent2

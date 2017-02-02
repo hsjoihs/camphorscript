@@ -20,6 +20,18 @@ tok = _char <|> _delete  <|> _num <|> _scolon <|> _syntax <|> _BLOCK <|>
  _infixl <|> _infixr <|>
  _void <|> _sp <|> _cnstnt <|> _const <|> ident_parser'
 
+ident_parser :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
+ident_parser   = do
+ p <- getPosition
+ x <- identifier
+ case toIdent2 x of
+  Right i -> return(p,IDENT i)
+  Left _ -> (oneOf "" <?> "identifier") >> return(p,SP " ")
+ 
+ 
+ident_parser' :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
+ident_parser' = (:[]) <$> ident_parser 
+ 
 _paren :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
 _paren  = do{p <- getPosition; char '('; return [(p,PAREN)]}
 _nerap :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]

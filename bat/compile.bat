@@ -2,7 +2,7 @@ setlocal
 set folder=%1
 set compiler=%2
 set option=%3
-set option2=%4
+set option2=%~4
 set source=%folder%\%5
 set tmp=bat\%6.tmp
 set judger=%folder%\%7

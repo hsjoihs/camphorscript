@@ -1,0 +1,463 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="files/sidebar.css">
+	<link rel="stylesheet" type="text/css" href="files/main.css">
+	<title>Preprocessed CamphorScript</title>
+</head>
+
+<body>
+<div id="all">
+	<div id="main">
+		<div id="title">
+			<h1 id="titletxt">Preprocessed CamphorScript</h1>
+		</div>
+
+		<div id="introtext">
+		<p>A human-readable programming language that can be translated into Brainf*ck</p>
+		</div>
+		
+		<div class="chapter">
+			<h2 class="content"><a href="#" id="a1" class="btn">1. Introduction</a></h2>
+			
+			<h3>1-1.</h3>
+			<p>Alpha <strong>Beta</strong> Gamma</p>
+			
+			<span class="source">source: <a href="">LINK2</a>[ http://www.examples.com/2.html ]</span>
+			
+			<br /><h3>1-2.</h3>
+			<p>Delta <strong>Epsilon</strong> Zeta</p>
+		
+			<span class="source">source: <a href="">LINK2</a>[ http://www.examples.com/2.html ]</span>
+			<span class="source">source: <a href="http://www.examples.com/3.html">LINK3</a>[ http://www.examples.com/3.html ]</span><br>
+			<div style="border: solid 1px #c6d6bc">
+				a
+			</div>
+			<br>
+			<br /><h3>1-3.</h3>
+			<p>Theta</p>
+			
+			<span class="source">source: <a href="">LINK2</a>[ http://www.examples.com/2.html ]</span>
+				Alpha<br>
+			<span class="source">source: <a href="http://www.examples.com/3.html">LINK3</a>[ http://www.examples.com/3.html ]</span><br><br>
+			<a href="http://www.examples.com/out.html">outer link</a>
+		</div>
+		<div class="chapter">
+		<h2 class="content"><a href="#" id="a2" class="btn">2. Lexical Structure</a></h2>
+			<h3>2-1. Metasyntax Notations</h3>
+				<p>The syntax of this language is represented by these notations:</p>
+				<p>
+					<table class="ta">
+					<tr><td>[ <span class="pat">pattern</span> ]</td><td> optional </td></tr>
+					<tr><td> {  <span class="pat">pattern</span>  } </td><td> zero or more repetitions </td></tr>
+					<tr><td>( <span class="pat">pattern</span> )</td><td> grouping </td></tr>
+					<tr><td><span class="pat">pat1</span>  |  <span class="pat">pat2</span></td><td> choice   </td></tr>
+					<tr><td><span class="pat">pat1</span> = <span class="pat">pat2</span>;&nbsp;</td><td> definition   </td></tr>
+					<tr><td><span class="str">"string"</span>   </td><td> string   </td></tr>
+					<tr><td><span class="str">'string'</span>   </td><td> string   </td></tr>
+					<tr><td><span class="pat">pat1</span>, <span class="pat">pat2</span> </td><td> concatenation </td></tr>
+					</table>
+				</p>
+				<!-- <p>If not specified, whitespaces are expressed implicitly; concatenation implies whitespaces.</p> -->
+				<p>Note that concatenation binds more strongly than choice.</p>
+				<!-- <p>Delta</p> -->
+			<br /><h3>2-2. Program Structure</h3>
+				<p>A Preprocessed CamphorScript program consists of zero or more sentences.</p>
+				<p>Definitions of sentences are described in Chapter <a href="#a4">4</a> and Chapter <a href="#a5">5</a>.</p>
+		</div>
+		<div class="chapter">
+		<h2 class="content"><a href="#" id="a3" class="btn">3. Tokens</a></h2>
+			<h3>3-1. Identifier</h3>
+			<p>An identifier can be used for the name of a variable or a function.</p>
+			<p>ident</p>
+			<h3>3-1.</h3>
+			<p>num</p>
+			<p>typelist</p>
+			<p>tailtypelist</p>
+			<p>valuelist</p>
+		</div>
+		
+		
+		
+		
+		<div class="chapter">
+		<h2 class="content"><a href="#" id="a4" class="btn">4. Variables</a></h2>
+			<p>A variable stores an integer between 0 and 255. </p>
+			<p>
+				Compilers are allowed to choose the effect of the value becoming greater than 255 or negative: 
+				either make it a run-time error or add/subtract 256 implicitly to fit it in the 0-255 range.
+			</p>
+			<h3>4-1. Variable Definition</h3>
+			<p>Variables are defined by declaration statements.</p>
+			<p>It is possible to add initializers (e.g. <span class="code">char a = 5;</span>) to variables. If not, they will automatically be initialized with 0. </p>
+			<p>Note that <span class="code">=</span> is not a built-in operator; 
+			it is just that <span class="code">char a = 5;</span> is a syntactic sugar of <span class="code">char a; a += 5;</span> and that <span class="code">char a = b = 5;</span> is a syntactic sugar of <span class="code">char a; a += 5; char b; b += 5;</span>, <span class="code">+=</span> being a built-in operator.</p>
+			<p>
+				<span class="pat">vardef</span> =
+				<span class="str">'char'</span>, <span class="pat">__</span>, 
+				<span class="pat">singledef</span>, <span class="pat">__</span>, 
+				{
+					<span class="str">','</span>, <span class="pat">__</span>, 
+					<span class="pat">singledef</span>, <span class="pat">__</span>
+				},
+				<span class="pat">__</span>,  <span class="str">';'</span>;
+			</p>
+			<p><span class="pat">singledef</span> = 
+			   <span class="pat">ident</span>, <span class="pat">__</span>, 
+			   [ 
+					<span class="str">'='</span>, <span class="pat">__</span>, 
+					{
+						<span class="pat">ident</span>, <span class="pat">__</span>, 
+						<span class="str">'='</span>, <span class="pat">__</span> 
+					}, 
+					<span class="pat">num</span>
+			   ];
+			</p>
+			<!--
+
+			-->
+			<br /><h3>4-2. Variable Deletion</h3>
+			<p>Variables are deleted by deletion statements.</p>
+			<p>Variables defined in a block must be deleted in the same block.</p>
+			<p>The effect of attempting to delete a variable whose value is non-zero is <strong class="very">undefined</strong>.</p>
+			<p>
+				<span class="pat">vardel</span> = 
+				<span class="str">'delete'</span>, <span class="pat">__</span>, 
+				<span class="pat">ident</span>, <span class="pat">__</span>, 
+				<span class="str">';'</span>;
+			</p>
+			<br /><h3>4-3. Block</h3>
+			<p>A block wraps zero or more sentences and creates a scope. It is also used to define functions, operators and syntaxes.</p>
+			<p>
+				<span class="pat">block2</span> = 
+				<span class="str">'{'</span>, 
+				{ <span class="pat">sentence</span> }
+				<span class="str">'}'</span>;
+			</p>
+		</div>
+		
+		
+		
+		<div class="chapter">
+		<h2 class="content"><a href="#" id="a5" class="btn">5. Functions, Operators and Syntaxes</a> </h2>
+			<p>In Preprocessed CamphorScript, "functions", "operators" and "syntaxes" are merely an advanced version of C-style macros; thus, all of them, excluding those that are built-in, are inlined.</p>
+			<p>Because of this, functions, operators and macros cannot recursively call itself.</p>
+			<br /><h3>5-2. Function Definition</h3>
+			<p>Functions are defined by function definition statements.</p>
+			<p>Note that functions can be <strong>overloaded</strong>; in other words, multiple functions with a same name can be defined as long as their typelists (parameters' types) are different.</p>
+			<p>
+				<span class="pat">func_def</span> = 
+				<span class="str">'void'</span>, <span class="pat">__</span>, 
+				<span class="pat">ident</span>,  <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">typelist</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">blockornull</span>;
+			</p>
+			<p>
+				<span class="pat">blockornull</span> = 
+				<span class="pat">block2</span> | 
+				<span class="str">'='</span>, <span class="pat">__</span>, 
+				<span class="str">'0'</span>, <span class="pat">__</span>, 
+				<span class="str">';'</span>;
+			</p>
+			<p>
+			Functions defined by using <span class="code">=0;</span> are called <strong>null functions</strong> and
+			compilers are required to report errors when those functions are called.
+			</p>
+			<p>
+			The following functions are built-in; they cannot be deleted or redefined, but they can be overloaded.
+			</p>
+			<table class="ta">
+				<tr>
+					<td><span class="code">void read(char& a)</span></td>
+					<td>gets one byte of input and stores its value in <span class="code">a</span></td>
+				</tr>
+				<tr>
+					<td><span class="code">void write(char& a)</span></td>
+					<td>outputs the content of <span class="code">a</span></td>
+				</tr>
+			</table>
+			<br /><h3>5-3. Fixity Definition</h3>
+			<p>The fixity of an operator must be defined before it can be used.</p>
+			<p>There are two types of fixity, namely <strong>left fixity</strong> and <strong>right fixity</strong>.</p>
+			<p>An operator's fixity can be defined more than once, but they all have to be the same.</p>
+			<p>
+			The fixity of built-in operators 
+			<span class="code">+=</span> and <span class="code">-=</span> are implicitly defined as 
+			<span class="code">infixr 5 (+=);</span> and <span class="code">infixr 5 (-=);</span>
+			</p>
+			<p>
+				<span class="pat">infixl</span> = 
+				<span class="str">'infixl'</span>, <span class="pat">__</span>, 
+				<span class="pat">num</span>, <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">op</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="str">';'</span>;
+			</p>
+			<p>
+				<span class="pat">infixr</span> = 
+				<span class="str">'infixr'</span>, <span class="pat">__</span>, 
+				<span class="pat">num</span>, <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">op</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="str">';'</span>;
+			</p>
+			<br /><h3>5-4. Operator Definition</h3>
+			<p>Operators are defined by opreator definition statements.</p>
+			<p>Note that operators can also be overloaded.</p>
+			<p>
+				<span class="pat">operdef</span> = 
+				<span class="str">'void'</span>, <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">op</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">typelist</span>, <span class="pat">__</span>, 
+				<span class="str">';'</span>, <span class="pat">__</span>, 
+				<span class="pat">typelist</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">blockornull</span>;
+			</p>
+			<p>
+			The following operators are built-in.
+			</p>
+			<table class="ta">
+			<tr>
+				<td><span class="code">void (+=)(char& a; constant char N)</span></td>
+				<td>adds <span class="code">N</span> to <span class="code">a</span> and stores the result in <span class="code">a</span></td>
+			</tr>
+			<tr>
+				<td><span class="code">void (-=)(char& a; constant char N)</span></td>
+				<td>subtracts <span class="code">N</span> from <span class="code">a</span> and stores the result in <span class="code">a</span></td>
+			</tr>
+			</table>
+			
+			
+			<br /><h3>5-5. Syntax Definition</h3>
+			<p>Syntaxes are defined by syntax definition statements.</p>
+			<p>Note that syntaxes can also be overloaded.</p>
+			<p>
+				<span class="pat">syndef</span> = 
+				<span class="str">'syntax'</span>, <span class="pat">__</span>, 
+				<span class="pat">ident</span>, <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				(<span class="pat">typelist</span> | <span class="pat">tailtypelist</span>), <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="str">'{'</span>, <span class="pat">__</span>, 
+				<span class="str">'block'</span>, <span class="pat">__</span>, 
+				{
+					<span class="str">';'</span> | <span class="pat">__</span>
+				}
+				<span class="str">'}'</span>, <span class="pat">__</span>, 
+				<span class="pat">block2</span>;
+			</p>
+			<p>
+			The following syntax is built-in.
+			</p>
+			<table class="ta">
+			<tr>
+				<td><span class="code">syntax while(char& a){block;}</span></td>
+				<td>repeats executing <span class="code">block</span> while the value of <span class="code">a</span> is non-zero</td>
+			</tr>
+			</table>
+			<br /><h3>5-6. Function Call</h3>
+			<p>Functions are called by function call statements.</p>
+			<p>
+				<span class="pat">funccall</span> = 
+				<span class="pat">ident</span>, <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">valuelist</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="str">';'</span>;
+			</p>
+			<p>
+				Further details of function calls are described in F__I__X__M__E.
+			</p>
+			<!-- <br /><h3>4-9. Operator Call</h3> -->
+		</div>
+	
+		<!--
+scolon<!-- scl -=->    | 
+resblc<!-- bLOCK -=->  | 
+spaces<!-- spac -=->   |
+comment<!-- comm -=->  |
+pragma<!-- pragma -=-> |
+syncall<!-- syntax_call -=-> |
+opcall1<!-- op_call1 -=-> |
+opcall2<!-- op_call2 -=-> |
+opcall3<!-- op_call3 -=-> |
+opcall4<!-- op_call4 -=-> |
+opcall5<!-- op_call5 -=-> ;</p>
+		-->
+		<div class="chapter">
+		<h2 class="content"><a href="#" id="a6" class="btn">6. Full Lexical Structure</a> </h2>
+			<h3>6-1. Program and Sentence</h3>
+			<p><span class="pat">program</span> =   {   <span class="pat">sentence</span>  } ;</p>
+			<p><span class="pat">sentence</span> = 
+				   <span class="pat">vardef</span><!-- def -->    |
+				   <span class="pat">syndef</span><!-- syntax --> | 
+				   <span class="pat">vardel</span><!-- del -->    | 
+				   <span class="pat">scolon</span><!-- scl -->    | 
+				   <span class="pat">resblc</span><!-- bLOCK -->  | 
+				   <span class="pat">infixl</span><!-- infl -->   |
+				   <span class="pat">infixr</span><!-- infr -->   |
+				   <span class="pat">spaces</span><!-- spac -->   |
+				   <span class="pat">block2</span><!-- block2 --> |
+				   <span class="pat">comment</span><!-- comm -->  |
+				   <span class="pat">pragma</span><!-- pragma --> |
+				   <span class="pat">funcdef</span><!-- func_def --> |
+				   <span class="pat">operdef</span><!-- op_def --> |
+				   <span class="pat">funccall</span><!-- func_call --> |
+				   <span class="pat">syncall</span><!-- syntax_call --> |
+				   <span class="pat">opcall1</span><!-- op_call1 --> |
+				   <span class="pat">opcall2</span><!-- op_call2 --> |
+				   <span class="pat">opcall3</span><!-- op_call3 --> |
+				   <span class="pat">opcall4</span><!-- op_call4 --> |
+				   <span class="pat">opcall5</span><!-- op_call5 --> ;</p>
+			<br /><h3>6-2. Tokens</h3>
+			<p>Alpha</p>
+			<p>Beta</p>
+			<p>Gamma</p>
+			<p>Delta</p>	
+			<br /><h3>6-3. Sentences</h3>
+			<p>
+				<span class="pat">vardef</span> =
+				<span class="str">'char'</span>, <span class="pat">__</span>, 
+				<span class="pat">singledef</span>, <span class="pat">__</span>, 
+				{
+					<span class="str">','</span>, <span class="pat">__</span>, 
+					<span class="pat">singledef</span>, <span class="pat">__</span>
+				},
+				<span class="pat">__</span>,  <span class="str">';'</span>;
+			</p>
+			<p><span class="pat">singledef</span> = 
+			   <span class="pat">ident</span>, <span class="pat">__</span>, 
+			   [ 
+					<span class="str">'='</span>, <span class="pat">__</span>, 
+					{
+						<span class="pat">ident</span>, <span class="pat">__</span>, 
+						<span class="str">'='</span>, <span class="pat">__</span> 
+					}, 
+					<span class="pat">num</span>
+			   ];
+			</p>
+			<p>
+				<span class="pat">vardel</span> = 
+				<span class="str">'delete'</span>, <span class="pat">__</span>, 
+				<span class="pat">ident</span>, <span class="pat">__</span>, 
+				<span class="str">';'</span>;
+			</p>
+			<p>
+				<span class="pat">block2</span> = 
+				<span class="str">'{'</span>, 
+				{ <span class="pat">sentence</span> }
+				<span class="str">'}'</span>;
+			</p>
+			<p>
+				<span class="pat">funcdef</span> = 
+				<span class="str">'void'</span>, <span class="pat">__</span>, 
+				<span class="pat">ident</span>,  <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">typelist</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">blockornull</span>;
+			</p>
+			<p>
+				<span class="pat">blockornull</span> = 
+				<span class="pat">block2</span> | 
+				<span class="str">'='</span>, <span class="pat">__</span>, 
+				<span class="str">'0'</span>, <span class="pat">__</span>, 
+				<span class="str">';'</span>;
+			</p>
+			<p>
+				<span class="pat">infixl</span> = 
+				<span class="str">'infixl'</span>, <span class="pat">__</span>, 
+				<span class="pat">num</span>, <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">op</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="str">';'</span>;
+			</p>
+			<p>
+				<span class="pat">infixr</span> = 
+				<span class="str">'infixr'</span>, <span class="pat">__</span>, 
+				<span class="pat">num</span>, <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">op</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="str">';'</span>;
+			</p>
+			<p>
+				<span class="pat">operdef</span> = 
+				<span class="str">'void'</span>, <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">op</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">typelist</span>, <span class="pat">__</span>, 
+				<span class="str">';'</span>, <span class="pat">__</span>, 
+				<span class="pat">typelist</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">blockornull</span>;
+			</p>
+			<p>
+				<span class="pat">syndef</span> = 
+				<span class="str">'syntax'</span>, <span class="pat">__</span>, 
+				<span class="pat">ident</span>, <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				(<span class="pat">typelist</span> | <span class="pat">tailtypelist</span>), <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="str">'{'</span>, <span class="pat">__</span>, 
+				<span class="str">'block'</span>, <span class="pat">__</span>, 
+				{
+					<span class="str">';'</span> | <span class="pat">__</span>
+				}
+				<span class="str">'}'</span>, <span class="pat">__</span>, 
+				<span class="pat">block2</span>;
+			</p>
+			<p>
+				<span class="pat">funccall</span> = 
+				<span class="pat">ident</span>, <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">valuelist</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="str">';'</span>;
+			</p>
+		</div>
+		
+	</div>
+
+	<div id="sidebar">
+		<ul class="links">
+			<li><a href="#a1">1. Introduction</a></li>
+			<li><a href="#a2">2. Lexical Structure</a></li>
+			<li><a href="#a3">3. Tokens</a></li>
+			<li><a href="#a4">4. Variables</a></li>
+			<li><a href="#a5">5. Functions, Operators and Syntaxes</a></li>
+			<li><a href="#a6">6. Full Lexical Structure</a></li>
+		</ul>
+
+		<br /><h3>References</h3>
+		<ul class="outerlinks">
+			<li><a href="http://www.examples.com/1.html">LINK1</a></li>
+			<li><a href="http://www.examples.com/2.html">LINK2</a></li>
+			<li><a href="http://www.examples.com/3.html">LINK3</a></li>
+			<li><a href="http://www.examples.com/4.html">LINK4</a></li>
+			<li><a href="http://www.examples.com/5.html">LINK5</a></li>
+			<li><a href="http://www.examples.com/6.html">LINK6</a></li>
+			<li><a href="http://www.examples.com/7.html">LINK7</a></li>
+			<li><a href="http://www.examples.com/8.html">LINK8</a></li>
+		</ul>
+		
+	</div>
+	
+	<div style="clear:both; margin:10px 0 0; padding:5px; line-height:1.6em; width:960px; color:#777; text-align:left;">
+		<p>© 2014 Hirotaka Sato <br></p>
+	</div>
+</div>
+
+</body></html>

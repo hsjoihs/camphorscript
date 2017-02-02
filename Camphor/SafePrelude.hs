@@ -54,6 +54,7 @@ Bool(..),(&&),(||),not,otherwise
 ,Foldable(),fold,foldMap,foldr',foldl',foldrM,foldlM,traverse_,for_,sequenceA_,asum,msum,toList,sum,product,maximum,maximumBy,minimum,minimumBy,find
 ,_MtoList,voidM
 ,(<++$>)
+,mod256
 )where
 import Prelude hiding(fst,snd,foldr,foldl,mapM_,sequence_,concat,concatMap,and,or,any,all,sum,product,maximum,minimum,elem,notElem)
 import Camphor.Tuple
@@ -69,6 +70,9 @@ import Control.Arrow(first,second)
 import System.FilePath((</>))
 import Data.Foldable(Foldable(),fold,foldMap,foldr,foldr',foldl,foldl',foldrM,foldlM,traverse_,for_,sequenceA_,asum,mapM_,forM_,sequence_,msum,toList,concat,concatMap,and,or,any,all,sum,product,maximum,maximumBy,minimum,minimumBy,elem,notElem,find)
 import qualified Data.Map as M
+
+mod256 :: Integral a => a -> a
+mod256 a = a `mod` 256
 
 voidM :: (Monad m) => m a -> m ()
 voidM = (>>return())
