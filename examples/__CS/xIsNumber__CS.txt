@@ -17,7 +17,7 @@ while(c){
 }
 delete c;
 
-e -=| ~d;/*using (f,g)*/
+e -|= ~d;/*using (f,g)*/
 delete d;
 
 while(e){

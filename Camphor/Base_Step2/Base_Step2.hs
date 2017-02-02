@@ -4,7 +4,7 @@
 module Camphor.Base_Step2.Base_Step2
 (step2
 --,parser2'
-) where
+) where 
 
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Data.Ord(comparing)
@@ -284,7 +284,7 @@ replaceOpMacro pos op valuelist1 valuelist2 stat = do
  let matchingOpInstance = [ a | a@(typelist1,typelist2,_) <- opinfo, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ] 
  case matchingOpInstance of 
   []        -> Left $newErrorMessage(Message$"no type-matching instance of "++show op++" defined")pos 
-  [instnce] -> replacerOfOp instnce valuelist1 valuelist2 stat
+  [instnce] -> replacerOfOp (show op) instnce valuelist1 valuelist2 stat
   xs        -> Left $newErrorMessage(Message$show(length xs)++" type-matching instances of "++show op++" defined")pos 
  where
   opinfo' :: Either ParseError [(TypeList,TypeList, Sent)]
@@ -297,7 +297,7 @@ replaceFuncMacro pos ident valuelist stat = do
  let matchingFuncInstance = [ a | a@(typelist,_) <- finfo, valuelist `matches` typelist ]
  case matchingFuncInstance of
   []        -> Left $newErrorMessage(Message$"no type-matching instance of "++show ident++" defined")pos  
-  [instnce] -> replacerOfFunc instnce valuelist stat
+  [instnce] -> replacerOfFunc (show ident) instnce valuelist stat
   xs        -> Left $newErrorMessage(Message$show(length xs)++" type-matching instances of "++show ident++" defined")pos   
  where
   finfo' :: Either ParseError [(TypeList, Sent)]
@@ -306,20 +306,22 @@ replaceFuncMacro pos ident valuelist stat = do
    Just(Left())     -> Left $newErrorMessage(Message$"cannot call"++show ident++" because it is defined as a variable")pos
    Just(Right info) -> Right $ info
 
-replacerOfOp :: (TypeList,TypeList, Sent) -> ValueList -> ValueList -> UserState -> Either ParseError Txt
-replacerOfOp (typelist1,typelist2,sent) valuelist1 valuelist2 stat = 
- replacer sent stat $ makeReplacerTable2 (typelist1,typelist2) (valuelist1,valuelist2)
+type MacroId = String   
+   
+replacerOfOp :: MacroId -> (TypeList,TypeList, Sent) -> ValueList -> ValueList -> UserState -> Either ParseError Txt
+replacerOfOp opname (typelist1,typelist2,sent) valuelist1 valuelist2 stat = 
+ replacer opname sent stat $ makeReplacerTable2 (typelist1,typelist2) (valuelist1,valuelist2)
 
-replacerOfFunc :: (TypeList, Sent) -> ValueList -> UserState -> Either ParseError Txt
-replacerOfFunc (typelist,sent) valuelist stat =
- replacer sent stat $ makeReplacerTable typelist valuelist
+replacerOfFunc :: MacroId -> (TypeList, Sent) -> ValueList -> UserState -> Either ParseError Txt
+replacerOfFunc funcname (typelist,sent) valuelist stat =
+ replacer funcname sent stat $ makeReplacerTable typelist valuelist
 
-replacer :: Sent -> UserState -> ReplTable -> Either ParseError Txt
-replacer (Single(pos2,ssent)) stat table = do
- newSSent <- replacer2 pos2 ssent table
+replacer :: MacroId -> Sent -> UserState -> ReplTable -> Either ParseError Txt
+replacer mname (Single(pos2,ssent)) stat table = do
+ newSSent <- replacer2 (mname:|[]) pos2 ssent table
  convert2 stat [Single(pos2,newSSent)]
-replacer (Block xs) stat table = do
- result <- sequence [replacer ssent stat table | ssent <- xs]
+replacer mname (Block xs) stat table = do
+ result <- sequence [replacer mname ssent stat table | ssent <- xs]
  return$concat(["{"]++result++["}"])
 
 
@@ -328,28 +330,35 @@ replacer (Block xs) stat table = do
    * definition of replacer2 *
    ***************************
 ----------------------------------------------------------------------------------}   
-replacer2 :: SourcePos -> SimpleSent -> M.Map Ident Value ->  Either ParseError SimpleSent
+replacer2 :: NonEmpty MacroId -> SourcePos -> SimpleSent -> M.Map Ident Value ->  Either ParseError SimpleSent
 
-{- 
-data SimpleSent =
- Func1 Ident TypeList Sent | Func2 Oper TypeList TypeList Sent | Call1 Ident ValueList |
- Call2 Oper ValueList ValueList | Call3 Oper ValueList ValueList | Call4 [(Value,Oper)] ValueList | Call5 ValueList deriving(Show)
--} 
+replacer2 _ _ Scolon   _ = return Scolon
+replacer2 _ _ (Sp x)   _ = return (Sp x)
+replacer2 _ _ (Comm x) _ = return (Comm x)
+replacer2 _ pos (Infl _ _) _ = Left$newErrorMessage(Message$"cannot declare fixity inside function/operator definition ")pos  
+replacer2 _ pos (Infr _ _) _ = Left$newErrorMessage(Message$"cannot declare fixity inside function/operator definition ")pos  
 
-replacer2 _ Scolon   _ = return Scolon
-replacer2 _ (Sp x)   _ = return (Sp x)
-replacer2 _ (Comm x) _ = return (Comm x)
-replacer2 pos (Infl _ _) _ = Left$newErrorMessage(Message$"cannot decleare fixity inside function/operator definition ")pos  
-replacer2 pos (Infr _ _) _ = Left$newErrorMessage(Message$"cannot decleare fixity inside function/operator definition ")pos  
-
-replacer2 pos (Char ident) table = case M.lookup ident table of
+replacer2 _ pos (Char ident) table = case M.lookup ident table of
  Nothing -> return(Char ident)
  Just _  -> Left$newErrorMessage(Message$"cannot redefine an argument "++show ident)pos 
  
-replacer2 pos (Del ident) table = case M.lookup ident table of
+replacer2 _ pos (Del ident) table = case M.lookup ident table of
  Nothing -> return(Del ident)
  Just _  -> Left$newErrorMessage(Message$"cannot delete an argument"++show ident)pos 
+
+replacer2 _ pos (Func1 ident _ _) table = 
+ Left$newErrorMessage(Message$"cannot define function "++show ident++"inside function/operator definition ")pos
  
+replacer2 _ pos (Func2 oper _ _ _) table = 
+ Left$newErrorMessage(Message$"cannot define operator "++show oper ++"inside function/operator definition ")pos 
+ 
+replacer2 narr pos (Call1 ident valuelist            ) table = undefined
+replacer2 narr pos (Call2 oper  valuelist1 valuelist2) table = undefined
+replacer2 narr pos (Call3 oper  valuelist1 valuelist2) table = undefined
+replacer2 narr pos (Call4 []  valuelist              ) table = undefined
+replacer2 narr pos (Call4 (x:xs)  valuelist          ) table = undefined
+replacer2 narr pos (Call5 valuelist                  ) table = undefined
+
 {-  -------------------------------------------------------------------------------
    ********************
    * end of replacer2 *
