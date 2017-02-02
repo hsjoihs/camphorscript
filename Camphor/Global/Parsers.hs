@@ -27,11 +27,11 @@ module Camphor.Global.Parsers
 
 ,strP
 )where
+import Control.Monad(void)
 import Camphor.SafePrelude 
 import Camphor.Global.Synonyms
-import Camphor.Global.Operators
 import Text.Parsec hiding(token)
-import Data.Char(ord)
+
 import Camphor.NonEmpty
 
 
@@ -75,7 +75,7 @@ space' :: Stream s m Char => ParsecT s u m Char
 space' = space <|> ( blockComm >> return ' ' ) <|> ( lineComm  >> return ' ' )
 
 newline' :: Stream s m Char => ParsecT s u m ()
-newline' = ( newline >> return () ) <|> ( lineComm >> return () )
+newline' = void newline <|> void lineComm 
 
 
 -- -- Chapter 3-4 Parsers parsing numbers
@@ -86,7 +86,7 @@ newline' = ( newline >> return () ) <|> ( lineComm >> return () )
 uint' :: Stream s m Char => ParsecT s u m Integer
 uint' = uint1 <|> _uint2 
  where 
-  uint1 = (do{xs <- many1 digit'; return(foldl(\a b -> 10*a+b)0 xs) } <?> "unsigned integer")
+  uint1 = do{xs <- many1 digit'; return(foldl(\a b -> 10*a+b)0 xs) } <?> "unsigned integer"
   digit' = (
    do{char '0';return 0} <|> do{char '1';return 1} <|> do{char '2';return 2} <|>
    do{char '3';return 3} <|> do{char '4';return 4} <|> do{char '5';return 5} <|>
@@ -98,7 +98,7 @@ byte = many1 digit <|> (showNum <$> _uint2)
   
 _uint2 :: Stream s m Char => ParsecT s u m Integer
 _uint2 = try(do{char '\'';
-   y <- (noneOf "\\\n" <|> parseEsc);
+   y <- noneOf "\\\n" <|> parseEsc;
    char '\'';
    return . fromIntegral . ord $ y
    } <?> "character literal")

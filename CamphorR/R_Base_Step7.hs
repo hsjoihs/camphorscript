@@ -14,7 +14,7 @@ import Camphor.Global.Utilities
 
 -- desymbolization(already indented)
 step7_R :: FilePath -> String -> Either ParseError String
-step7_R file= parser7_R file
+step7_R = parser7_R 
 
 parser7_R :: FilePath -> String -> Either ParseError String
 parser7_R f xs = parser7_R' f([],0,(1,1)) (map tokenizeBf $ lines xs)
@@ -24,8 +24,8 @@ parser7_R' f state            ([]           :yss) = ('\n':)                     
 parser7_R' f state            (((sp,SPA):xs):yss) = (reverse sp++)                    <$> parser7_R' f state (xs:yss)
 parser7_R' f state            (((pl,PLS):xs):yss) = (("inc "++show(length pl)++";")++)<$> parser7_R' f state (xs:yss)
 parser7_R' f state            (((mn,MIN):xs):yss) = (("dec "++show(length mn)++";")++)<$> parser7_R' f state (xs:yss)
-parser7_R' f state            (((_ , IN):xs):yss) = (("_input;")++)<$> parser7_R' f state (xs:yss)
-parser7_R' f state            (((_ ,OUT):xs):yss) = (("output;")++)<$> parser7_R' f state (xs:yss)
+parser7_R' f state            (((_ , IN):xs):yss) = ( "_input;" ++)<$> parser7_R' f state (xs:yss)
+parser7_R' f state            (((_ ,OUT):xs):yss) = ( "output;" ++)<$> parser7_R' f state (xs:yss)
 parser7_R' f (ads   ,adr,pos) (((mv,MOV):xs):yss)
  | diff==0                                        = parser7_R' f (ads,adr,pos) (xs:yss) --no move
  | new  <0                                        = makeErr(Message "negative address")(f++"Rstep7'") 0 0

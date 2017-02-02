@@ -1,4 +1,4 @@
-{-# OPTIONS -Wall #-}
+{-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
 
 import System.Environment
 import Control.Monad    
@@ -18,7 +18,7 @@ fromTo' x y xs
  | x<y       = abort "first number of option -C must not be smaller than the second"
  | x>8       = abort$"step "++show x++"does not exist"
  | y<1       = abort$"step "++show y++"does not exist"
- | otherwise = foldl1 (>=>)(drop (8-x) $ take(9-y) $ xs)
+ | otherwise = foldl1 (>=>)(drop (8-x) $ take(9-y) xs)
 
 main :: IO()
 main = do
@@ -32,3 +32,4 @@ dispatch4 xs     = case optionParse xs (Nothing,Nothing,(8,8)) of
  Right (infile,outf,(a,b)) -> do
   contents <- getContentsFrom infile
   outputParsed outf (fromTo' a  b (step infile) contents)
+  return ()

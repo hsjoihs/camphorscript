@@ -8,6 +8,7 @@ module Camphor.IO
 ,doesFileExist
 ,getArgs
 ,splitFileName
+,outputErr
 )where
 import Camphor.SafePrelude
 import Prelude(error)
@@ -19,11 +20,15 @@ import System.Directory(getDirectoryContents,doesFileExist)
 import System.Environment(getArgs)
 import System.IO(hPutStrLn,stderr)
 
-outputParsed :: FilePath -> Either ParseError Txt -> IO()
+outputErr :: ParseError -> IO ()
+outputErr e = hPutStrLn stderr $ "parse error at " ++ show e
+
+outputParsed :: FilePath -> Either ParseError Txt -> IO(Maybe Txt)
 outputParsed path (Right x) 
- | map toLower path == "con" = putStrLn x
- | otherwise                 = writeFile path x
-outputParsed _    (Left  e)  = hPutStrLn stderr $ "parse error at " ++ show e
+ | map toLower path == "con" = putStrLn x >> return(Just x)
+ | map toLower path == "nul" = return(Just x)
+ | otherwise                 = writeFile path x >> return(Just x)
+outputParsed _    (Left  e)  = outputErr e >> return(Nothing)
 
 getContentsFrom :: FilePath -> IO Txt
 getContentsFrom file 

@@ -11,7 +11,6 @@ import Camphor.SafePrelude
 import Camphor.Show
 import Camphor.NonEmpty
 import Camphor.Global.Parsers
-import Camphor.Global.Operators
 import Camphor.Global.Utilities
 import Camphor.Global.Synonyms
 import Text.Parsec hiding(token)
@@ -39,23 +38,31 @@ parser3 = many sentences3
 parser3' :: Stream s m Char => ParsecT s u m [Set3]
 parser3' = do{sents<-many sentences3;eof;return sents;}
 
+parId :: Stream s m Char => ParsecT s u m Ident
+parId = do{spaces';char '(';spaces';xs <- identifier;spaces';char ')';spaces';return xs}
+
+parIdSC :: Stream s m Char => ParsecT s u m Ident
+parIdSC = do{xs <- parId;char ';';return xs}
+
 sentences3 :: Stream s m Char => ParsecT s u m Set3
 sentences3 = def <|> del <|> asser <|> add <|> sub <|> while <|> block <|> read_ <|> write <|> nul <|> emp <|> comm 
  where 
-  def   = do{try(do{string "char"  ;spaces';});xs<-identifier;spaces'; char ';';return$ Top(DEF,xs)}
-  del   = do{try(do{string "delete";spaces';});xs<-identifier;spaces'; char ';';return$ Top(DEL,xs)}
-  asser = do{try(do{string "assert_zero";spaces';});xs<-identifier;spaces'; char ';';return$ Top(AS0,xs)}
-  add   = try(do{xs<-identifier ;spaces';char '+';spaces';char '=';spaces'; ys<-byte;spaces';char ';';return$ Mid(ADD,xs,ys)})
-  sub   = try(do{xs<-identifier ;spaces';char '-';spaces';char '=';spaces'; ys<-byte;spaces';char ';';return$ Mid(SUB,xs,ys)})
-  read_ = try(do{string "read"  ;spaces';char '(';spaces';xs<-identifier;spaces';char ')';spaces';char ';';return$ Top(REA,xs)})
-  write = try(do{string "write" ;spaces';char '(';spaces';xs<-identifier;spaces';char ')';spaces';char ';';return$ Top(WRI,xs)})
+  idSC  = do{xs<-identifier;spaces'; char ';';return xs}
+  eqIdSC= do{spaces';char '=';spaces'; ys <- byte;spaces';char ';';return ys}
+  def   = do{try(do{string "char"  ;spaces';});xs <- idSC;return$ Top(DEF,xs)}
+  del   = do{try(do{string "delete";spaces';});xs <- idSC;return$ Top(DEL,xs)}
+  asser = do{try(do{string "assert_zero";spaces';});xs <- idSC;return$ Top(AS0,xs)}
+  add   = try(do{xs<-identifier ;spaces';char '+';ys <- eqIdSC;return$ Mid(ADD,xs,ys)})
+  sub   = try(do{xs<-identifier ;spaces';char '-';ys <- eqIdSC;return$ Mid(SUB,xs,ys)})
+  read_ = try(do{string "read"  ;xs <- parIdSC;return$ Top(REA,xs)})
+  write = try(do{string "write" ;xs <- parIdSC;return$ Top(WRI,xs)})
   nul   = try(do{sp<-many1 space;return$ Top(NUL,sp)})
   emp   =     do{char ';';return Null}
   comm  = try(do{string "/*";xs<-many(noneOf "*");string "*/";return$Top(COM,"/*"++xs++"*/")})
 
 while :: Stream s m Char => ParsecT s u m Set3  
 while = try(do{
- string "while"; spaces'; char '('; spaces'; xs<-identifier; spaces'; char ')';
+ string "while"; xs <- parId;
  spaces'; char '{';
  spaces'; ks<-parser3; spaces';
  char '}';
@@ -93,7 +100,7 @@ msgIde ide left= Message$"identifier "++show ide++left
 
 lookup' :: Ord k => k -> [M.Map k a] -> Maybe a -- lookup towards the outer scope until you find a variable
 lookup' _ []     = Nothing
-lookup' i (t:ts) = case(M.lookup i t)of
+lookup' i (t:ts) = case M.lookup i t of
  Just a  -> Just a
  Nothing -> lookup' i ts
 
@@ -103,44 +110,44 @@ convert3' :: Maybe MemSize -> FilePath -> (CurrState,[Set3]) -> Either ParseErro
 convert3' _ _((_ ,s:|_  ,_ ),[]                    ) = Right (s,"")
 
 
-convert3' m f((n ,s:|st ,ls),(Top(DEF,ide     ):xs)) 
+convert3' m f((n ,s:|st ,ls), Top(DEF,ide     ):xs) 
  | isJust(M.lookup ide s)                           = makeErr(msgIde ide "is already defined")(f++"--step3_II'") 0 0
  | otherwise                                        = do
   new <- minUnused m ls f
   convert3' m f((n, M.insert ide new s :| st,new:ls),xs)
 
 
-convert3' m f((n ,s:|st ,ls),(Top(DEL,ide     ):xs)) = case (M.lookup ide s) of
+convert3' m f((n ,s:|st ,ls),Top(DEL,ide     ):xs) = case M.lookup ide s of
    Just  k                                      -> (("assert_zero "++show k++"; ")++)<$$>convert3' m f((n, M.delete ide s :| st,filter (/=k) ls),xs)
    Nothing                                      -> makeErr(msgIde ide "is not defined or is already deleted in this scope")(f++"--step3_II'") 0 0
    
-convert3' m f((n ,st    ,ls),(Top(AS0,ide     ):xs)) = case (lookup' ide (toList' st)) of
+convert3' m f((n ,st    ,ls),Top(AS0,ide     ):xs) = case lookup' ide (toList' st) of
    Just  k                                      -> (("assert_zero "++show k++"; ")++)<$$>convert3' m f((n, st,ls),xs)
    Nothing                                      -> makeErr(msgIde ide "is not defined or is already deleted")(f++"--step3_II'") 0 0
 
-convert3' m f(state         ,(Top(NUL,sp      ):xs)) = (sp++) <$$> convert3' m f(state,xs) 
+convert3' m f(state         ,Top(NUL,sp      ):xs) = (sp++) <$$> convert3' m f(state,xs) 
 
 
-convert3' m f((n ,st    ,ls),(Mid(ADD,ide,  nm):xs)) = case (lookup' ide (toList' st)) of
+convert3' m f((n ,st    ,ls),Mid(ADD,ide,  nm):xs) = case lookup' ide (toList' st) of
    Just  k                                      -> (("mov "++show k++"; inc "++nm++"; ")++) <$$> convert3' m  f((n,st,ls),xs)
    Nothing                                      -> makeErr(msgIde ide "is not defined")(f++"--step3_II'") 0 0
    
-convert3' m f((n ,st    ,ls),(Mid(SUB,ide,  nm):xs)) = case (lookup' ide (toList' st)) of
+convert3' m f((n ,st    ,ls),Mid(SUB,ide,  nm):xs) = case lookup' ide (toList' st) of
    Just  k                                      -> (("mov "++show k++"; dec "++nm++"; ")++) <$$> convert3' m  f((n,st,ls),xs)
    Nothing                                      -> makeErr(msgIde ide "is not defined")(f++"--step3_II'") 0 0
 
-convert3' m f((n ,st    ,ls),(Top(REA,ide     ):xs)) = case (lookup' ide (toList' st)) of
+convert3' m f((n ,st    ,ls),Top(REA,ide     ):xs) = case lookup' ide (toList' st) of
    Just  k                                      -> (("mov "++show k++"; _input; ")++) <$$> convert3'  m f((n,st,ls),xs)
    Nothing                                      -> makeErr(msgIde ide "is not defined")(f++"--step3_II'") 0 0
 
-convert3' m f((n ,st    ,ls),(Top(WRI,ide     ):xs)) = case (lookup' ide (toList' st)) of
+convert3' m f((n ,st    ,ls),Top(WRI,ide     ):xs) = case lookup' ide (toList' st) of
    Just  k                                      -> (("mov "++show k++"; output; ")++) <$$> convert3'  m f((n,st,ls),xs)
    Nothing                                      -> makeErr(msgIde ide "is not defined")(f++"--step3_II'") 0 0
 
-convert3' m f(state         ,(Null             :xs)) = (' ':) <$$> convert3' m f(state,xs)
-convert3' m f(state         ,(Top(COM,cm)      :xs)) = (cm++) <$$> convert3' m f(state,xs)
+convert3' m f(state         ,Null             :xs) = (' ':) <$$> convert3' m f(state,xs)
+convert3' m f(state         ,Top(COM,cm)      :xs) = (cm++) <$$> convert3' m f(state,xs)
 
-convert3' m f((n ,st    ,ls),(Bot(WHI,ide,Ns v):xs)) = case (lookup' ide (toList' st)) of
+convert3' m f((n ,st    ,ls),Bot(WHI,ide,Ns v):xs) = case lookup' ide (toList' st) of
    Just k                                       -> do
     (table1,res1) <- convert3'  m f((n+1,M.empty `cons` st,ls),v ) -- inside the loop
     if not(M.null table1) 
@@ -148,17 +155,17 @@ convert3' m f((n ,st    ,ls),(Bot(WHI,ide,Ns v):xs)) = case (lookup' ide (toList
      makeErr(Message$identMsg leftList)(f++"--step3_II'") 0 0
      else do
     (table2,res2) <- convert3'  m f((n  ,st               ,ls),xs) -- left
-    return $ (table2,"mov " ++ show k ++ "; loop; " ++ res1 ++ "mov " ++ show k ++ "; pool; " ++ res2)
+    return (table2,"mov " ++ show k ++ "; loop; " ++ res1 ++ "mov " ++ show k ++ "; pool; " ++ res2)
    Nothing                                      -> makeErr(msgIde ide "is not defined")(f++"--step3_II'") 0 0
    
-convert3' m f((n ,st    ,ls),(Bot(BLO,_  ,Ns v):xs)) =  do
+convert3' m f((n ,st    ,ls),Bot(BLO,_  ,Ns v):xs) =  do
     (table1,res1) <- convert3'  m f((n+1,M.empty `cons` st,ls),v ) -- inside the loop
     if not(M.null table1) 
      then let leftList = map fst $ M.toList table1 in 
      makeErr(Message$identMsg leftList)(f++"--step3_II'") 0 0
      else do
     (table2,res2) <- convert3'  m f((n  ,st               ,ls),xs) -- left
-    return $ (table2,res1 ++ res2)
+    return (table2,res1 ++ res2)
 
 identMsg :: [String] -> String
 identMsg qs = case qs of 

@@ -1,13 +1,13 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
 module Camphor.CmdOptions
-(Stat(..),optionParse,info,Overwriter(..)
+(Stat(..),optionParse,info,Overwriter(..),Optim(..)
 )where
 import Camphor.SafePrelude
 import Camphor.Global.Utilities
 import Camphor.Global.Synonyms
 import qualified Data.Map as M
-
+import Camphor.Warn
 info :: [String]
 info = [
  "CHAtsFtD CamphorScript Compiler - Copyright (c) 2014- CHAtsFtD ",
@@ -23,22 +23,38 @@ info = [
  "con             use stdin or stdout instead of infile or outfile",
  "-D<macro>       define an empty 'macro'",
  "-D<macro>=<val> define a 'macro' with 'val' as its value",
- "--version       displays the version of the compiler"
+ "--version       displays the version of the compiler",
+ "-run            run compiled source",
+ "-Wnone          output no warning",
+ "-Wless          output less warning",
+ "-Wnormal        output normal warning",
+ "-Wmore          output more warning",
+ "-Wall           output all warning",
+ "-f0.6           compile like 0.6",
+ "nul             null device"
  ]
 data Overwriter = Version deriving(Show,Eq,Ord)
+data Optim = Naive | HalfS deriving(Show,Eq,Ord)
 data Stat = S {
- inputFile   :: Maybe FilePath, 
- outputFile  :: Maybe FilePath,
- fromTo      :: (Int,Int),
- memSize     :: Maybe MemSize,
- includeDirs :: [FilePath],
- libraryDirs :: [FilePath],
- noStdInc    :: Bool,
- noStdLib    :: Bool,
- macroTable  :: M.Map Ident String
+ inputFile    :: Maybe FilePath, 
+ outputFile   :: Maybe FilePath,
+ fromTo       :: (Int,Int),
+ memSize      :: Maybe MemSize,
+ includeDirs  :: [FilePath],
+ libraryDirs  :: [FilePath],
+ noStdInc     :: Bool,
+ noStdLib     :: Bool,
+ macroTable   :: M.Map Ident String,
+ incDecMerge  :: Bool,
+ incDecToMult :: Bool,
+ memoryShred  :: Bool,
+ optim        :: Optim,
+ warnTill     :: Maybe WarnLevel,
+ run          :: Bool
  } 
  
-optionParse :: Options -> Stat -> Either String (FilePath,FilePath,(Int,Int),Maybe MemSize,[FilePath],[FilePath],Bool,Bool,M.Map Ident String)
+optionParse :: 
+ Options -> Stat -> Either String (FilePath,FilePath,(Int,Int),Maybe MemSize,[FilePath],[FilePath],Bool,Bool,M.Map Ident String,Bool,Bool,Bool,Optim,Maybe WarnLevel,Bool)
 optionParse ["-o"]                       _    =  Left "argument to '-o' is missing"
 optionParse ["-m"]                       _    =  Left "argument to '-m' is missing"
 optionParse ["-I"]                       _    =  Left "argument to '-I' is missing"
@@ -54,20 +70,36 @@ optionParse (p@['-','C',x]          :xs) stat = case readMay [x] of
  Nothing                                      -> Left $ "incorrect format " ++ showStr p ++ " of option -Cnum[num]"
 optionParse (('-':'o':(outf@(_:_))) :xs) stat =  optionParse xs stat{outputFile = Just outf}
 optionParse ("-o":outf              :xs) stat =  optionParse xs stat{outputFile = Just outf}
-optionParse (('-':'I':(dir@(_:_)))  :xs) stat =  optionParse xs stat{includeDirs = includeDirs(stat) ++ [dir]}
-optionParse ("-I":dir               :xs) stat =  optionParse xs stat{includeDirs = includeDirs(stat) ++ [dir]}
-optionParse (('-':'L':(dir@(_:_)))  :xs) stat =  optionParse xs stat{libraryDirs = libraryDirs(stat) ++ [dir]}
-optionParse ("-L":dir               :xs) stat =  optionParse xs stat{libraryDirs = libraryDirs(stat) ++ [dir]}
+optionParse (('-':'I':(dir@(_:_)))  :xs) stat =  optionParse xs stat{includeDirs = includeDirs stat ++ [dir]}
+optionParse ("-I":dir               :xs) stat =  optionParse xs stat{includeDirs = includeDirs stat ++ [dir]}
+optionParse (('-':'L':(dir@(_:_)))  :xs) stat =  optionParse xs stat{libraryDirs = libraryDirs stat ++ [dir]}
+optionParse ("-L":dir               :xs) stat =  optionParse xs stat{libraryDirs = libraryDirs stat ++ [dir]}
 optionParse (('-':'D':(def@(_:_)))  :xs) stat = case break (=='=') def of
- (idn,"")                                     -> optionParse xs stat{macroTable = M.insert idn "" $ macroTable(stat)}
- (idn,_:rp)                                   -> optionParse xs stat{macroTable = M.insert idn rp $ macroTable(stat)}
+ (idn,"")                                     -> optionParse xs stat{macroTable = M.insert idn "" $ macroTable stat}
+ (idn,_:rp)                                   -> optionParse xs stat{macroTable = M.insert idn rp $ macroTable stat}
  -- optionParse xs stat{noStdLib = True}
 optionParse ("-E"                   :xs) stat =  optionParse xs stat{fromTo = (1,1)}
 optionParse ("-nostdinc"            :xs) stat =  optionParse xs stat{noStdInc = True}
 optionParse ("-nostdlib"            :xs) stat =  optionParse xs stat{noStdLib = True}
+optionParse ("-fincdecmerge"        :xs) stat =  optionParse xs stat{incDecMerge = True}
+optionParse ("-fno-incdecmerge"     :xs) stat =  optionParse xs stat{incDecMerge = False}
+optionParse ("-fincdectomult"       :xs) stat =  optionParse xs stat{incDecToMult = True}
+optionParse ("-fno-incdectomult"    :xs) stat =  optionParse xs stat{incDecToMult = False}
+optionParse ("-fmemoryshred"        :xs) stat =  optionParse xs stat{memoryShred = True}
+optionParse ("-fno-memoryshred"     :xs) stat =  optionParse xs stat{memoryShred = False}
+optionParse ("-fnaiverecycle"       :xs) stat =  optionParse xs stat{optim = Naive}
+optionParse ("-fhalfscramble"       :xs) stat =  optionParse xs stat{optim = HalfS}
+optionParse ("-f0.6"                :xs) stat =  optionParse xs stat{incDecMerge = False, incDecToMult = False, memoryShred = False, optim = Naive, warnTill = Nothing, run = False}
+optionParse ("-Wnone"               :xs) stat =  optionParse xs stat{warnTill = Nothing}
+optionParse ("-Wless"               :xs) stat =  optionParse xs stat{warnTill = Just Crucial}
+optionParse ("-Wnormal"             :xs) stat =  optionParse xs stat{warnTill = Just Important}
+optionParse ("-Wmore"               :xs) stat =  optionParse xs stat{warnTill = Just Helpful}
+optionParse ("-Wall"                :xs) stat =  optionParse xs stat{warnTill = Just Verbose}
+
+optionParse ("-run"                 :xs) stat =  optionParse xs stat{run = True}
 optionParse (o@('-':_)              :_ ) _    =  
  Left $ "unknown option " ++ showStr o ++ ": use " ++ showStr("./" ++ o) ++ " to compile a file named " ++ showStr o 
 optionParse (inf                    :xs) stat =  optionParse xs stat{inputFile = Just inf}
-optionParse []           (S Nothing    _           _     _   _  _  _  _  _) = Left "no input file"
-optionParse []           (S _          Nothing     _     _   _  _  _  _  _) = Left "no output file"
-optionParse []           (S (Just inf) (Just outf) (a,b) mem fd ld ni nl t) = Right(inf,outf,(a,b),mem,fd,ld,ni,nl,t)
+optionParse []           S{inputFile  = Nothing} = Left "no input file"
+optionParse []           S{outputFile = Nothing} = Left "no output file"
+optionParse []           (S (Just inf) (Just outf) (a,b) mem fd ld ni nl t c d e f g h) = Right(inf,outf,(a,b),mem,fd,ld,ni,nl,t,c,d,e,f,g,h)

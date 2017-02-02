@@ -14,12 +14,13 @@ module Camphor.Base.Base_Step2.Auxilary2
 )where
 import Camphor.SafePrelude
 import Camphor.SepList as Sep
-import Camphor.Base.Base_Step2.Type
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import Camphor.NonEmpty as NE
 import Camphor.Listlike
 import Camphor.TailSepList
+import Camphor.Base.Base_Step2.Type
+
 
 
 data MacroId = Func Ident2 VFInstance | Operator Oper OpInstance | Syn Ident2 SyntaxInstance deriving(Show,Eq,Ord)  
@@ -59,13 +60,13 @@ matches :: ValueList -> TypeList -> Bool
 matches (SepList val ovs) (SepList (typ,_) otis)
  | length ovs /= length otis    = False -- wrong length
  | not(val `isTypeof` typ)      = False -- wrong type
- | all id $ zipMatch ovs otis   = True
+ | and $ zipMatch ovs otis   = True
  | otherwise                    = False
   
 matches2 :: TailValueList -> TailTypeList -> Bool
 matches2 tvl ttl
  | length' tvl /= length' ttl                = False -- wrong length
- | all id $ zipMatch (unTSL tvl) (unTSL ttl) = True
+ | and $ zipMatch (unTSL tvl) (unTSL ttl) = True
  | otherwise                                 = False 
  
 zipMatch :: [(Oper,Value)] -> [(Oper,(Type,a))] -> [Bool]
@@ -78,27 +79,22 @@ isTypeof (Var      _) CHAR_AND    = True
 isTypeof (Constant _) CNSTNT_CHAR = True
 isTypeof _            _           = False
 
+transform :: (Oper,(Type,Ident2)) -> (Oper,(Type,Ident2)) -> Bool
+transform (op3,(typ3,_)) (op4,(typ4,_)) = op3 == op4 && typ3 `clashesWith` typ4
 
+clashesWith :: Type -> Type -> Bool
+CNSTNT_CHAR `clashesWith` CHAR_AND      = False
+CHAR_AND    `clashesWith` CNSTNT_CHAR   = False
+_           `clashesWith` _             = True
 
 overlaps :: TypeList -> TypeList -> Bool
 overlaps (SepList (typ,_) xs) (SepList (typ2,_) xs2) 
- | typ `clashesWith` typ2 = length xs == length xs2 && all id (zipWith transform xs xs2)
+ | typ `clashesWith` typ2 = length xs == length xs2 && and (zipWith transform xs xs2)
  | otherwise              = False
- where
-  transform :: (Oper,(Type,Ident2)) -> (Oper,(Type,Ident2)) -> Bool
-  transform (op3,(typ3,_)) (op4,(typ4,_)) = op3 == op4 && typ3 `clashesWith` typ4
-  CNSTNT_CHAR `clashesWith` CHAR_AND      = False
-  CHAR_AND    `clashesWith` CNSTNT_CHAR   = False
-  _           `clashesWith` _             = True
   
 overlaps' :: TailTypeList -> TailTypeList -> Bool
-overlaps' xs xs2 = length' xs == length' xs2 && all id (zipWith transform (unTSL xs) (unTSL xs2))
- where
-  transform :: (Oper,(Type,Ident2)) -> (Oper,(Type,Ident2)) -> Bool
-  transform (op3,(typ3,_)) (op4,(typ4,_)) = op3 == op4 && typ3 `clashesWith` typ4
-  CNSTNT_CHAR `clashesWith` CHAR_AND      = False
-  CHAR_AND    `clashesWith` CNSTNT_CHAR   = False 
-  _           `clashesWith` _             = True  
+overlaps' xs xs2 = length' xs == length' xs2 && and (zipWith transform (unTSL xs) (unTSL xs2))
+
 
 
 

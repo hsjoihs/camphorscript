@@ -28,13 +28,12 @@ module Camphor.Base.Base_Step2.ErrList
 )where
 import Camphor.SafePrelude
 import Camphor.Show
-import Camphor.Base.Base_Step2.Type
-import Camphor.Base.Base_Step2.Auxilary2
 import Camphor.Global.Utilities
-import Text.Parsec  
 import Camphor.Global.Synonyms
 import Camphor.NonEmpty
-
+import Camphor.Base.Base_Step2.Type
+import Camphor.Base.Base_Step2.Auxilary2
+import Text.Parsec 
 infixr 9 <!>
 (<!>) :: (a -> b) -> a -> b
 (<!>) = id
@@ -128,7 +127,7 @@ t(Step2(Finish(NotDel(Idns is)))) = (1023,"cannot finish a block without deletin
 t(Step2(Prag(Memory(Using(NotValidIdent str))))) = (1034,"cannot use " ++ showStr str ++ " as a valid identifier in a `MEMORY using' pragma")
 t(Step2(Prag(Memory(Using(IsConstant cs)))))     = (1035,"cannot use " ++ pret "constant" showNum cs ++ " in a `MEMORY using' pragma")
 
-t(Step2(Impossible(Integerranout))) = qwer$ "cannot allocate a temporary variable because integers ran out for a mysterical reason"
+t(Step2(Impossible Integerranout)) = qwer "cannot allocate a temporary variable because integers ran out for a mysterical reason"
 
 toPath :: Err -> String     -- step2/type/wrongdef/definedasvar/functi 
 toPath er = clean $ show er

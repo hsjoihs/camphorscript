@@ -3,15 +3,15 @@
 module Camphor.Base.Base_Step2.Call5Result
 (getCall5Result
 ) where 
+import Camphor.SafePrelude
+import Camphor.Global.Synonyms
+import Camphor.NonEmpty
 import qualified Camphor.SepList as S
 import Camphor.Base.Base_Step2.Type
-import Camphor.SafePrelude
 import Camphor.Base.Base_Step2.Auxilary
 import Camphor.Base.Base_Step2.UserState
 import Camphor.Base.Base_Step2.Auxilary2
 import Camphor.Base.Base_Step2.ErrList
-import Camphor.Global.Synonyms
-import Camphor.NonEmpty
 import Text.Parsec 
 
 contradiction :: [Fixity] -> Maybe Fixity
@@ -68,7 +68,7 @@ cmpOper :: SourcePos -> UserState -> Oper -> Oper -> Either ParseError Ordering
 cmpOper pos stat o1 o2 = do
  f1 <- getOpFixity pos stat o1
  f2 <- getOpFixity pos stat o2
- return $ comparing(getFixValue) f1 f2
+ return $ comparing getFixValue f1 f2
 
   
 getCall5Result :: SourcePos -> NonEmptyValue -> UserState -> Either ParseError (Oper,ValueList,ValueList)

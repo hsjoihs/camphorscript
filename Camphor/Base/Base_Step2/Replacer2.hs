@@ -5,21 +5,22 @@ module Camphor.Base.Base_Step2.Replacer2
 )where
 import Camphor.SafePrelude 
 import Camphor.SepList(SepList(..)) 
+import Camphor.Global.Synonyms
+import Camphor.Global.Utilities
+import Camphor.TupleTrans
+import Camphor.TailSepList
 import Camphor.Base.Base_Step2.Type
 import Camphor.Base.Base_Step2.UserState
 import Camphor.Base.Base_Step2.Auxilary2
 import Camphor.Base.Base_Step2.Auxilary
 import Camphor.Base.Base_Step2.Call5Result
 import Camphor.Base.Base_Step2.ErrList
-import Camphor.Global.Synonyms
-import Camphor.Global.Utilities
 import Camphor.NonEmpty
 import Text.Parsec  
 import qualified Data.Map as M 
 import Control.Monad.State
 import Control.Monad.Reader
-import Camphor.TupleTrans
-import Camphor.TailSepList
+
 
 unwrapAllMay :: [Value] -> Either (NonEmpty Integer) [Ident2]
 unwrapAllMay []              = Right []
@@ -33,7 +34,7 @@ makeNewIdent clTable ident stat pos = do
  maybeToEither (toPE pos$Step2 <!> Impossible <!> Integerranout)(listToMaybe identEggs) 
  where
   lookup2 :: Maybe Ident2
-  lookup2 = fmap fst $ M.lookup ident clTable
+  lookup2 = fst <$> M.lookup ident clTable
 
 type RCMEP = ReaderT (CollisionTable,Maybe TmpStat,Maybe ()) (Either ParseError)
 type SCMEP = StateT  (CollisionTable,Maybe TmpStat,Maybe ()) (Either ParseError)
@@ -46,7 +47,7 @@ type SCMEP = StateT  (CollisionTable,Maybe TmpStat,Maybe ()) (Either ParseError)
 replacer3 :: 
  UserState -> NonEmpty MacroId -> SourcePos -> SimpleSent2 -> ReplTable -> SCMEP [Sent]
 -- simple ones --
-replacer3 _ _ pos R_Scolon     _     = return[Single pos $ Scolon]
+replacer3 _ _ pos R_Scolon     _     = return[Single pos   Scolon]
 replacer3 _ _ pos (R_Sp x)     _     = return[Single pos $ Sp x]
 replacer3 _ _ pos (R_Comm x)   _     = return[Single pos $ Comm x]
 replacer3 _ _ pos (R_Pragma x) table = toState $ case x of
@@ -83,12 +84,11 @@ replacer3 stat _ pos (R_Char ident) table  = case M.lookup ident table of
  Nothing -> do
   clTable <- getFst
   using <- getSnd
-  if ident `M.member` clTable 
-   then err$toPE pos$ Step2 <!> Access <!> WrongDef_3 <!> Alreadydefined <!> Idn ident 
-   else return()
+  when(ident `M.member` clTable) $
+   err$toPE pos$ Step2 <!> Access <!> WrongDef_3 <!> Alreadydefined <!> Idn ident 
   case using of {
-   Just (u:us) -> do{putSnd(Just us); newIdent <- return u;                 modifyFst (M.insert ident (newIdent,True )); return [Single pos $ Comm$"char "++unId u++";"]};
-   _           -> do{newIdent <- lift(makeNewIdent clTable ident stat pos); modifyFst (M.insert ident (newIdent,False)); return [Single pos $ Char newIdent]};
+   Just (newIdent:us) -> do{putSnd(Just us); modifyFst (M.insert ident (newIdent,True )); return [Single pos $ Comm$"char "++unId newIdent++";"]};
+   _                  -> do{newIdent <- lift(makeNewIdent clTable ident stat pos); modifyFst (M.insert ident (newIdent,False)); return [Single pos $ Char newIdent]};
   }
   
 replacer3 _ _ pos (R_Del ident) table  = case M.lookup ident table of 
@@ -106,17 +106,17 @@ replacer3 stat narr pos (R_Call3 op valuelist1 valuelist2) table = toState $ do
  lift $ isValidCall3 pos op valuelist2 stat
  call2 stat narr pos (op,valuelist1,valuelist2) table
 
-replacer3 stat narr pos (R_Call4 []     valuelist ) table = replacer3 stat narr pos ((R_Call5 valuelist)) table
+replacer3 stat narr pos (R_Call4 []     valuelist ) table = replacer3 stat narr pos (R_Call5 valuelist) table
 replacer3 stat narr pos (R_Call4 (x:xs) valuelist2) table = toState $ do
  (valuelist1,op) <- lift $ getCall4Left pos (x:|xs) stat
  call2 stat narr pos (op,valuelist1,valuelist2) table
 
-replacer3 _ _ pos (R_Call5 (SepList(Constant _)[])) _      = return[Single pos $ Scolon]
+replacer3 _ _ pos (R_Call5 (SepList(Constant _)[])) _      = return[Single pos Scolon]
 replacer3 _ _ pos (R_Call5 (SepList(Var ident )[])) table  = toState $ do
  clt <- askFst
  let x = replaceSingle table clt (Var ident)
  return[Single pos $ Call5(return x)]
-replacer3 stat narr pos ((R_Call5 (SepList x (ov:ovs)))) table = toState $ do
+replacer3 stat narr pos (R_Call5 (SepList x (ov:ovs))) table = toState $ do
  (oper,vlist1,vlist2) <- lift $ getCall5Result pos (x,ov:|ovs) stat
  call2 stat narr pos (oper,vlist1,vlist2) table
  
@@ -137,12 +137,12 @@ replacer3 _ _ pos (R_Mneq (Var v1) (Constant c)) table  = toState $ do
 
 replacer3 _ _ pos (R_Pleq (Constant c) _) _ = err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Leftofbuiltin "+=" <!> Consta c 
 replacer3 _ _ pos (R_Mneq (Constant c) _) _ = err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Leftofbuiltin "-=" <!> Consta c 
-replacer3 stat ns pos ((R_Pleq (Var v1) (Var v2))) table = toState $ basis Pleq "+=" (stat,ns,pos,v1,v2,table)
-replacer3 stat ns pos ((R_Mneq (Var v1) (Var v2))) table = toState $ basis Mneq "-=" (stat,ns,pos,v1,v2,table)
+replacer3 stat ns pos (R_Pleq (Var v1) (Var v2)) table = toState $ basis Pleq "+=" (stat,ns,pos,v1,v2,table)
+replacer3 stat ns pos (R_Mneq (Var v1) (Var v2)) table = toState $ basis Mneq "-=" (stat,ns,pos,v1,v2,table)
 
 --- built-in read() & write() ---
-replacer3 stat ns pos (R_Rd  c@(Constant _)) table = replacer3 stat ns pos ((R_Call1 readI  $return c )) table
-replacer3 stat ns pos (R_Wrt c@(Constant _)) table = replacer3 stat ns pos ((R_Call1 writeI $return c )) table
+replacer3 stat ns pos (R_Rd  c@(Constant _)) table = replacer3 stat ns pos (R_Call1 readI  $return c ) table
+replacer3 stat ns pos (R_Wrt c@(Constant _)) table = replacer3 stat ns pos (R_Call1 writeI $return c ) table
 
 replacer3 stat ns pos (R_Rd (Var ident)) table = toState $ do
  clt <- askFst
@@ -167,9 +167,7 @@ replacer3 stat narr pos (R_SynCall1 ident valuelist pos2 block) table
   return [Single pos $ SynCall1 ident newValuelist pos2 newblock] 
   where
    makeNewBlock2 :: Sent -> SCMEP Sents
-   makeNewBlock2 (Single _ ssent) = do
-    res <- replacer3 stat narr pos (toSimpleSent2 ssent) table
-    return res
+   makeNewBlock2 (Single _ ssent) = replacer3 stat narr pos (toSimpleSent2 ssent) table
    makeNewBlock2 (Block  _ xs) = do
     replaced <- forM xs makeNewBlock2 
     return $ concat replaced
@@ -183,16 +181,12 @@ replacer3 stat narr pos (R_SynCall2 ident tvaluelist pos2 block) table
   return [Single pos $ SynCall2 ident newTValuelist pos2 newblock] 
   where
    makeNewBlock2 :: Sent -> SCMEP Sents
-   makeNewBlock2 (Single _ ssent) = do
-    res <- replacer3 stat narr pos (toSimpleSent2 ssent) table
-    return res
+   makeNewBlock2 (Single _ ssent) = replacer3 stat narr pos (toSimpleSent2 ssent) table
    makeNewBlock2 (Block  _ xs) = do
     replaced <- forM xs makeNewBlock2 
     return $ concat replaced
    
-replacer3 _ _ pos R_SynBlock   _     = do
- 
- return[Single pos $ SynBlock]
+replacer3 _ _ pos R_SynBlock   _     = return[Single pos SynBlock]
 
   
 {-  -------------------------------------------------------------------------------
@@ -204,14 +198,14 @@ call1 :: UserState -> NonEmpty MacroId -> SourcePos -> (Ident2, ValueList) -> Re
 call1 stat (n:|ns) pos (ident,valuelist) table
  | isJust$ M.lookup ident table = err$toPE pos$ Step2 <!> Type <!> WrongCall <!> Definedasarg <!> Functi_2 ident 
  | otherwise = do
-  let matchingInstance = [ a | a@(Func name (typelist,_)) <- (n:ns), name == ident , valuelist `matches` typelist]
+  let matchingInstance = [ a | a@(Func name (typelist,_)) <- n:ns, name == ident , valuelist `matches` typelist]
   case matchingInstance of
    []    -> rpl3 (n:|ns) pos ident valuelist table stat
    (x:_) -> err$toPE pos$Step2 <!> Type <!> WrongCall <!> Recursivecall n x
 
 call2 :: UserState -> NonEmpty MacroId -> SourcePos -> (Oper, SepList Oper Value, SepList Oper Value) -> ReplTable -> RCMEP [Sent]
 call2 stat (n:|ns) pos (oper,valuelist1,valuelist2) table = do
- let matchingInstance = [ a | a@(Operator o (typelist1,typelist2,_)) <- (n:ns), o == oper, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ]
+ let matchingInstance = [ a | a@(Operator o (typelist1,typelist2,_)) <- n:ns, o == oper, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ]
  case matchingInstance of
    []    -> rpl4 (n:|ns) pos oper (valuelist1,valuelist2) table stat
    (x:_) -> err$toPE pos$Step2 <!> Type <!> WrongCall <!> Recursivecall n x 
@@ -240,8 +234,7 @@ rpl3 ms pos ident valuelist table stat = do
   Just sent -> do -- obtain what's in the function
    let mname = Func ident (typelist,Just sent) 
    let table2 = makeReplacerTable typelist newValuelist -- replace the parameters using the arguments
-   sents <- rpl1_1 pos (toSent2 sent) table2 (mname `cons` ms) stat
-   return sents
+   rpl1_1 pos (toSent2 sent) table2 (mname `cons` ms) stat
  
 --- First, replace valuelist by the collision table. Then, replace valuelist by the replacement table. Then, expand the macro.
 rpl4 ::
@@ -256,8 +249,8 @@ rpl4 ms pos oper (vlist1,vlist2) table stat = do
   Just sent -> do
    let mname = Operator oper (tlist1,tlist2,Just sent) 
    let table2 = makeReplacerTable2 (tlist1,tlist2) (newVlist1,newVlist2)
-   sents <- rpl1_1 pos sent table2 (mname `cons` ms) stat 
-   return sents
+   rpl1_1 pos sent table2 (mname `cons` ms) stat 
+
 
 --- replaces a valuelist with collision table top -> replacement table -> collision table rest   
 replaceSingles :: Functor f => ReplTable -> f Value -> RCMEP (f Value)
@@ -272,7 +265,7 @@ replaceSingles2 table (TSL tvlist) = do
   
 --- replaces a value with collision table top -> replacement table -> collision table rest  
 replaceSingle :: ReplTable -> CollisionTable -> Value -> Value 
-replaceSingle table t value = (replaceSingleRepl table . replaceSingleCollisionTop t) value
+replaceSingle table t = replaceSingleRepl table . replaceSingleCollisionTop t
 -- stat `containsAnyIdent`
  where
   replaceSingleCollisionTop :: M.Map Ident2 (Ident2,Bool) -> Value -> Value
@@ -281,7 +274,7 @@ replaceSingle table t value = (replaceSingleRepl table . replaceSingleCollisionT
   
   replaceSingleRepl :: ReplTable -> Value -> Value
   replaceSingleRepl _   m@(Constant _) = m
-  replaceSingleRepl tbl v@(Var idn)    = case M.lookup idn tbl of Nothing -> v; Just val -> val 
+  replaceSingleRepl tbl v@(Var idn)    = fromMaybe v (M.lookup idn tbl) 
 
  
 --- simply replace the parameters using the arguments  
@@ -291,8 +284,7 @@ rpl1_1 pos sent table2 newMs stat = ReaderT $ evalStateT (do{putFst M.empty; rpl
 
 --- simply replace the parameters using the arguments  
 rpl1_2 :: SourcePos -> Sent2 -> ReplTable -> NonEmpty MacroId -> UserState -> SCMEP [Sent]
-rpl1_2 pos (Single _ ssent) table2 newMs stat = do
- replacer3 stat newMs pos ssent table2 -- replace the inner block
+rpl1_2 pos (Single _ ssent) table2 newMs stat = replacer3 stat newMs pos ssent table2 -- replace the inner block
 rpl1_2 pos (Block  p xs)    table2 newMs stat = do
  results <- forM xs (\ssent -> rpl1_2 pos ssent table2 newMs stat)
  return [Block p $ concat results]

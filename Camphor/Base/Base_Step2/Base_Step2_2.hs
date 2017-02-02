@@ -3,14 +3,14 @@
 module Camphor.Base.Base_Step2.Base_Step2_2
 (parser2_2
 )where
-import Camphor.SepList hiding(reverse)
-import Camphor.Base.Base_Step2.Type
 import Camphor.SafePrelude
-import Text.Parsec 
-import Text.Parsec.Pos(initialPos) 
-import Camphor.Base.Base_Step2.PCS_Parser2
+import Camphor.SepList hiding(reverse)
 import Camphor.Oper
 import Camphor.TailSepList
+import Camphor.Base.Base_Step2.Type
+import Camphor.Base.Base_Step2.PCS_Parser2
+import Text.Parsec 
+import Text.Parsec.Pos(initialPos) 
 
 parser2_2 :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity Sents
 parser2_2 = do{xs <- many sent; eof; return (concat xs);} 

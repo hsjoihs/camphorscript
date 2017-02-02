@@ -36,27 +36,46 @@ Bool(..),(&&),(||),not,otherwise
 ,Between(..)
 ,join,pure,(<*>),(<$>),guard
 ,showStr,showNum
-,genericLength,genericReplicate,genericTake,genericDrop
+,genericLength,genericReplicate,genericTake,genericDrop,genericSplitAt
 ,catMaybes,fromMaybe,isJust,isNothing,listToMaybe,mapMaybe,maybeToList
 ,isSpace,isAlpha,isAlphaNum,toLower,toUpper
 ,Identity(..),when
 ,mappend,mempty,mconcat,Monoid
 ,comparing
 ,ap,liftM,Applicative,(>=>),(<=<),unless
+,first,second
+,(<++>),(<:>),(<$$>),(</>)
+,ZipList(..)
+,ord,chr
 )where
 import Prelude hiding(fst,snd)
 import Camphor.Tuple
 import Control.Monad(join,guard,when,ap,liftM,(>=>),(<=<),unless)
-import Control.Applicative((<*>),(<$>),pure,Applicative)
-import Data.List(genericLength,genericReplicate,genericTake,genericDrop)
+import Control.Applicative((<*>),(<$>),pure,Applicative,ZipList(..))
+import Data.List(genericLength,genericReplicate,genericTake,genericDrop,genericSplitAt)
 import Data.Maybe(catMaybes,fromMaybe,isJust,isNothing,listToMaybe,mapMaybe,maybeToList)
-import Data.Char(isSpace,isAlpha,isAlphaNum,toLower,toUpper)
+import Data.Char(isSpace,isAlpha,isAlphaNum,toLower,toUpper,ord,chr)
 import Data.Functor.Identity(Identity(..))
 import Data.Monoid(mappend,mempty,mconcat,Monoid)
 import Data.Ord(comparing)
+import Control.Arrow(first,second)
+import System.FilePath((</>))
+infixr 5 <++>
+(<++>) :: Applicative f => f [a] -> f [a] -> f [a]
+(<++>) a b = (++) <$> a <*> b
+
+infixr 5 <:>
+(<:>) :: Applicative f => f a -> f [a] -> f [a]
+(<:>) a b = (:) <$> a <*> b
+
+infixl 4 <$$>
+(<$$>) :: (Functor f, Functor f1) => (a -> b) -> f (f1 a) -> f (f1 b)
+(<$$>) = fmap . fmap 
+
+
 data Between a b = East a | West b deriving(Show, Eq, Ord)
 showStr :: String -> String
-showStr s = show s
+showStr = show 
 
 showNum :: (Num a,Show a) => a -> String
-showNum s = show s
+showNum = show 

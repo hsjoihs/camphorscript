@@ -4,13 +4,13 @@ module Camphor.Base.Base_Step2.Def
 (defC,defD,defF1,defF2,defFix,defS
 ) where 
 
-import Camphor.Base.Base_Step2.Type
 import Camphor.SafePrelude
+import Camphor.Global.Synonyms
+import Camphor.Base.Base_Step2.Type
 import Camphor.Base.Base_Step2.UserState
 import Camphor.Base.Base_Step2.Auxilary
 import Camphor.Base.Base_Step2.Auxilary2
 import Camphor.Base.Base_Step2.ErrList
-import Camphor.Global.Synonyms
 import Text.Parsec 
 import Control.Monad.State hiding(fix)
 

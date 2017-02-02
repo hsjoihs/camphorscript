@@ -24,16 +24,16 @@ module Camphor.Base.Base_Step2.Auxilary
 ) where
 import Camphor.SafePrelude
 import qualified Camphor.SepList as S
+import Camphor.Global.Synonyms
+import Camphor.NonEmpty
 import Camphor.Base.Base_Step2.Type
 import Camphor.Base.Base_Step2.UserState
 import Camphor.Base.Base_Step2.Auxilary2
-import Camphor.Global.Synonyms
-import Text.Parsec 
-import Camphor.NonEmpty
+import Camphor.Base.Base_Step2.ErrList
 import qualified Data.Map as M
 import Control.Monad.State
 import Control.Monad.Reader
-import Camphor.Base.Base_Step2.ErrList
+import Text.Parsec 
 
 getLastPos :: Sent -> SourcePos
 getLastPos (Single pos _) = pos
@@ -43,7 +43,7 @@ getLastPos (Block  _ (x:xs)) = getLastPos $ last' (x :| xs)
 getOpContents2 :: SourcePos -> UserState -> Oper -> Either ParseError OpInfo
 getOpContents2 pos s o = case getOpContents s o of
  Nothing     -> Left $toPE pos $ Step2 <!> Type <!> WrongCall <!> Fixnotdefined_2 <!> Operat_3 o
- Just info   -> Right$ info
+ Just info   -> Right info
 
 
 getInstanceOfCall2 :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError OpInstance
@@ -144,7 +144,7 @@ toIdentList :: TypeList -> [Ident2]
 toIdentList (S.SepList (_,t) xs) = t:[x|(_,(_,x))<-xs]
  
 getOpFixity :: SourcePos -> UserState -> Oper -> Either ParseError Fixity
-getOpFixity pos stat op = fmap fst $ getOpContents2 pos stat op  
+getOpFixity pos stat op = fst <$> getOpContents2 pos stat op  
  
 getOpsFixities :: SourcePos -> UserState -> ValueList -> Either ParseError [Fixity]
 getOpsFixities pos stat valuelist = mapM (getOpFixity pos stat) $ S.toSeparatorList valuelist

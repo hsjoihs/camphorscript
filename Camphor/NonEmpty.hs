@@ -41,7 +41,7 @@ instance Monad NonEmpty where
  
 concat' :: NonEmpty(NonEmpty a) -> NonEmpty a
 concat' (xs:|[]) = xs 
-concat' (xs:|(xs2:xss)) = xs `append` (concat' (xs2:|xss))
+concat' (xs:|(xs2:xss)) = xs `append` concat' (xs2:|xss)
 
 cons :: a -> NonEmpty a -> NonEmpty a
 {-# INLINE cons #-}

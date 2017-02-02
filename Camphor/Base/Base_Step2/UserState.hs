@@ -14,13 +14,15 @@ module Camphor.Base.Base_Step2.UserState
 ,addVFBlock,getTopVFBlock
 )where
 import Camphor.SafePrelude
-import Camphor.Base.Base_Step2.Type
-import Camphor.Base.Base_Step2.Auxilary2
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
+import Camphor.NonEmpty as NE
+import Camphor.Base.Base_Step2.Type
+import Camphor.Base.Base_Step2.Auxilary2
+
 import qualified Data.Map as M
 import Text.Parsec.Pos(newPos)
-import Camphor.NonEmpty as NE
+
 
 
 type OpInfo = (Fixity,[OpInstance])
@@ -31,7 +33,7 @@ data AddOpErr = Notfound | Doubledefine | Doubleparam deriving(Show,Eq,Ord)
 type VFBlock = M.Map Ident2 VFInfo
 type VFList = NonEmpty VFBlock
 type OpList = M.Map Oper OpInfo
-data UserState = UserState {stVF :: VFList,  stOp :: OpList,  getTmp :: (Maybe TmpStat)} --deriving(Show)
+data UserState = UserState {stVF :: VFList,  stOp :: OpList,  getTmp :: Maybe TmpStat} --deriving(Show)
 
 
 -- empty state
@@ -112,5 +114,5 @@ addOpContents stat@UserState{stOp = oplist} op (typelist1,typelist2,sent) = case
    where 
     newlist' :: Either AddOpErr [OpInstance]
     newlist'   
-     | any id [ typelist1 `overlaps` tlist1 && typelist2 `overlaps` tlist2 | (tlist1,tlist2,_) <- list ] = Left Doubledefine
+     | or [ typelist1 `overlaps` tlist1 && typelist2 `overlaps` tlist2 | (tlist1,tlist2,_) <- list ] = Left Doubledefine
      | otherwise = Right $ (typelist1,typelist2,sent):list

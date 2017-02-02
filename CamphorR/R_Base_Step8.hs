@@ -33,9 +33,9 @@ parser8_R'   (x:xs)      ""
  | otherwise                      = parser8_R' xs ""
  
 parser8_R'   (x:xs)     ys@(y:_)   
- | not(x `elem` "+-><.,[]")               = parser8_R' xs ys
- | x `canFollow` y                        = parser8_R' xs (x:ys)   
- | otherwise                              = reverse ys: parser8_R' xs [x]
+ | x `notElem` "+-><.,[]"         = parser8_R' xs ys
+ | x `canFollow` y                = parser8_R' xs (x:ys)   
+ | otherwise                      = reverse ys: parser8_R' xs [x]
  
 canFollow :: Char -> Char -> Bool
 canFollow '+' = (`elem` "+<>")

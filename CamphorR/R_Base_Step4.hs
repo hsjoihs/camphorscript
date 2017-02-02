@@ -15,7 +15,7 @@ import qualified Data.Set as S
 
 step4_R :: String -> Either ParseError String
 step4_R str= do
- parsed <- parse parserND' ("Rstep4") str
+ parsed <- parse parserND' "Rstep4" str
  convert4_R parsed
 
 convert4_R :: [Chunk] -> Either ParseError String

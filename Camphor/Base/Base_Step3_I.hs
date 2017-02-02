@@ -72,11 +72,11 @@ process (West(Comm c):xs) = case words c of
  
 other' :: Stream s m Char => ParsecT s u m Data
 other' = do
- xs <- many(noneOf("\n/"))
+ xs <- many(noneOf "\n/")
  do{newline;return [East xs]} <|> do{
   char '/';
   do{char '*';ys <- manyTill anyChar(try(string "*/"));zs <- other'; return([East xs,West $ Comm ys] ++ zs)} <|>
-  do{ys <- other'; return $ [East $ xs++"/"]++ys}
+  do{ys <- other'; return $ (East $ xs++"/"):ys}
   } 
  
 type Data = [Between Txt Comm] 

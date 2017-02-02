@@ -6,6 +6,7 @@ module Camphor.Base.Base_Step2.Base_Step2
 ) where
 
 import Camphor.SafePrelude
+import Camphor.Global.Synonyms
 import Camphor.Base.Base_Step2.Type
 import Camphor.Base.Base_Step2.UserState
 import Camphor.Base.Base_Step2.Def
@@ -14,7 +15,6 @@ import Camphor.Base.Base_Step2.Auxilary
 import Camphor.Base.Base_Step2.ErrList
 import Camphor.Base.Base_Step2.Base_Step2_2(parser2_2)
 import Camphor.Base.Base_Step2.PCS_Parser(parser2')
-import Camphor.Global.Synonyms
 import Text.Parsec
 import Control.Monad.State
 import Control.Monad.Reader
@@ -23,14 +23,13 @@ step2 ::  FilePath -> Txt -> Either ParseError Txt
 step2 file txt = do
  xs <- parse parser2'  (file ++ "-step2") txt
  ys <- runParser parser2_2 [] (file ++ "-step2-2") xs
- zs <- convert ys
- return zs
+ convert ys
  
 defaultStat :: UserState 
 defaultStat = emptyState
 
 convert :: Sents -> Either ParseError Txt
-convert xs = convert2 defaultStat xs 
+convert = convert2 defaultStat
 
 
 convert2 :: UserState -> Sents -> Either ParseError Txt
@@ -61,9 +60,9 @@ call g f = changeState fst (\x -> (x,convert2)) (toState f) >>= (<++?> g)
 convert2_2 :: Sents -> StateT UserState (Either ParseError) Txt
 convert2_2 []                                    = return "" 
 convert2_2 (Single _    (Comm comm):xs)          = ("/*" ++ comm ++ "*/")                         <++?> convert2_3 xs 
-convert2_2 (Single _    (SynBlock ):xs)          = ("/*block*/")                                  <++?> convert2_3 xs 
+convert2_2 (Single _     SynBlock  :xs)          = "/*block*/"                                    <++?> convert2_3 xs 
 convert2_2 (Single _    (Sp   sp  ):xs)          = sp                                             <++?> convert2_2 xs  -- convert2_2 INTENTIONAL
-convert2_2 (Single _    (Scolon   ):xs)          = ""                                             <++?> convert2_3 xs 
+convert2_2 (Single _     Scolon    :xs)          = ""                                             <++?> convert2_3 xs 
 convert2_2 (Single _    (Pleq ident integer):xs) = (unId ident ++ "+=" ++ showNum integer ++ ";") <++?> convert2_3 xs 
 convert2_2 (Single _    (Mneq ident integer):xs) = (unId ident ++ "-=" ++ showNum integer ++ ";") <++?> convert2_3 xs 
 convert2_2 (Single _    (Rd   idnt):xs)          = ("read("  ++ unId idnt ++ ")" ++ ";")          <++?> convert2_3 xs 

@@ -112,7 +112,7 @@ tmpIdent ident n = Ident2(unId ident ++ "__TMP_" ++ showNum n)
 toIdent2 :: String -> Either String Ident2
 toIdent2 "" = Left ""
 toIdent2 i@(x:xs) = maybeToEither i $ do
- guard $ (isAlpha x || x == '_')
+ guard (isAlpha x || x == '_')
  guard $ null[ a | a <- xs, not (isAlphaNum a), a /= '_']
  guard $ i `notElem` ["char","delete","infixl","infixr","void","constant","const","syntax", "block" ]
  return(Ident2 i)

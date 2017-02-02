@@ -10,6 +10,9 @@ module Camphor.Base.Base_Step2.Call
 import Camphor.SafePrelude
 import Camphor.TupleTrans
 import Camphor.SepList as Sep
+import Camphor.Global.Synonyms
+import Camphor.Global.Utilities
+import Camphor.NonEmpty as NE
 import Camphor.Base.Base_Step2.Type
 import Camphor.Base.Base_Step2.UserState
 import Camphor.Base.Base_Step2.Auxilary2 
@@ -17,13 +20,11 @@ import Camphor.Base.Base_Step2.Call5Result
 import Camphor.Base.Base_Step2.Auxilary
 import Camphor.Base.Base_Step2.ErrList
 import Camphor.Base.Base_Step2.Replacer2(replacer3)
-import Camphor.Global.Synonyms
-import Camphor.Global.Utilities
-import Camphor.NonEmpty as NE
 import Text.Parsec
 import qualified Data.Map as M
 import Control.Monad.State
 import Control.Monad.Reader
+
 type Cnv2 = UserState -> Sents -> Either ParseError Txt
 type Cnv23 = Sents -> StateT UserState (Either ParseError) Txt
 
@@ -70,7 +71,7 @@ callK1 pos ident valuelist
 -- normalized operator call
 callK2 :: SourcePos -> Oper -> ValueList -> ValueList -> ReaderT (UserState,Cnv2) (Either ParseError) Txt
 callK2 pos op valuelist1 valuelist2
- | conflict $ filter isVar $ (toList' valuelist1 ++ toList' valuelist2) = err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Argoverlap <!> Operat op
+ | conflict $ filter isVar (toList' valuelist1 ++ toList' valuelist2) = err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Argoverlap <!> Operat op
  | otherwise = do
   stat <- askFst
   instnce <- lift $ getInstanceOfCall2 pos op valuelist1 valuelist2 stat
@@ -156,9 +157,7 @@ simplyReplace mname sent table mi = ReaderT $ \(stat,_) -> evalStateT (simplyRep
  
 -- simplyReplaceRegardingVariableCollision 
 simplyReplaceRVC :: MacroId -> Sent2 -> UserState -> ReplTable -> StateT (CollisionTable,Maybe TmpStat,Maybe ()) (Either ParseError) Sents
-simplyReplaceRVC mname (Single pos2 ssent) stat table = do
- newSents <- replacer3 (clearTmp stat) (nE mname) pos2 ssent table
- return newSents
+simplyReplaceRVC mname (Single pos2 ssent) stat table = replacer3 (clearTmp stat) (nE mname) pos2 ssent table
  
 simplyReplaceRVC mname (Block p xs) stat table = do
  results <- forM xs (\ssent -> simplyReplaceRVC mname ssent stat table) 
