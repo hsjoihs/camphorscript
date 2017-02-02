@@ -1,0 +1,38 @@
+infixr 5 (+=~);
+void (+=~)(char& a;char& z){
+	while(z){a+=1;z-=1;}
+}	/* a+= ~z */
+
+void (+=~)(char& a,char& b;char& z){
+	while(z){a+=1;b+=1;z-=1;}
+}	/* (a,b)+= ~z*/
+
+syntax if(~char& a){block}
+{
+	while(a)
+	{
+		while(a){a-=1;}
+		block;
+	}
+}
+
+syntax if2(char& aaa){block}
+{
+	char t,a2;
+	(a2,t) +=~ aaa;
+	aaa +=~ t;
+	if(~a2)
+	{
+		block;
+	}
+	delete t;delete a2;
+}
+
+char tt,aaa,bbb;
+read(tt);
+
+/*# MEMORY using aaa bbb #*/
+if2(tt)
+{
+	char q = '%'; write(q); delete q;
+}

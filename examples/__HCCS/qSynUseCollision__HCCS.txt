@@ -1,0 +1,29 @@
+
+	/* a+= ~z */
+
+	/* (a,b)+= ~z*/
+
+char tt;char aaa;char bbb;
+read(tt);
+
+assert_zero aaa;assert_zero bbb;
+{
+	/*char aaa;*//*char bbb;*/
+	{
+	while(tt){bbb+=1;aaa+=1;tt-=1;}
+}
+	{
+	while(aaa){tt+=1;aaa-=1;}
+}
+	{
+	while(bbb){
+		while(bbb){bbb-=1;}
+		
+		
+	char q;q+=37; write(q); delete q;
+
+	
+	}
+}
+	/*delete aaa;*//*delete bbb;*/
+}

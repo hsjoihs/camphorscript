@@ -5,4 +5,5 @@ xHello 4
 qEscSeq 5
 qScope 6
 xtoLower 7
+xFizzbuzz 8
 ; BF_i -> BF_c

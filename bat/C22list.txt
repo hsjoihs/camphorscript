@@ -15,4 +15,7 @@ xIf 14
 xIf2 15
 xIf3 16
 xWrite 17
+qUsingInherit 18
+qSynUseCollision 19
+xFizzbuzz 20
 ; PCS -> HCCS

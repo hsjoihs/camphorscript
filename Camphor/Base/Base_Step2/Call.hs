@@ -32,12 +32,23 @@ callSC1 _   name (SepList (Var i) _) (pos2,block) cnv23
  | unId name == "while" = do
   res <- newStat3getter pos2 block cnv23
   return $ "while(" ++ unId i ++ ")" ++ res
-callSC1 pos name vl (pos2,block) _
- | valuelistIdentConflict vl = err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Argoverlap <!> Synt name 
+callSC1 pos name vl (pos2,block) _ = callSC pos name (West vl) (pos2,block) 
+  
+--- syntax call 2  
+callSC2 :: SourcePos -> Ident2 -> TailValueList -> (SourcePos,Sents) -> ReaderT (UserState,Cnv2) (Either ParseError) String
+callSC2 pos name tvl (pos2,block) = callSC pos name (East tvl) (pos2,block) 
+
+callSC :: SourcePos -> Ident2 -> Between TailValueList ValueList -> (SourcePos,Sents) -> ReaderT (UserState,Cnv2) (Either ParseError) String
+callSC pos name vl_tvl (pos2,block)  
+ | vlic vl_tvl = err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Argoverlap <!> Synt name 
  | otherwise = do
   stat <- askFst
-  (instnce,repl) <- lift $ getInstanceOfSC pos name (West vl) stat
+  (instnce,repl) <- lift $ getInstanceOfSC pos name vl_tvl stat
   syntaxer name instnce repl (pos2,block)
+
+vlic :: Between TailValueList ValueList -> Bool   
+vlic (West vl) = valuelistIdentConflict vl  
+vlic (East vl) = valuelistIdentConflict vl  
  
 newStat3getter :: SourcePos -> Sents -> Cnv23 -> ReaderT (UserState,Cnv2) (Either ParseError) Txt
 newStat3getter p ys cnv23 = fromState $ do
@@ -110,21 +121,10 @@ callK5 pos (SepList x(ov:ovs)) = do
  callK2 pos oper vlist1 vlist2 
 
 
-
---- syntax call 2  
-callSC2 :: SourcePos -> Ident2 -> TailValueList -> (SourcePos,Sents) -> ReaderT (UserState,Cnv2) (Either ParseError) String
-callSC2 pos name tvl (pos2,block)
- | valuelistIdentConflict tvl = err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Argoverlap <!> Synt name
- | otherwise = do
-  stat <- askFst
-  (instnce,repl) <- lift $ getInstanceOfSC pos name (East tvl) stat
-  syntaxer name instnce repl (pos2,block) 
-
-  
 syntaxer :: Ident2 -> SyntaxInstance -> ReplTable -> (SourcePos,Sents) -> ReaderT (UserState,Cnv2) (Either ParseError) String
 syntaxer name instnce@(_, block1) table (_,block2) = do
  let mname = Syn name instnce
- result <- simplyReplace mname (toSent2 block1) table (Just ())
+ result <- simplyReplace mname (toSent2 block1) table
  block3 <- blockInsert result block2
  stat <- askFst
  cnv2 <- askSnd
@@ -133,7 +133,7 @@ syntaxer name instnce@(_, block1) table (_,block2) = do
  
 replacer :: MacroId -> Sent2 -> ReplTable -> ReaderT (UserState,Cnv2) (Either ParseError) Txt
 replacer mname sent table = do
- result <- simplyReplace mname sent table Nothing
+ result <- simplyReplace mname sent table
  stat <- askFst
  cnv2 <- askSnd
  lift $ cnv2 stat result -- fixme :: state of convert2 not passed
@@ -146,15 +146,15 @@ blockInsert' :: Sents -> Sent -> Sents
 blockInsert' guest (Single _ SynBlock) = guest
 blockInsert' guest (Single p (SynCall1 i vl  p2 sents)) = [Single p (SynCall1 i vl  p2$concat[ blockInsert' guest sent | sent <- sents])]
 blockInsert' guest (Single p (SynCall2 i tvl p2 sents)) = [Single p (SynCall2 i tvl p2$concat[ blockInsert' guest sent | sent <- sents])]
-blockInsert' _ a@(Single _ _) = [a]
+blockInsert' _   a@(Single _ _) = [a]
 blockInsert' guest (Block p sents) = [Block p $ concat[ blockInsert' guest sent | sent <- sents] ]
 
 
-simplyReplace :: MacroId -> Sent2 -> ReplTable -> Maybe () -> ReaderT (UserState,Cnv2) (Either ParseError) Sents
-simplyReplace mname sent table mi = ReaderT $ \(stat,_) -> evalStateT (simplyReplaceRVC mname sent stat table) (M.empty,getTmp stat,mi)
+simplyReplace :: MacroId -> Sent2 -> ReplTable -> ReaderT (UserState,Cnv2) (Either ParseError) Sents
+simplyReplace mname sent table = ReaderT $ \(stat,_) -> evalStateT (simplyReplaceRVC mname sent stat table) (M.empty,getTmp stat,M.empty)
  
 -- simplyReplaceRegardingVariableCollision 
-simplyReplaceRVC :: MacroId -> Sent2 -> UserState -> ReplTable -> StateT (CollisionTable,Maybe TmpStat,Maybe ()) (Either ParseError) Sents
+simplyReplaceRVC :: MacroId -> Sent2 -> UserState -> ReplTable -> StateT (CollisionTable,Maybe TmpStat,CollisionTable) (Either ParseError) Sents
 simplyReplaceRVC mname (Single pos2 ssent) stat table = replacer3 (clearTmp stat) (nE mname) pos2 ssent table
  
 simplyReplaceRVC mname (Block p xs) stat table = do

@@ -6,7 +6,6 @@ module Camphor.Base.Base_Step2.Replacer2
 import Camphor.SafePrelude 
 import Camphor.SepList(SepList(..)) 
 import Camphor.Global.Synonyms
-import Camphor.TailSepList
 import Camphor.Base.Base_Step2.Type
 import Camphor.Base.Base_Step2.UserState
 import Camphor.Base.Base_Step2.Auxilary2
@@ -17,7 +16,6 @@ import Camphor.NonEmpty
 import Text.Parsec  
 import qualified Data.Map as M 
 import Camphor.Transformer
-
 
 unwrapAllMay :: [Value] -> Either (NonEmpty Integer) [Ident2]
 unwrapAllMay []              = Right []
@@ -31,10 +29,10 @@ makeNewIdent clTable ident stat pos = do
  maybeToEither (toPE pos$Step2 <!> Impossible <!> Integerranout)(listToMaybe identEggs) 
  where
   lookup2 :: Maybe Ident2
-  lookup2 = fst <$> M.lookup ident clTable
+  lookup2 = M.lookup ident clTable
 
-type RCMEP = ReaderT (CollisionTable,Maybe TmpStat,Maybe ()) (Either ParseError)
-type SCMEP = StateT  (CollisionTable,Maybe TmpStat,Maybe ()) (Either ParseError)
+type RCMEP = ReaderT (CollisionTable,Maybe TmpStat,CollisionTable) (Either ParseError)
+type SCMEP = StateT  (CollisionTable,Maybe TmpStat,CollisionTable) (Either ParseError)
  
 {-  -------------------------------------------------------------------------------
    ***************************
@@ -44,19 +42,19 @@ type SCMEP = StateT  (CollisionTable,Maybe TmpStat,Maybe ()) (Either ParseError)
 replacer3 :: 
  UserState -> NonEmpty MacroId -> SourcePos -> SimpleSent2 -> ReplTable -> SCMEP [Sent]
 -- simple ones --
-replacer3 _ _ pos R_Scolon     _     = return[Single pos   Scolon]
+replacer3 _ _ pos  R_Scolon    _     = return[Single pos   Scolon]
 replacer3 _ _ pos (R_Sp x)     _     = return[Single pos $ Sp x]
 replacer3 _ _ pos (R_Comm x)   _     = return[Single pos $ Comm x]
-replacer3 _ _ pos (R_Pragma x) table = toState $ case x of
+replacer3 _ _ pos (R_Pragma x) table = case x of
  ("MEMORY":"using":vars) -> do -- replaces the ARGUMENT of `using' pragma ...*1
   let vars' = forM vars toIdent2
   case vars' of 
    Left e -> err $toPE pos$ Step2 <!> Prag <!> Memory <!> Using <!> NotValidIdent e
    Right vars_ -> do
-    replaced <- replaceSingles table (map Var vars_)
+    replaced <- toState $ replaceSingles table (map Var vars_)
     case unwrapAllMay replaced of 
      Left fails -> err $toPE pos$ Step2 <!> Prag <!> Memory <!> Using <!> IsConstant fails
-     Right res  -> return[Single pos $ Pragma$"MEMORY":"using":map unId res] 
+     Right res  -> modifySnd ((++res) <$>) >> return[Single pos $ Pragma$"MEMORY":"using":map unId res] 
  _                       -> return[Single pos $ Pragma x] 
 
 {- 
@@ -80,21 +78,26 @@ replacer3 stat _ pos (R_Char ident) table  = case M.lookup ident table of
  Just _  -> err$toPE pos$ Step2 <!> Access <!> WrongDef_3 <!> Definedasarg_3 <!> Idn ident 
  Nothing -> do
   clTable <- getFst
+  usTable <- getTrd
   using <- getSnd
-  when(ident `M.member` clTable) $
+  when(ident `M.member` clTable || ident `M.member` usTable) $
    err$toPE pos$ Step2 <!> Access <!> WrongDef_3 <!> Alreadydefined <!> Idn ident 
   case using of {
-   Just (newIdent:us) -> do{putSnd(Just us); modifyFst (M.insert ident (newIdent,True )); return [Single pos $ Comm$"char "++unId newIdent++";"]};
-   _                  -> do{newIdent <- lift(makeNewIdent clTable ident stat pos); modifyFst (M.insert ident (newIdent,False)); return [Single pos $ Char newIdent]};
+   Just (newIdent:us) -> do{putSnd(Just us); modifyTrd (M.insert ident newIdent); return [Single pos $ Comm$"char "++unId newIdent++";"]};
+   _                  -> do{newIdent <- lift(makeNewIdent clTable ident stat pos); modifyFst (M.insert ident newIdent); return [Single pos $ Char newIdent]};
   }
   
 replacer3 _ _ pos (R_Del ident) table  = case M.lookup ident table of 
  Just _  -> err$toPE pos$ Step2 <!> Access <!> WrongDel <!> Definedasarg_2 <!> Idn ident 
  Nothing -> do
   clTable <- getFst
-  (newIdent,isUsing) <- lift $ maybeToEither (toPE pos$ Step2 <!> Access <!> WrongDel <!> Notdefinedhere <!> Idn ident)(M.lookup ident clTable)
-  modifyFst (M.delete ident)
-  return [Single pos $ if isUsing then Comm$"delete " ++ unId newIdent ++ ";" else Del newIdent] --can't delete the one passed by `using' pragma
+  usTable <- getTrd
+  case M.lookup ident clTable of
+   Just newIdent -> modifyFst (M.delete ident) >> return [Single pos $ Del newIdent]
+   Nothing -> case M.lookup ident usTable of
+    Just newIdent -> modifyTrd(M.delete ident) >> return [Single pos $ Comm$"delete " ++ unId newIdent ++ ";"]
+    Nothing -> err$toPE pos$ Step2 <!> Access <!> WrongDel <!> Notdefinedhere <!> Idn ident
+   
 
 -- calls --  
 replacer3 stat narr pos (R_Call1 ident valuelist) table = toState $ call1 stat narr pos (ident,valuelist) table
@@ -111,7 +114,8 @@ replacer3 stat narr pos (R_Call4 (x:xs) valuelist2) table = toState $ do
 replacer3 _ _ pos (R_Call5 (SepList(Constant _)[])) _      = return[Single pos Scolon]
 replacer3 _ _ pos (R_Call5 (SepList(Var ident )[])) table  = toState $ do
  clt <- askFst
- let x = replaceSingle table clt (Var ident)
+ ust <- askTrd
+ let x = replaceSingle table clt ust(Var ident)
  return[Single pos $ Call5(return x)]
 replacer3 stat narr pos (R_Call5 (SepList x (ov:ovs))) table = toState $ do
  (oper,vlist1,vlist2) <- lift $ getCall5Result pos (x,ov:|ovs) stat
@@ -120,14 +124,16 @@ replacer3 stat narr pos (R_Call5 (SepList x (ov:ovs))) table = toState $ do
 --- built-in (+=) & (-=) ---
 replacer3 _ _ pos (R_Pleq (Var v1) (Constant c)) table  = toState $ do
  clt <- askFst
- let x = replaceSingle table clt (Var v1)
+ ust <- askTrd
+ let x = replaceSingle table clt ust (Var v1)
  case x of
   Var v -> return[Single pos $ Pleq v c]
   _     -> err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Leftofbuiltin "+=" <!> Variab v1
 
 replacer3 _ _ pos (R_Mneq (Var v1) (Constant c)) table  = toState $ do
  clt <- askFst
- let x = replaceSingle table clt (Var v1)
+ ust <- askTrd
+ let x = replaceSingle table clt ust(Var v1)
  case x of
   Var v -> return[Single pos $ Mneq v c]
   _     -> err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Leftofbuiltin "-=" <!> Variab v1
@@ -143,14 +149,16 @@ replacer3 stat ns pos (R_Wrt c@(Constant _)) table = replacer3 stat ns pos (R_Ca
 
 replacer3 stat ns pos (R_Rd (Var ident)) table = toState $ do
  clt <- askFst
- let x = replaceSingle table clt (Var ident)
+ ust <- askTrd
+ let x = replaceSingle table clt ust(Var ident)
  case x of
   Var v -> return[Single pos $ Rd v] 
   c     -> call1 stat ns pos (readI,return c) table 
 
 replacer3 stat ns pos (R_Wrt (Var ident)) table = toState $ do
  clt <- askFst
- let x = replaceSingle table clt (Var ident)
+ ust <- askTrd
+ let x = replaceSingle table clt ust (Var ident)
  case x of
   Var v -> return[Single pos $ Wrt v] 
   c     -> call1 stat ns pos (writeI,return c) table 
@@ -173,7 +181,7 @@ replacer3 stat narr pos (R_SynCall1 ident valuelist pos2 block) table
 replacer3 stat narr pos (R_SynCall2 ident tvaluelist pos2 block) table  
  | isJust$ M.lookup ident table = err$toPE pos$ Step2 <!> Type <!> WrongCall <!> Definedasarg <!> Synt_2 ident 
  | otherwise = toState $ do  -- FIXME: syntax is not replaced
-  newTValuelist <- replaceSingles2 table tvaluelist
+  newTValuelist <- replaceSingles table tvaluelist
   newblock <- fromState $ makeNewBlock2(Block pos2 block)
   return [Single pos $ SynCall2 ident newTValuelist pos2 newblock] 
   where
@@ -212,9 +220,10 @@ basis :: (Ident2 -> Integer -> SimpleSent) -> String ->
   (UserState, NonEmpty MacroId, SourcePos, Ident2, Ident2, M.Map Ident2 Value) -> RCMEP [Sent]
 basis constr op (stat,ns,pos,v1,v2,table) = do
  clt <- askFst
- let x = replaceSingle table clt (Var v1)
- let k = replaceSingle table clt (Var v2)
- case (x,k) of
+ ust <- askTrd
+ let x = replaceSingle table clt ust (Var v1)
+ let k = replaceSingle table clt ust (Var v2)
+ case (x,k) of 
   (Var v,Var y)      -> call2 stat ns pos (wrap op,return(Var v),return(Var y)) table
   (Var v,Constant c) -> return[Single pos $ constr v c] 
   _                  -> err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Leftofbuiltin op <!> Variab v1
@@ -249,25 +258,22 @@ rpl4 ms pos oper (vlist1,vlist2) table stat = do
    rpl1_1 pos sent table2 (mname `cons` ms) stat 
 
 
---- replaces a valuelist with collision table top -> replacement table -> collision table rest   
+--- replaces a valuelist with collision table -> replacement table -> using table  
 replaceSingles :: Functor f => ReplTable -> f Value -> RCMEP (f Value)
 replaceSingles table vlist = do
  coltable <- askFst
- return $ fmap (replaceSingle table coltable) vlist
+ usitable <- askTrd
+ return $ fmap (replaceSingle table coltable usitable) vlist
  
-replaceSingles2 :: ReplTable -> TailValueList -> RCMEP TailValueList
-replaceSingles2 table (TSL tvlist) = do
- coltable <- askFst
- return $ TSL[(o,replaceSingle table coltable v) | (o,v) <- tvlist]
-  
---- replaces a value with collision table top -> replacement table -> collision table rest  
-replaceSingle :: ReplTable -> CollisionTable -> Value -> Value 
-replaceSingle table t = replaceSingleRepl table . replaceSingleCollisionTop t
+
+--- replaces a value with collision table -> replacement table -> using table
+replaceSingle :: ReplTable -> CollisionTable -> CollisionTable -> Value -> Value 
+replaceSingle table ct ut = replaceSingleCollision ut . replaceSingleRepl table . replaceSingleCollision ct
 -- stat `containsAnyIdent`
  where
-  replaceSingleCollisionTop :: M.Map Ident2 (Ident2,Bool) -> Value -> Value
-  replaceSingleCollisionTop _    m@(Constant _) = m
-  replaceSingleCollisionTop cttp v@(Var idn)    = case M.lookup idn cttp of Nothing -> v; Just (val,_) -> Var val
+  replaceSingleCollision :: M.Map Ident2 Ident2 -> Value -> Value
+  replaceSingleCollision _    m@(Constant _) = m
+  replaceSingleCollision cttp v@(Var idn)    = case M.lookup idn cttp of Nothing -> v; Just val -> Var val
   
   replaceSingleRepl :: ReplTable -> Value -> Value
   replaceSingleRepl _   m@(Constant _) = m

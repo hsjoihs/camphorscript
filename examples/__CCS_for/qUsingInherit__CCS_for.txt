@@ -1,0 +1,59 @@
+
+
+
+/* a+= ~z */
+
+/* (a,b)+= ~z*/
+
+
+
+
+char tt;char Q;char R;char S;
+read(tt);
+assert_zero Q;assert_zero R;
+{
+	/*char Q;*//*char R;*/
+	assert_zero Q;{
+		/*char Q;*/
+		{
+			while(tt){R+=1;Q+=1;tt-=1;}
+		}
+		{
+			while(Q){tt+=1;Q-=1;}
+		}
+		/*delete Q;*/
+	}
+	{
+		while(R){
+			while(R){R-=1;}
+			
+			
+			char q;q+=37; write(q); delete q;
+			
+			
+		}
+	}
+	/*delete Q;*//*delete R;*/
+}
+
+assert_zero Q;assert_zero R;
+{
+	/*char Q;*//*char R;*/
+	{
+		while(tt){R+=1;Q+=1;tt-=1;}
+	}
+	{
+		while(Q){tt+=1;Q-=1;}
+	}
+	{
+		while(R){
+			while(R){R-=1;}
+			
+			
+			char q;q+=37; write(q); delete q;
+			
+			
+		}
+	}
+	/*delete Q;*//*delete R;*/
+}

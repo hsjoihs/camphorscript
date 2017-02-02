@@ -10,4 +10,7 @@ qNullDeclare 9
 xIsNumber_u 10
 yThreecalls 11
 xShow 12
+qUsingInherit 13
+qSynUseCollision 14
+xFizzbuzz 15
 ; HCCS -> CCS_for

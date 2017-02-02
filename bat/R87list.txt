@@ -5,4 +5,5 @@ xAtoI 4
 qEscSeq 5
 qScope 6
 xEcho 7
+xFizzbuzz 8
 ; BF_c -> ND_rev

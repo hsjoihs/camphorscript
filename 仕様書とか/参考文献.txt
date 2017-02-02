@@ -31,3 +31,10 @@ TCC : Tiny C Compiler
 
 https://github.com/eagletmt/bf-interp
 brainf*ck interpreter written in Haskell
+
+http://d.hatena.ne.jp/nixeneko/20100302/1267508674
+BrainFuck で FizzBuzz - にせねこnotes
+
+http://d.hatena.ne.jp/kazu-yamamoto/20120606/1338957783
+Haskell でのデバッグ - あどけない話
+
