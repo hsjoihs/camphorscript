@@ -1,0 +1,1 @@
+infixr 5 (%%); char a; char b; a %% b;

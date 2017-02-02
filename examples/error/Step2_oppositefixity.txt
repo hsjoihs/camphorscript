@@ -1,0 +1,6 @@
+infixr 10 (<);
+infixl 10 (>);
+void(<)(char& a;char& b){a+=3;}
+void(>)(char& a;char& b){b+=3;}
+char a; char b; char c;
+a < b > c;

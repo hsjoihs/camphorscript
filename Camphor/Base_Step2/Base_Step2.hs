@@ -86,20 +86,18 @@ convert2_2 stat (Single(pos,Func2 op typelist1 typelist2 sent):xs) = do
  newStat <- newF2 pos op typelist1 typelist2 sent stat
  convert2_2 newStat xs
  
-convert2_2 stat (Block ys:xs) = do
+convert2_2 stat (Block (p,ys):xs) = do
  (newStat,res) <- convert2_2 (addVFBlock stat) ys
  let result = "{" ++ res ++ "}"
  let remainingVars = getTopVFBlock newStat
- --let log = show (newStat,addVFBlock stat)
- if not$M.null remainingVars then Left$newErrorMessage(Message$"identifiers not deleted"++show remainingVars)pos else do
- newStat3 <- deleteTopVFBlock newStat $ newErrorMessage(Message$"FIXME: code 0004 "{-++log-})pos
+ let pos = getLastPos (Block (p,ys))
+ if not$M.null remainingVars then Left$newErrorMessage(Message$"identifiers not deleted")pos else do
+ newStat3 <- deleteTopVFBlock newStat $ newErrorMessage(Message$"FIXME: code 0004 ")pos
  (newStat2,left) <- convert2_2 newStat3 xs
- return(newStat2,{-log ++ -} result ++ left)
- where 
-  pos = newPos "__FIXME__" 0 0
+ return(newStat2,result ++ left)
 
-convert2_2 stat (Single(_,Call1WithBlock name valuelist block):xs) = do -- FIXME: does not replace a function call when it's followed by a block
- (newStat2,left) <- convert2_2 stat (Block block :xs)
+convert2_2 stat (Single(_,Call1WithBlock name valuelist pos2 block):xs) = do -- FIXME: does not replace a function call when it's followed by a block
+ (newStat2,left) <- convert2_2 stat (Block (pos2,block):xs)
  return(newStat2,showCall name valuelist ++ left)
   where 
    showCall :: Ident -> ValueList -> String
@@ -206,7 +204,7 @@ simplyReplace mname (Single(pos2,ssent)) stat table = do
   x:|[] -> return $ [Single(pos2,x)]
   x:|xs -> return $ map (\k->Single(pos2,k))(x:xs)  
  
-simplyReplace mname (Block xs) stat table = do
+simplyReplace mname (Block (p,xs)) stat table = do
  results <- sequence [ simplyReplace mname ssent stat table | ssent <- xs ]
  let result = concat results
- return [Block result]
+ return [Block (p,result)]

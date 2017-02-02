@@ -1,0 +1,2 @@
+void ddd(constant char N){ char x; delete x;}
+char a; ddd(a);

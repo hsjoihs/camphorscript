@@ -92,16 +92,16 @@ replacer2 stat (n:|ns) pos (Call1 ident valuelist) table
    []    -> rpl1 (n:|ns) pos ident valuelist table stat
    (x:_) -> Left$newErrorMessage(Message$"cannot call "++show' x++" recursively inside "++show' n)pos
    
-replacer2 stat (n:|ns) pos (Call1WithBlock ident valuelist block) table = do  -- ident is not replaced
+replacer2 stat (n:|ns) pos (Call1WithBlock ident valuelist pos2 block) table = do  -- ident is not replaced
  let newValuelist = fmap (replaceSingle table) valuelist
- newblock <- makeNewBlock (Block block)
- return(nE $ Call1WithBlock ident newValuelist newblock)
+ newblock <- makeNewBlock (Block (pos2,block))
+ return(nE $ Call1WithBlock ident newValuelist pos2 newblock)
  where
   makeNewBlock :: Sent -> Either ParseError Sents
   makeNewBlock (Single(_,ssent)) = do
    res <- replacer2 stat (n:|ns) pos ssent table
    return$map (\x->Single(pos,x))(toList res)
-  makeNewBlock (Block xs) = do
+  makeNewBlock (Block (_,xs)) = do
    replaced <- sequence [makeNewBlock sent | sent <- xs] 
    return$ concat replaced
 
@@ -146,7 +146,7 @@ rpl1 ms pos ident valuelist table stat = do
   
 rpl1_1 :: SourcePos -> Sent -> ReplTable -> NonEmpty MacroId -> UserState -> Either ParseError (NonEmpty SimpleSent)
 rpl1_1 pos (Single(_,ssent)) table2 newMs stat  = replacer2 stat newMs pos ssent table2
-rpl1_1 pos (Block xs) table2 newMs stat = do
+rpl1_1 pos (Block (_,xs)) table2 newMs stat = do
  replaced <- sequence [rpl1_1 pos ssent table2 newMs stat | ssent <- xs] -- [NonEmpty SimpleSent]
  case replaced of 
   [] -> return(nE $ Scolon)

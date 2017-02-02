@@ -1,0 +1,7 @@
+infixl 20 (+);
+infixl 30 (*);
+
+void(+)(char& w; char& e){ w+=3;}
+void(*)(char& w; char& e){ e+=3;}
+
+( a + b) * c + d;

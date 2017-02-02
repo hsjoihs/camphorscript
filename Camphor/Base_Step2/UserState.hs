@@ -8,6 +8,7 @@ module Camphor.Base_Step2.UserState
 ,isInfixL,isInfixR
 ,show',PrettyPrint
 ,addVFBlock,getTopVFBlock,deleteTopVFBlock
+,overlaps
 )where
 import Camphor.SepList
 import Camphor.Base_Step2.Type
@@ -25,6 +26,16 @@ type VFList = NonEmpty(M.Map Ident VFInfo)
 type OpList = M.Map Oper OpInfo
 data UserState = UserState VFList OpList deriving(Show)
 
+overlaps :: TypeList -> TypeList -> Bool
+overlaps (SepList ((typ,_),xs)) (SepList ((typ2,_),xs2)) 
+ | typ `clashesWith` typ2 = length xs == length xs2 && all id (zipWith transform xs xs2)
+ | otherwise              = False
+ where
+  transform :: (Oper,(Type,Ident)) -> (Oper,(Type,Ident)) -> Bool
+  transform (op3,(typ3,_)) (op4,(typ4,_)) = op3 == op4 && typ3 `clashesWith` typ4
+  CNSTNT_CHAR `clashesWith` CHAR_AND      = False
+  CHAR_AND    `clashesWith` CNSTNT_CHAR   = False 
+  _           `clashesWith` _             = True
 
 isInfixL :: Fixity -> Bool
 isInfixL (InfixL _ _) = True
@@ -67,7 +78,6 @@ getOpName :: Fixity -> Oper
 getOpName (InfixL _ op) = op
 getOpName (InfixR _ op) = op
 
--- FIXME:: a hack using Sp to represent a non-space string
 emptyState :: UserState
 emptyState = UserState deffun defop
  where
@@ -115,12 +125,17 @@ addOpFixity :: UserState -> Fixity -> UserState
 addOpFixity (UserState vflist oplist) fixity = 
  UserState vflist (M.insert (getOpName fixity) (fixity,[]) oplist)
  
-addOpContents :: UserState -> Oper -> (TypeList,TypeList,Sent) -> Maybe UserState
-addOpContents stat@(UserState vflist oplist) op (typelist1,typelist2,sent) = case getOpContents stat op of
- Nothing -> Nothing
- Just(fix,list) -> Just$UserState vflist (M.insert op (fix,newlist) oplist)
+addOpContents :: UserState -> Oper -> (TypeList,TypeList,Sent) -> (e,e) -> Either e UserState
+addOpContents stat@(UserState vflist oplist) op (typelist1,typelist2,sent) (notfound,doubledefine) = case getOpContents stat op of
+ Nothing -> Left notfound
+ Just(fix,list) -> do
+  newlist <- newlist' doubledefine
+  return $ UserState vflist (M.insert op (fix,newlist) oplist)
   where 
-   newlist = (typelist1,typelist2,sent):list -- FIXME : does not check the double definition
+   newlist' :: e -> Either e [(TypeList,TypeList,Sent)]
+   newlist' e 
+    | any id [ typelist1 `overlaps` tlist1 && typelist2 `overlaps` tlist2 | (tlist1,tlist2,_) <- list ] = Left e
+    | otherwise = Right $ (typelist1,typelist2,sent):list
 
  
 containsOp :: UserState -> Oper -> Bool

@@ -1,0 +1,2 @@
+void func(char& a){infixl 5 (%%);}
+char a; func(a);

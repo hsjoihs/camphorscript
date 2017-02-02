@@ -49,9 +49,13 @@ spac = do{p <- getPosition; s <- _sp;  return(simple p$Sp s)}
 comm :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 comm = do{p <- getPosition; s <- _comm;return(simple p$Comm s)} 
 
-block :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
-block = do{_brace; ss <- many sent;_ecarb; return(Block ss)}
+block' :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity (SourcePos,Sents)
+block' = do{p <- getPosition; _brace; ss <- many sent;_ecarb; return(p,ss)}
 --           {      a; b; c;       }
+
+block :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
+block = Block <$> block'
+
 
 func_def :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 func_def = do{
@@ -100,8 +104,8 @@ func_call_with_block ::  Stream s Identity (SourcePos, Tok) => ParsecT s u Ident
 func_call_with_block = try(do{ 
  p <- getPosition;
  (name,vs) <- func_call_without_semicolon; __;
- m <- block;
- return(simple p$Call1WithBlock name vs [m])
+ (p2,m) <- block';
+ return(simple p$Call1WithBlock name vs p2 m)
  })
 
  

@@ -1,0 +1,16 @@
+  E:\!!!計画!!!\camphorscriptまとめ\camphorscript0.6.5-(newest)\Camphor\Base_Step2\Replacer2.hs (19 hits)
+	Line 42:  Just _       -> Left $newErrorMessage(Message$show v1++" is a constant and thus cannot be the left side op operator \"+=\"")pos 
+	Line 46:  Just _       -> Left $newErrorMessage(Message$show v1++" is a constant and thus cannot be the left side op operator \"+=\"")pos 
+	Line 49:   Nothing      -> Left $newErrorMessage(Message$"FIXME:: code 0001")pos 
+	Line 52: replacer2 _ _ pos (Pleq (Constant c) _) _ = Left $newErrorMessage(Message$show c++" is a constant and thus cannot be the left side op operator \"+=\"")pos 
+	Line 57:  Just _       -> Left $newErrorMessage(Message$show v1++" is a constant and thus cannot be the left side op operator \"-=\"")pos 
+	Line 61:  Just _       -> Left $newErrorMessage(Message$show v1++" is a constant and thus cannot be the left side op operator \"-=\"")pos 
+	Line 64:   Nothing      -> Left $newErrorMessage(Message$"FIXME:: code 0001")pos 
+	Line 67: replacer2 _ _ pos (Mneq (Constant c) _) _ = Left $newErrorMessage(Message$show c++" is a constant and thus cannot be the left side op operator \"-=\"")pos 
+	Line 70:  Nothing     -> Left $newErrorMessage(Message$"identifier "++show ident++" is not defined")pos 
+	Line 76:  Nothing     -> Left $newErrorMessage(Message$"identifier "++show ident++" is not defined")pos 
+	Line 82:  Left$newErrorMessage(Message$"cannot define function "++show ident++"inside function/operator definition ")pos
+	Line 85:  Left$newErrorMessage(Message$"cannot define operator "++show oper ++"inside function/operator definition ")pos 
+	Line 88:  | isJust$ M.lookup ident table = Left$newErrorMessage(Message$"cannot call an argument "++show ident)pos 
+	Line 93:    (x:_) -> Left$newErrorMessage(Message$"cannot call "++show' x++" recursively inside "++show' n)pos
+	Line 112:    (x:_) -> Left$newErrorMessage(Message$"cannot call "++show' x++" recursively inside "++show' n)pos

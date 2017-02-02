@@ -24,15 +24,15 @@ data Tok =
  VOID  | CONST  |   SP String                       deriving(Show,Eq)
  
 -- Base_Step2_2
-data Upgrade a = Single a | Block [Upgrade a] deriving(Show,Eq)
+data Upgrade a b = Single (a,b) | Block (a,[Upgrade a b]) deriving(Show,Eq)
 type Extra = SourcePos
-type Sent  = Upgrade (Extra,SimpleSent)
+type Sent  = Upgrade Extra SimpleSent
 type Sents = [Sent]
 type TypeList = SepList Oper (Type,Ident)
 type ValueList = SepList Oper Value
 data SimpleSent =
  Char Ident | Del Ident | Scolon | Infl Fix Oper | Infr Fix Oper | Sp String | Comm String | 
- Func1 Ident TypeList Sent | Func2 Oper TypeList TypeList Sent | Call1 Ident ValueList | Call1WithBlock Ident ValueList Sents |
+ Func1 Ident TypeList Sent | Func2 Oper TypeList TypeList Sent | Call1 Ident ValueList | Call1WithBlock Ident ValueList SourcePos Sents |
  Call2 Oper ValueList ValueList | Call3 Oper ValueList ValueList | Call4 [(Value,Oper)] ValueList | Call5 ValueList |
  Pleq Value Value | Mneq Value Value | Rd Value | Wrt Value
  deriving(Show,Eq)

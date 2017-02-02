@@ -1,0 +1,1 @@
+void (%%)(char& a;char& b){a+=3;}

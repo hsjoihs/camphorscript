@@ -1,0 +1,3 @@
+infixr 10 (%%);
+void (%%)(char& a; constant char N){ a += N; }
+char a; char b; a %% b;

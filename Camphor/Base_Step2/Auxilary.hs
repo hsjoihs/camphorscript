@@ -9,6 +9,7 @@ module Camphor.Base_Step2.Auxilary
 ,NonEmptyValue
 ,breakBy',reverse''
 ,isValidCall3,getCall4Left,getInstanceOfCall1,getInstanceOfCall2
+,getLastPos
 ) where
 import qualified Camphor.SepList as S
 import Camphor.Base_Step2.Type
@@ -19,6 +20,11 @@ import Camphor.Global.Utilities
 import Text.Parsec 
 import Camphor.NonEmpty
 import qualified Data.Map as M
+
+getLastPos :: Sent -> SourcePos
+getLastPos (Single(pos,_)) = pos
+getLastPos (Block (p,[])) = p
+getLastPos (Block (_,x:xs)) = getLastPos $ last' (x:|xs)
 
 getInstanceOfCall2 :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError (TypeList,TypeList, Sent)
 getInstanceOfCall2 pos op valuelist1 valuelist2 stat = do
@@ -44,7 +50,7 @@ getInstanceOfCall1 pos ident valuelist stat = do
   finfo' :: Either ParseError [(TypeList, Sent)]
   finfo' = case getVFContents stat ident of 
    Nothing          -> Left $newErrorMessage(Message$"function "++show ident++" is not defined")pos 
-   Just(Left())     -> Left $newErrorMessage(Message$"cannot call"++show ident++" because it is defined as a variable")pos
+   Just(Left())     -> Left $newErrorMessage(Message$"cannot call "++show ident++" because it is defined as a variable")pos
    Just(Right info) -> Right $ info 
 
 getCall4Left :: SourcePos -> NonEmpty (Value, Oper) -> UserState -> Either ParseError (ValueList, Oper)

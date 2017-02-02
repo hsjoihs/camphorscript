@@ -27,33 +27,32 @@ newD pos ident stat
 
 newL :: SourcePos -> Fix -> Oper -> UserState -> Either ParseError UserState
 newL pos fixity op stat = case getOpContents stat op of
- Just(fix,_) -> 
-  if fix == InfixL fixity op 
-  then Right stat 
-  else Left$newErrorMessage(Message$"conflicting fixity definitions of operator "++show op)pos
  Nothing     -> Right$addOpFixity stat (InfixL fixity op)
+ Just(fix,_) 
+  | fix == InfixL fixity op -> Right stat 
+  | otherwise               -> Left$newErrorMessage(Message$"conflicting fixity definitions of operator "++show op)pos
  
 newR :: SourcePos -> Fix -> Oper -> UserState -> Either ParseError UserState
 newR pos fixity op stat = case getOpContents stat op of
- Just(fix,_) -> 
-  if fix == InfixR fixity op 
-  then Right stat 
-  else Left$newErrorMessage(Message$"conflicting fixity definitions of operator "++show op)pos
  Nothing     -> Right$addOpFixity stat (InfixR fixity op)
+ Just(fix,_) 
+  | fix == InfixR fixity op -> Right stat
+  | otherwise               -> Left$newErrorMessage(Message$"conflicting fixity definitions of operator "++show op)pos
 
 -- Function definition
 newF1 :: SourcePos -> Ident -> TypeList -> Sent -> UserState -> Either ParseError UserState
 newF1 pos name typelist sent stat = case getVFContents stat name of
- Just(Left ())  -> Left $newErrorMessage(Message$"cannot define function"++show name++" because it is already defined as a variable")pos
+ Just(Left ())  -> Left $newErrorMessage(Message$"cannot define function "++show name++" because it is already defined as a variable")pos
  Nothing        -> Right$addIdent stat name (Right[(typelist,sent)])
- Just(Right xs) -> Right$addIdent stat name (Right$(typelist,sent):xs)
+ Just(Right xs) 
+  | any id [ typelist `overlaps` tlist | (tlist,_) <- xs ] -> Left $ newErrorMessage(Message$"type-overlapping definition of function"++show name)pos
+  | otherwise                                              -> return $ addIdent stat name (Right$(typelist,sent):xs)
  
 -- Operator definition 
 newF2 :: SourcePos -> Oper -> TypeList -> TypeList -> Sent -> UserState -> Either ParseError UserState
-newF2 pos op typelist1 typelist2 sent stat = case addOpContents stat op (typelist1,typelist2,sent) of
- Nothing -> Left $newErrorMessage(Message$"fixity of operator "++show op++" is not defined")pos
- Just newStat -> Right$newStat
-
+newF2 pos op typelist1 typelist2 sent stat = 
+ addOpContents stat op (typelist1,typelist2,sent) $ 
+  (newErrorMessage(Message$"fixity of operator "++show op++" is not defined")pos,newErrorMessage(Message$"type-overlapping definition of operator "++show op)pos)
    
 getCall5Result :: SourcePos -> NonEmptyValue -> UserState -> Either ParseError (Oper,ValueList,ValueList)
 getCall5Result pos nEvaluelist stat = do
