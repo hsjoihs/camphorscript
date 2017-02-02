@@ -74,12 +74,7 @@ include  = do
  return(INCLU,"",fi) 
   
   
- 
-lift :: (Monad m) => (a -> b) -> m (n,a)-> m (n,b)
-lift f mna = do
- (n,a) <- mna
- return(n,f a)
-  
+
 
 
 
