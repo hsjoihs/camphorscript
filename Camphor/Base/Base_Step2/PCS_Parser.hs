@@ -11,70 +11,73 @@ import Camphor.Base.Base_Step2.Type
 import Camphor.Global.Synonyms
 
 parser2' :: Stream s m Char => ParsecT s u m [(SourcePos,Tok)]
-parser2' = do{ts<-many tok;eof;return ts;}
+parser2' = do{ts <- many tok;eof;return (concat ts);}
 
-tok :: Stream s m Char => ParsecT s u m (SourcePos,Tok)
+tok :: Stream s m Char => ParsecT s u m [(SourcePos,Tok)]
 tok = _char <|> _delete  <|> _num <|> _scolon <|>
  _paren <|> _nerap <|> _brace <|> _ecarb <|>
  _pragma <|> _comm <|> _op <|> -- _pragma -> _comm -> _op (IMPORTANT)
  _infixl <|> _infixr <|>
- _void <|> _sp <|> _cnstnt <|> _const <|> ident_parser
+ _void <|> _sp <|> _cnstnt <|> _const <|> ident_parser'
 
-_paren :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
-_paren  = do{p <- getPosition; char '('; return (p,PAREN)}
-_nerap :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
-_nerap  = do{p <- getPosition; char ')'; return (p,NERAP)}
-_brace :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
-_brace  = do{p <- getPosition; char '{'; return (p,BRACE)}
-_ecarb :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
-_ecarb  = do{p <- getPosition; char '}'; return (p,ECARB)}
-_scolon :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
-_scolon = do{p <- getPosition; char ';'; return (p,SCOLON)}
+_paren :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
+_paren  = do{p <- getPosition; char '('; return [(p,PAREN)]}
+_nerap :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
+_nerap  = do{p <- getPosition; char ')'; return [(p,NERAP)]}
+_brace :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
+_brace  = do{p <- getPosition; char '{'; return [(p,BRACE)]}
+_ecarb :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
+_ecarb  = do{p <- getPosition; char '}'; return [(p,SCOLON),(p,ECARB)]} -- auto semicolon insertion before '}'
+_scolon :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
+_scolon = do{p <- getPosition; char ';'; return [(p,SCOLON)]}
 
 __ :: Stream s m Char => ParsecT s u m () 
 __ = skipMany _nl
 
-_nl :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
+_nl :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
 _nl = _sp <|> _comm
 
  
-_char :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
-_char    = do{p <- getPosition; try(do{string "char"     ; notFollowedBy alphaNumBar}); return (p,CHAR)}
+_char :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
+_char    = do{p <- getPosition; try(do{string "char"     ; notFollowedBy alphaNumBar}); return [(p,CHAR)]}
 
-_delete :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
-_delete  = do{p <- getPosition; try(do{string "delete"  ; notFollowedBy alphaNumBar}); return (p,DELETE)} 
+_delete :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
+_delete  = do{p <- getPosition; try(do{string "delete"  ; notFollowedBy alphaNumBar}); return [(p,DELETE)]} 
 
-_infixl :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
-_infixl  = do{p <- getPosition; try(do{string "infixl"   ; notFollowedBy alphaNumBar}); return (p,INFIXL)} 
+_infixl :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
+_infixl  = do{p <- getPosition; try(do{string "infixl"   ; notFollowedBy alphaNumBar}); return [(p,INFIXL)]} 
 
-_infixr :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
-_infixr  = do{p <- getPosition;try(do{string "infixr"   ; notFollowedBy alphaNumBar});  return (p,INFIXR)} 
+_infixr :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
+_infixr  = do{p <- getPosition;try(do{string "infixr"   ; notFollowedBy alphaNumBar});  return [(p,INFIXR)]} 
 
-_void :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
-_void    = do{p <- getPosition; try(do{string "void"    ; notFollowedBy alphaNumBar}); return (p,VOID)} 
+_void :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
+_void    = do{p <- getPosition; try(do{string "void"    ; notFollowedBy alphaNumBar}); return [(p,VOID)]} 
 
-_cnstnt :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
-_cnstnt  = do{p <- getPosition; try(do{string "constant" ; notFollowedBy alphaNumBar}); return (p,CNSTNT)} 
+_syntax :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
+_syntax  = do{p <- getPosition; try(do{string "syntax"  ; notFollowedBy alphaNumBar}); return [(p,SYNTAX)]} 
 
-_const :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
-_const   = do{p <- getPosition; try(do{string "const"    ; notFollowedBy alphaNumBar}); return (p,CONST)} 
+_cnstnt :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
+_cnstnt  = do{p <- getPosition; try(do{string "constant" ; notFollowedBy alphaNumBar}); return [(p,CNSTNT)]} 
+
+_const :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
+_const   = do{p <- getPosition; try(do{string "const"    ; notFollowedBy alphaNumBar}); return [(p,CONST)]} 
 
 
 
-_num :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok) 
-_num     = do{p <- getPosition; x <- uint';     return(p,NUM x)}
+_num :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
+_num     = do{p <- getPosition; x <- uint';     return[(p,NUM x)]}
 
-_comm :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
-_comm    = do{p <- getPosition; x <- blockComm;return(p,COMM x)}
+_comm :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
+_comm    = do{p <- getPosition; x <- blockComm;return[(p,COMM x)]}
 
-_pragma :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
-_pragma  = do{p <- getPosition; x <- pragmaComm; case x of West c -> return(p,COMM c); East pr -> return(p,PRAGMA pr)}
+_pragma :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
+_pragma  = do{p <- getPosition; x <- pragmaComm; case x of West c -> return[(p,COMM c)]; East pr -> return[(p,PRAGMA pr)]}
 
-_sp :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
-_sp      = do{p <- getPosition; x <- many1 space;return(p,SP x)}
+_sp :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
+_sp      = do{p <- getPosition; x <- many1 space;return[(p,SP x)]}
 
-_op :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
-_op      = do{p <- getPosition; x <- operator;return(p,OP x)}
+_op :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
+_op      = do{p <- getPosition; x <- operator;return[(p,OP x)]}
 
 
 showTok :: Tok -> String
@@ -93,6 +96,7 @@ showTok (OP s)    = "operator "  ++showStr(unOp s)
 showTok INFIXL    = "token "     ++showStr "infixl"
 showTok INFIXR    = "token "     ++showStr "infixr"
 showTok VOID      = "token "     ++showStr "void"
+showTok SYNTAX    = "token "     ++showStr "syntax"
 showTok CONST     = "token "     ++showStr "const"
 showTok (SP _)    = "space "     
 showTok CNSTNT    = "token "     ++showStr "constant"

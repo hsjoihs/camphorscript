@@ -31,15 +31,12 @@ getLastPos (Block  _ (x:xs)) = getLastPos $ last' (x :| xs)
 
 getInstanceOfCall2 :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError OpInstance
 getInstanceOfCall2 pos op valuelist1 valuelist2 stat = do
- opinfo <- opinfo'
+ (_,opinfo) <- getOpContents2 pos stat op
  let matchingOpInstance = [ a | a@(typelist1,typelist2,_) <- opinfo, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ] 
  case matchingOpInstance of 
   []        -> Left $newErrorMessage(Message$"no type-matching instance of "++showStr (unOp op)++" defined")pos 
   [instnce] -> return instnce
   xs        -> Left $newErrorMessage(Message$showNum(length xs)++" type-matching instances of "++showStr (unOp op)++" defined")pos 
- where
-  opinfo' :: Either ParseError [OpInstance]
-  opinfo' = fmap snd $ getOpContents2 pos stat op
 
 getInstanceOfCall1 :: SourcePos -> Ident2 -> ValueList -> UserState -> Either ParseError VFInstance
 getInstanceOfCall1 pos ident valuelist stat = do

@@ -1,4 +1,4 @@
-﻿1. char a, b=3, c, d=5;などの「変則変数宣言」
+﻿　1. char a, b=3, c, d=5;などの「変則変数宣言」
 　理由　楽をするため
 
 2. #define del(a) while(a){a-=1;} delete a などの「C関数マクロ」

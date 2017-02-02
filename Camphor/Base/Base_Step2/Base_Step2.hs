@@ -73,7 +73,7 @@ convert2_2 :: Sents -> StateT UserState (Either ParseError) Txt
 convert2_2 []                                                     = return "" 
 convert2_2 (Single _    (Comm comm):xs)                           = ("/*" ++ comm ++ "*/")                         <++?> convert2_3 xs 
 convert2_2 (Single _    (Sp   sp  ):xs)                           = sp                                             <++?> convert2_2 xs  -- convert2_2 INTENTIONAL
-convert2_2 (Single _    (Scolon   ):xs)                           = ";"                                            <++?> convert2_3 xs 
+convert2_2 (Single _    (Scolon   ):xs)                           = ""                                            <++?> convert2_3 xs 
 convert2_2 (Single _    (Pleq ident integer):xs) = (unId ident ++ "+=" ++ showNum integer ++ ";") <++?> convert2_3 xs 
 convert2_2 (Single _    (Mneq ident integer):xs) = (unId ident ++ "-=" ++ showNum integer ++ ";") <++?> convert2_3 xs 
 convert2_2 (Single _    (Rd   idnt):xs)                     = ("read("  ++ unId idnt ++ ")" ++ ";")          <++?> convert2_3 xs 

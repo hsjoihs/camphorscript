@@ -8,7 +8,7 @@ module Camphor.Base.Base_Step2.Type
 ,PragmaData,ParserState
 ,Upgrade(..),Extra,Sent,Sent2,Sents,TypeList,ValueList,SimpleSent(..),Fixity(..),isVar,TmpStat
 ,Ident2(),toIdent2,unId,SimpleSent2(..),toSimpleSent2,toSent2
-,bbbb,aaaa,nnnn,readI,writeI,tmpIdent,showIdent
+,bbbb,aaaa,nnnn,readI,writeI,tmpIdent,showIdent,ident_parser'
 )where
 import Camphor.Global.Synonyms
 import Camphor.SafePrelude 
@@ -70,10 +70,11 @@ type TmpStat = [Ident2]
 
 -- PCS_Parser
 data Tok = 
- CHAR  | DELETE | IDENT Ident2  |   NUM Integer   |  
- PAREN | NERAP  | BRACE | ECARB | SCOLON | CNSTNT |
- COMM String    |    OP Oper    | INFIXL | INFIXR |
- VOID  | CONST  |   SP String   | PRAGMA PragmaData         deriving(Show,Eq)
+ CHAR   | DELETE | IDENT Ident2  |   NUM Integer   |  
+ PAREN  | NERAP  | BRACE | ECARB | SCOLON | CNSTNT |
+ COMM String     |    OP Oper    | INFIXL | INFIXR |
+ SYNTAX | VOID   | CONST |   SP String    | 
+ PRAGMA PragmaData         deriving(Show,Eq)
 
 {----------------------------------
  |          end of types          |
@@ -87,7 +88,11 @@ ident_parser   = do
  p <- getPosition
  x <- identifier
  return(p,IDENT(Ident2 x))
+ 
+ident_parser' :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
+ident_parser' = (:[]) <$> ident_parser
 
+ 
 bbbb, aaaa, nnnn, readI, writeI :: Ident2
 bbbb = Ident2 "bbbb"
 aaaa = Ident2 "aaaa"
@@ -104,7 +109,7 @@ toIdent2 "" = Left ""
 toIdent2 i@(x:xs) = maybeToEither i $ do
  guard $ (isAlpha x || x == '_')
  guard $ null[ a | a <- xs, not (isAlphaNum a), a /= '_']
- guard $ i `notElem` ["char","delete","infixl","infixr","void","constant","const" ]
+ guard $ i `notElem` ["char","delete","infixl","infixr","void","constant","const","syntax" ]
  return(Ident2 i)
 
 toSent2 :: Sent -> Sent2

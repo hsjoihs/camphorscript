@@ -7,7 +7,7 @@ module Camphor.Base.Base_Step2.PCS_Parser2
 ,_char,_delete,_paren,_nerap,_brace
 ,_ecarb,_scolon,_cnstnt,_infixl,_infixr
 ,_void,_const,_ident,_num,_pragma,_comm,_op,_sp,_nl,__
-,_and,_eq,_zero
+,_and,_eq,_zero,_comma
 
 )where
 
@@ -113,6 +113,12 @@ _eq :: Stream s Identity (SourcePos, Tok) => Parsec s u ()
 _eq = parseWhen qqq
  where
   qqq(_,OP o) = if unOp o == "=" then Just () else Nothing
+  qqq(_,_   ) = Nothing
+  
+_comma :: Stream s Identity (SourcePos, Tok) => Parsec s u ()
+_comma = parseWhen qqq
+ where
+  qqq(_,OP o) = if unOp o == "," then Just () else Nothing
   qqq(_,_   ) = Nothing
   
 _zero :: Stream s Identity (SourcePos, Tok) => Parsec s u ()

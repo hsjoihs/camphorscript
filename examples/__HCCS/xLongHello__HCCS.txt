@@ -1,0 +1,6 @@
+char a;a+=72;char b;b+=101;char c;c+=108;char d;d+=108;char e;e+=111;
+write(a);
+write(b);
+write(c);
+write(d);
+write(e);

@@ -1,0 +1,6 @@
+char a='H', b='e', c=d='l', e='o';
+write(a);
+write(b);
+write(c);
+write(d);
+write(e);
