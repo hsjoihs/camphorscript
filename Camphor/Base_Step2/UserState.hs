@@ -6,7 +6,8 @@ module Camphor.Base_Step2.UserState
 ,emptyState
 ,containsIdent,addIdent,removeIdent,getVFContents
 ,addOpFixity,getOpName,containsOp,getOpContents,matches,getFixValue
-
+,isInfixL,isInfixR
+,show',PrettyPrint
 )where
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Camphor.Base_Step2.Base_Step2_2
@@ -14,6 +15,23 @@ import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import qualified Data.Map as M
 
+isInfixL :: Fixity -> Bool
+isInfixL (InfixL _ _) = True
+isInfixL (InfixR _ _) = False
+
+isInfixR :: Fixity -> Bool
+isInfixR = not . isInfixL
+
+class PrettyPrint a where
+ show' :: a -> String
+
+instance PrettyPrint Fixity where
+ show' (InfixL int op) = show op++"[infixl "++show int++"]"
+ show' (InfixR int op) = show op++"[infixr "++show int++"]"
+ 
+instance PrettyPrint Value where
+ show'(Var x) = x
+ show'(Constant n) = show n
 
 data Fixity = InfixL Integer Oper | InfixR Integer Oper deriving(Show,Eq) 
 
@@ -24,20 +42,10 @@ type VFList = M.Map Ident VFInfo
 type OpList = M.Map Oper OpInfo
 
 data UserState = UserState VFList OpList
-{-
-
-UserState should contain the following things...
-
-1. variable and function list, i.e.  M.Map Ident (Either () [(TypeList, Sent)] )
-2. operator list, i.e.  M.Map Oper (Fixity,[(TypeList,TypeList, Sent)])
-
--}
 
 getFixValue :: Fixity -> Integer
 getFixValue (InfixL fix _) = fix
 getFixValue (InfixR fix _) = fix
-
-
 
 getOpName :: Fixity -> Oper
 getOpName (InfixL _ op) = op

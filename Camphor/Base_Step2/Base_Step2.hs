@@ -7,8 +7,10 @@ module Camphor.Base_Step2.Base_Step2
 ) where
 
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
+import Data.Ord(comparing)
 import Camphor.Partial
 import Camphor.Base_Step2.Base_Step2_2
+import Camphor.Base_Step2.Auxilary
 import Camphor.Base_Step2.PCS_Parser(parser2')
 import Camphor.Base_Step2.UserState
 import Camphor.Global.Synonyms
@@ -107,7 +109,7 @@ convert2 stat (Single(_,Call1 name valuelist):Block ys:xs) = do -- FIXME: does n
  return$ showCall name valuelist ++ left
   where 
    showCall nm (v,ovs) = nm ++ "(" ++ show' v ++ concat[ o2 ++ show' v2 | (o2,v2) <- ovs ] ++ ")"
-   show'(Var x) = x; show'(Constant n) = show n
+   
 
 --- (val [op val])op(val [op val]);
 convert2 stat (Single(pos,Call2 op valuelist1 valuelist2):xs) = do
@@ -184,7 +186,7 @@ newR pos fixity op stat = case getOpContents stat op of
 -- Function definition
 newF1 :: SourcePos -> Ident -> TypeList -> Sent -> UserState -> Either ParseError UserState
 newF1 pos name typelist sent stat = case getVFContents stat name of
- Just(Left ())  -> Left $newErrorMessage(Message$"cannot define function"++show name++" because "++show name++" is already defined as a variable")pos
+ Just(Left ())  -> Left $newErrorMessage(Message$"cannot define function"++show name++" because it is already defined as a variable")pos
  Nothing        -> Right$addIdent stat name (Right[(typelist,sent)])
  Just(Right xs) -> Right$addIdent stat name (Right$(typelist,sent):xs)
    
@@ -240,8 +242,31 @@ newK4 pos (x:xs) valuelist2 stat = do
   canBeLeftOf' = canBeLeftOf pos
 
 --- no-parenthesized operator call  
-newK5 :: SourcePos -> ValueList -> UserState -> Either ParseError Txt  
-newK5 pos valuelist stat = undefined
+newK5 :: SourcePos -> ValueList -> UserState -> Either ParseError Txt
+newK5 pos valuelist@(x,_) stat = do
+ ops <- getOpsFixities pos stat valuelist
+ case ops of -- [Fixity]
+  []     -> singleValue x
+  (y:ys) -> newK5' pos valuelist stat (y:|ys)
+ where
+  singleValue (Constant _)  = return "" -- 123; is a nullary sentence
+  singleValue (Var ident )  = case getVFContents stat ident of
+   Nothing        -> Left $newErrorMessage(Message$"identifier "++show ident++" is not defined")pos 
+   Just(Left ())  -> return ""
+   Just(Right _)  -> Left $newErrorMessage(Message$"cannot use variable "++show ident++" because it is already defined as a function")pos
+
+newK5' :: SourcePos -> ValueList -> UserState -> NonEmpty Fixity -> Either ParseError Txt
+newK5' pos valuelist stat fixes = do
+ let minOps = minimumsBy (comparing getFixValue) fixes
+ case minOps of 
+  k                 :| [] -> undefined
+  k@(InfixL int op) :| ks -> case contradiction(k:ks) of
+   Nothing -> undefined;
+   Just k2 -> Left $newErrorMessage(Message$"cannot mix "++show' k++" and "++show' k2++" in the same infix expression")pos -- message borrowed from GHC
+  k@(InfixR int op) :| ks -> undefined;
+ undefined
+ 
+  
 
 --- macro-replacing function for operator
 replaceOpMacro :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError Txt
@@ -272,8 +297,6 @@ replaceFuncMacro pos ident valuelist stat = do
    Just(Left())     -> Left $newErrorMessage(Message$"cannot call"++show ident++" because it is defined as a variable")pos
    Just(Right info) -> Right $ info
 
-
-
 replacerOfOp :: (TypeList,TypeList, Sent) -> ValueList -> ValueList -> UserState -> Either ParseError Txt
 replacerOfOp (typelist1,typelist2,sent) valuelist1 valuelist2 stat = 
  replacer sent stat $ makeReplacerTable2 (typelist1,typelist2) (valuelist1,valuelist2)
@@ -282,10 +305,6 @@ replacerOfFunc :: (TypeList, Sent) -> ValueList -> UserState -> Either ParseErro
 replacerOfFunc (typelist,sent) valuelist stat =
  replacer sent stat $ makeReplacerTable typelist valuelist
 
- 
-
-type ReplTable = M.Map Ident Value 
-
 replacer :: Sent -> UserState -> ReplTable -> Either ParseError Txt
 replacer (Single(pos2,ssent)) stat table = do
  newSSent <- replacer2 pos2 ssent table
@@ -293,7 +312,6 @@ replacer (Single(pos2,ssent)) stat table = do
 replacer (Block xs) stat table = do
  result <- sequence [replacer ssent stat table | ssent <- xs]
  return$concat(["{"]++result++["}"])
-
 
 
 {-  -------------------------------------------------------------------------------
@@ -323,69 +341,8 @@ replacer2 pos (Del ident) table = case M.lookup ident table of
  Nothing -> return(Del ident)
  Just _  -> Left$newErrorMessage(Message$"cannot delete an argument"++show ident)pos 
  
-
-
 {-  -------------------------------------------------------------------------------
    ********************
    * end of replacer2 *
    ********************
 ----------------------------------------------------------------------------------}
- 
-getOpContents2 :: SourcePos -> UserState -> Oper -> Either ParseError OpInfo
-getOpContents2 pos s o = case getOpContents s o of
- Nothing   -> Left $ newErrorMessage(Message$"operator "++show o++" is not defined")pos
- Just info -> Right$ info
-
- 
-canBeRightOf :: SourcePos -> Fixity -> Fixity -> Either ParseError ()
-canBeRightOf pos f2 f1
- | v2 > v1 = Right()
- | v2 < v1 = __mkmsg pos (getOpName f1) (getOpName f2)
- where v1 = getFixValue f1; v2 = getFixValue f2;
-canBeRightOf pos (InfixL _ nm1) (InfixL _ nm2) = __mkmsg pos nm1 nm2
-canBeRightOf pos (InfixL _ nm1) (InfixR _ nm2) = __mixed pos nm1 nm2
-canBeRightOf pos (InfixR _ nm1) (InfixL _ nm2) = __mixed pos nm1 nm2
-canBeRightOf _   (InfixR _ _  ) (InfixR _ _  ) = Right()
-
-canBeLeftOf :: SourcePos -> Fixity -> Fixity -> Either ParseError ()
-canBeLeftOf pos f2 f1
- | v2 > v1 = Right()
- | v2 < v1 = __mkmsg pos (getOpName f1) (getOpName f2)
- where v1 = getFixValue f1; v2 = getFixValue f2;
-canBeLeftOf pos (InfixR _ nm1) (InfixR _ nm2) = __mkmsg pos nm1 nm2
-canBeLeftOf pos (InfixR _ nm1) (InfixL _ nm2) = __mixed pos nm1 nm2
-canBeLeftOf pos (InfixL _ nm1) (InfixR _ nm2) = __mixed pos nm1 nm2
-canBeLeftOf _   (InfixL _ _  ) (InfixL _ _  ) = Right()
-
-__mkmsg :: SourcePos -> Oper -> Oper -> Either ParseError a
-__mkmsg pos nm1 nm2 = Left $ newErrorMessage(Message$"operator "++show nm2++" has smaller fixity than its outer operator "++nm1)pos
- 
-__mixed :: SourcePos -> Oper -> Oper -> Either ParseError a
-__mixed pos nm1 nm2 = Left $ newErrorMessage(Message$"operator "++show nm1++" and operator "++show nm2++" has opposite fixity and thus cannot coexist")pos  
- 
- 
-toList1 :: TypeList -> [Ident]
-toList1 (_,t,xs) = t:[x|(_,_,x)<-xs]
- 
-toList2 :: ValueList -> [Value]
-toList2 (v,xs) = v:map snd xs 
-
-toOpList :: ValueList -> [Oper]
-toOpList (_,xs) = map fst xs
-
-getOpFixity :: SourcePos -> UserState -> Oper -> Either ParseError Fixity
-getOpFixity pos stat op = fmap fst $ getOpContents2 pos stat op  
- 
-getOpsFixities :: SourcePos -> UserState -> ValueList -> Either ParseError [Fixity]
-getOpsFixities pos stat valuelist = mapM (getOpFixity pos stat) $ toOpList valuelist
-
-makeReplacerTable :: TypeList -> ValueList -> ReplTable
-makeReplacerTable tlist vlist = M.fromList$zip(toList1 tlist)(toList2 vlist) 
-
-makeReplacerTable2 :: (TypeList,TypeList) -> (ValueList,ValueList) -> ReplTable
-makeReplacerTable2 (t1,t2)(v1,v2) = M.fromList$zip(toList1 t1++toList1 t2)(toList2 v1++toList2 v2)
-
--- type TypeList = (Type, Ident, [(Oper, Type, Ident)])
--- type ValueList = (Value,[(Oper,Value)])   
--- type Sent  = Upgrade (Extra,SimpleSent) = Single (Extra,SimpleSent) | Block [Upgrade (Extra,SimpleSent)]
--- type Extra = SourcePos

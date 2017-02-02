@@ -159,7 +159,7 @@ op_call3 = try(do{
 
  
  
----   値【演算子 値】 演算子(値 【演算子 値】); or (値 【演算子 値】)
+---   値【演算子 値】 演算子(値 【演算子 値】); or (値 【演算子 値】);
 op_call4 :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 op_call4 = try(do{
  p <- getPosition; 
@@ -171,7 +171,7 @@ op_call4 = try(do{
  
  })
  
----   値【演算子 値】 演算子 値 【演算子 値】 ;
+---   値【演算子 値】 演算子 値 【演算子 値】 ; or 値;
 op_call5 :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 op_call5 = try(do{
  p <- getPosition; 
