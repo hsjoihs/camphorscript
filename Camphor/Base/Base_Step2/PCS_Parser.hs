@@ -11,7 +11,7 @@ import Camphor.Base.Base_Step2.Type
 import Camphor.Global.Synonyms
 
 parser2' :: Stream s m Char => ParsecT s u m [(SourcePos,Tok)]
-parser2' = do{ts <- many tok;eof;return (concat ts);}
+parser2' = concat <$> many tok <* eof
 
 tok :: Stream s m Char => ParsecT s u m [(SourcePos,Tok)]
 tok = _char <|> _delete  <|> _num <|> _scolon <|> _syntax <|> _BLOCK <|>

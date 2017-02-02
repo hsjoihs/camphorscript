@@ -6,9 +6,9 @@ function openFile(path){
 		var stream = fso.OpenTextFile(path);
 		var result = stream.ReadAll();
 		stream.Close();
-		document.a.inp.value=result;
+		document.c.inp.value=result;
 	}else{
-	document.a.err.value="ファイルがありません";
+	document.c.err.value="ファイルがありません";
 	}
 }
 
@@ -18,13 +18,13 @@ function runCmd(cmd)
 	var ws_exec = ws.Exec(cmd);
 	var res_exec = ws_exec.StdOut.ReadAll();
 	var res_err = ws_exec.StdErr.ReadAll();
-	if(res_err){document.a.err.value=res_err}
-	document.a.out.value = res_exec;
+	if(res_err){document.c.err.value=res_err}
+	document.c.out.value = res_exec;
 }
 
 function run()
 {
-	document.a.err.value = "";
+	document.c.err.value = "";
 	var from = document.c.from.selectedIndex;
 	var i = document.c.to.selectedIndex;
 	if(!langTable[from-1]){alert("変換元言語が選択されていません");return;}
@@ -35,11 +35,12 @@ function run()
 	if(from<to) //ccsc
 	{
 		opt += ""+from+(to-1) //植木算
+		
 	}
 	else //ccsrc
 	{
-		opt += ""+(from-1)+to //植木算
+		opt += ""+(from+1)+to //植木算
 		compiler="ccsrc"
 	}
-	runCmd(compiler+" "+opt+" \""+document.a.path.value+"\" -o con ");	
+	runCmd(compiler+" "+opt+" \""+document.c.path.value+"\" -o con ");	
 }

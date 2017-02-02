@@ -1,0 +1,22 @@
+﻿assertには4種類ある。
+
+1. static_assert_begin
+2. static_assert_end
+3. unsafe_assert
+4. I_know_that_I_am_right_assert
+
+
+static_assert_begin: 
+ while(a){}後のa, char a;後のaなどに挿入される。
+
+static_assert_end:
+ static_assert_beginされている変数が変更される直前に挿入される。
+
+unsafe_assert:
+ deleteとか/*# MEMORY using #*/を使った時に挿入される。
+ static_assert内にあれば削除される。
+
+I_know_that_I_am_right_assert:
+ /*# MEMORY value a 0 #*/と書くと挿入される。
+ static_assert_beginと同様に扱われる。
+ この"I"とはライブラリ作者を指すため、ライブラリを作る側が0を保証しなくてはいけない。

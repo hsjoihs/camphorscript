@@ -1,0 +1,7 @@
+@echo off
+set PATH=%PATH%;E:\ghc2\ghc\2013.2.0.0\lib\extralibs\bin;E:\ghc2\ghc\2013.2.0.0\bin;
+cabal update
+set LANG=C
+cabal install cabal-install
+cabal install mtl
+%COMSPEC%

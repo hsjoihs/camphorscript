@@ -32,13 +32,13 @@ step3_II mem file str = do
  convert3 mem file sets
  
 parser3' :: Stream s m Char => ParsecT s u m [Set3]
-parser3' = do{sents <- parser3;eof;return sents;}
+parser3' = parser3 <* eof
 
 parId :: Stream s m Char => ParsecT s u m Ident
 parId = do{spaces';char '(';spaces';xs <- identifier;spaces';char ')';spaces';return xs}
 
 parIdSC :: Stream s m Char => ParsecT s u m Ident
-parIdSC = do{xs <- parId;char ';';return xs}
+parIdSC = parId <* char ';'
 
 parser3 :: Stream s m Char => ParsecT s u m [Set3]
 parser3 = concat <$> many sentences3
@@ -64,14 +64,14 @@ while :: Stream s m Char => ParsecT s u m [Set3]
 while = try(do{
  string "while"; xs <- parId;
  spaces'; char '{';
- spaces'; ks<-parser3; spaces';
+ spaces'; ks <- parser3; spaces';
  char '}';
  return[Bot(WHI xs,Ns ks),Top(AS0 xs)]})
  
 block :: Stream s m Char => ParsecT s u m [Set3]
 block = try(do{
  char '{';
- spaces'; ks<-parser3; spaces';
+ spaces'; ks <- parser3; spaces';
  char '}';
  return[Bot(BLO,Ns ks)]})
 

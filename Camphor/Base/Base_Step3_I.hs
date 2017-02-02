@@ -23,10 +23,8 @@ type Stat = (Tabnum,[FilePath])
 newtype Comm = Comm String
 
 parser3 :: Stream s m Char => ParsecT s Stat m [Txt]
-parser3 = do
- res <- many line
- eof
- return res
+parser3 = many line <* eof
+
  
 line :: Stream s m Char => ParsecT s Stat m Txt 
 line = do
@@ -55,18 +53,9 @@ process (East x:xs) = do
  return $ x ++ rest
   
 process (West(Comm c):xs) = case words c of 
- ["#","LINE","start",path,"#"] -> do
-  rest <- process xs
-  modifySnd(path:)
-  return rest 
-
- ["#","LINE","end"  ,_   ,"#"] -> do
-  rest <- process xs
-  modifySnd(drop 1)
-  return rest
- _  -> do
-  rest <- process xs
-  return ("/*" ++ c ++ "*/" ++ rest) 
+ ["#","LINE","start",path,"#"] -> process xs <* modifySnd(path:)
+ ["#","LINE","end"  ,_   ,"#"] -> process xs <* modifySnd(drop 1)
+ _                             -> ("/*" ++ c ++ "*/")  <++$> process xs
 
  
 other' :: Stream s m Char => ParsecT s u m Data

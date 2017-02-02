@@ -42,10 +42,8 @@ parser1 :: Stream s m Char => ParsecT s u m [Pre7]
 parser1 = many line
 
 parser1' :: Stream s m Char => ParsecT s u m [Pre7]
-parser1' = do
- sents <- many line
- eof
- return sents
+parser1' = many line <* eof
+
 
 line :: Stream s m Char => ParsecT s u m Pre7
 line = ifdef <|> ifndef <|> endif <|> else_dir <|> if0 <|> if1 <|> warning <|> err <|> define <|> undef <|> include <|> other
@@ -85,9 +83,9 @@ define = do
   nbnls
   xs <- identifier'
   ys <- do{newline';return $ Right ""} <|> do{nbnl;nbnls;m<-many(noneOf "\n");newline';return $ Right m} <|> do{ks<-many(noneOf "\n");newline';return $ Left ks}
-  case ys of
-   Right ys' -> return $ DEFINE xs ys'
-   Left  ys' -> return $ OTHER("#define "++xs++ys')
+  return $ case ys of
+   Right ys' -> DEFINE xs ys'
+   Left  ys' -> OTHER("#define "++xs++ys')
 
 include :: Stream s m Char => ParsecT s u m Pre7
 include  = do
@@ -105,94 +103,181 @@ include  = do
 -- CONVERSION
 
 type Table = M.Map Ident String
-type CurrentState = (Table,Integer,Int,Bool,Integer){-defined macro, how deep 'if's are, line num, whether to read a line,depth of skipping  -}
+data CurrentState = CS
+ {
+  defMacro :: Table,
+  ifDepth  :: Integer,
+  lineNum  :: Int,
+  ok       :: Bool, -- whether to read a line or skip it
+  skipDepth :: Integer,
+  path     :: FilePath
+ } deriving(Show,Eq,Ord)
+ 
+initial :: Table -> FilePath -> CurrentState 
+initial t f = CS{defMacro = t, ifDepth = 0,lineNum = 1,ok = True, skipDepth = -1, path = f}
 
 makeErr' :: Message -> String -> Int -> Int -> WriterT Warnings (Either ParseError) a
 makeErr' a b c d = lift(makeErr a b c d)
 
 convert1 :: FilePath -> Includers -> [Pre7] -> WriterT Warnings (Either ParseError) String
-convert1 file includers@(_,_,t) xs = snd <$> convert1' file includers ((t,0,1,True,-1) ,xs) 
+convert1 file includers@(_,_,t) xs = snd <$> conv1 includers (initial t file)xs
 
+
+map2 :: (Monad m,Functor m) => (s -> s) -> (s -> m s2) -> (r -> a -> StateT s m [b]) -> r -> s -> [a] -> m(s2,[b]) 
+map2 _  f2 _ _ s []     = do{s2 <- f2 s;return(s2,[])}
+map2 f3 f2 f r s (x:xs) = do
+ (b,s') <- runStateT (f r x) s 
+ (b++) <$$> map2 f3 f2 f r (f3 s') xs
+ 
+type SCWWEP = StateT CurrentState (WriterT Warnings (Either ParseError))  
+
+modifyDepth :: (Integer -> Integer) -> SCWWEP String 
+modifyDepth f = do
+ stat@CS{ifDepth = depth} <- get
+ put stat{ifDepth = f depth} 
+ return "\n"
+ 
+putFalseAndSink :: SCWWEP String
+putFalseAndSink = do -- sink
+ putFalse;
+ modifyDepth(+1);
+ 
+putFalse :: SCWWEP String
+putFalse = do -- sink
+ stat@CS{ifDepth = depth} <- get
+ put stat{skipDepth = depth, ok = False}
+ return "\n"
+ 
+putTrue :: SCWWEP String
+putTrue = do 
+ stat <- get
+ put stat{skipDepth = (-1), ok = True}
+ return "\n"
+
+putTrueAndFloat :: SCWWEP String 
+putTrueAndFloat = do 
+ putTrue
+ modifyDepth(+(-1));
+
+ 
+conv1 :: Includers -> CurrentState -> [Pre7] -> WriterT Warnings (Either ParseError) (Table,String)
+conv1 = map2 (\s -> s{lineNum = lineNum s + 1})empt c1
+ where
+  empt (CS table 0     _ True _ _) = return table
+  empt (CS _     depth n _    _ f) 
+   | depth>0                                                      = makeErr'(  Expect "#endif")(f++"--step1'") n 1
+   | otherwise                                                    = makeErr'(UnExpect "#endif")(f++"--step1'") n 1  
+
+
+c1 :: Includers -> Pre7 -> StateT CurrentState (WriterT Warnings (Either ParseError)) String
+c1 _ (ERR msg) = do 
+ stat@CS{ok = o, path = f} <- get
+ if not o 
+  then return "\n" 
+  else lift $ makeErr'(Message$"#error "++msg)(f++"step1'") (lineNum stat) 1
+ 
+c1 _ (WARN msg) = do
+ stat@CS{ok = o, path = f} <- get
+ if not o 
+  then return "\n" 
+  else do
+   let lev = case words msg of ("crucial"  :_) -> Crucial; ("important":_) -> Important; ("verbose"  :_) -> Verbose;  _ -> Helpful  
+   lift $ tellOne $ warn ("#warning "++msg) lev (newPos (f++"step1'") (lineNum stat) 1)
+   return "\n"
+
+c1 _ (DEFINE ide t) = do
+ stat@CS{defMacro = table,ok = o, path = f} <- get
+ case o of
+  False -> return "\n"
+  True
+   | isJust(M.lookup ide table) -> lift $ makeErr'(Message$"C macro "++show ide++" is already defined")(f++"step1'") (lineNum stat) 1
+   | otherwise                  -> put stat{defMacro = _tabl} >> return "\n"
+   where _tabl = M.insert ide t table   
+   
+c1 _ (UNDEF  ide) = do
+ stat@CS{defMacro = table, ok = o, path = f} <- get
+ case o of 
+  False -> return "\n"; 
+  True
+   | _tabl == table             -> lift $ makeErr'(Message$"C macro "++show ide++" is not defined")(f++"step1'") (lineNum stat) 1
+   | otherwise                  -> put stat{defMacro = _tabl} >> return "\n"
+   where _tabl = M.delete ide table
+  
+c1 _ IF1 = modifyDepth (+1)  -- in either case
+c1 _ IF0 = do
+ CS{ok = o} <- get
+ if o 
+  then putFalseAndSink
+  else modifyDepth (+1)
+ -- convert1' i(stat{lineNum = lineNum stat + 1, ifDepth = depth + 1 , ok = False, skipDepth = depth})xs
+ 
+c1 _ (IFDEF ide) = do
+ CS{ok = o,defMacro = table} <- get
+ if o && isNothing(M.lookup ide table)
+  then putFalseAndSink
+  else modifyDepth (+1)
+
+c1 _ (IFNDEF ide) = do
+ CS{ok = o,defMacro = table} <- get
+ if o && isJust(M.lookup ide table)
+  then putFalseAndSink
+  else modifyDepth (+1)
+ 
+c1 _ ENDIF = do
+ stat@CS{ok = o,ifDepth = depth,path = f} <- get
+ case (o,depth) of
+  (True ,0) -> lift $ makeErr'(UnExpect "#endif")(f++"step1'") (lineNum stat) 1 
+  (True ,_) -> modifyDepth (+(-1)) >> return "\n"
+  (False,_)
+   | depth - 1 == skipDepth stat -> putTrueAndFloat 
+   | otherwise                   -> modifyDepth (+(-1))
+   
+c1 _ ELSE = do
+ stat@CS{ok = o,ifDepth = depth,path = f} <- get
+ case (o,depth) of
+  (True ,0) -> lift $ makeErr'(UnExpect "#else")(f++"step1'") (lineNum stat) 1 
+  (True ,_) -> putFalse <* modify(\s -> s{skipDepth = depth-1}) 
+  (False,_)
+   | depth - 1 == skipDepth stat -> putTrue 
+   | otherwise                   -> modify(\s -> s{skipDepth = depth}) >> return "\n"
+   
+c1 _ (OTHER t) = do
+ CS{ok = o,defMacro = table} <- get
+ case o of
+  False -> return "\n"
+  True -> do 
+   replaced <- lift $ lift $ replaceBy table t   
+   return (replaced ++ "\n")
+
+c1 i@(j,_,_) (INCLU  fil) = do 
+ stat@CS{ok = o} <- get
+ if o then inclus2 fil j (stat,i) else return "\n"
+ 
+c1 i@(_,j,_) (INCLU2 fil) = do
+ stat@CS{ok = o} <- get
+ if o then inclus2 fil j (stat,i) else return "\n"
+   
+
+   
+ --  (b++) <$$> map2 f3 f2 f r (f3 s') xs
 {--------------------
  | convert1' begins |
  --------------------}
 
-convert1' :: FilePath -> Includers -> (CurrentState,[Pre7]) -> WriterT Warnings (Either ParseError) (Table,String)
-convert1' _ _((table,0    ,_,True ,_),[]           ) = return(table,"")
-convert1' f _((_    ,depth,n,_    ,_),[]           )                  
- | depth>0                                           = makeErr'(  Expect "#endif")(f++"--step1'") n 1
- | otherwise                                         = makeErr'(UnExpect "#endif")(f++"--step1'") n 1
-convert1' f i((table,depth,n,False,o),IFDEF  _  :xs) = ('\n':) <$$> convert1' f i((table,depth+1,n+1,False,o    ),xs) 
-convert1' f i((table,depth,n,False,o),IF0       :xs) = ('\n':) <$$> convert1' f i((table,depth+1,n+1,False,o    ),xs)
-convert1' f i((table,depth,n,False,o),IF1       :xs) = ('\n':) <$$> convert1' f i((table,depth+1,n+1,False,o    ),xs)
-convert1' f i((table,depth,n,False,o),IFNDEF _  :xs) = ('\n':) <$$> convert1' f i((table,depth+1,n+1,False,o    ),xs)
-convert1' f i((table,depth,n,False,o),UNDEF  _  :xs) = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,o    ),xs)
-convert1' f i((table,depth,n,False,o),INCLU  _  :xs) = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,o    ),xs)
-convert1' f i((table,depth,n,False,o),INCLU2 _  :xs) = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,o    ),xs)
-convert1' f i((table,depth,n,False,o),DEFINE _ _:xs) = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,o    ),xs)
-convert1' f i((table,depth,n,False,o),OTHER  _  :xs) = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,o    ),xs)
-convert1' f i((table,depth,n,False,o),WARN   _  :xs) = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,o    ),xs)
-convert1' f i((table,depth,n,False,o),ERR    _  :xs) = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,o    ),xs)
-convert1' f i((table,depth,n,False,o),ENDIF     :xs)
- | depth - 1 == o  {-reached the block you entered-} = ('\n':) <$$> convert1' f i((table,depth-1,n+1,True ,-1   ),xs)
- | otherwise                                         = ('\n':) <$$> convert1' f i((table,depth-1,n+1,False,o    ),xs)
-convert1' f i((table,depth,n,False,o),ELSE      :xs)
- | depth - 1 == o  {-reached the block you entered-} = ('\n':) <$$> convert1' f i((table,depth  ,n+1,True ,-1   ),xs)
- | otherwise                                         = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,depth),xs)
-convert1' f i((table,depth,n,True ,_),IFDEF  ide:xs)
- | isJust(M.lookup ide table)                        = ('\n':) <$$> convert1' f i((table,depth+1,n+1,True ,-1   ),xs)
- | otherwise                                         = ('\n':) <$$> convert1' f i((table,depth+1,n+1,False,depth),xs)
-convert1' f i((table,depth,n,True ,_),IFNDEF ide:xs)
- | isJust(M.lookup ide table)                        = ('\n':) <$$> convert1' f i((table,depth+1,n+1,False,depth),xs)
- | otherwise                                         = ('\n':) <$$> convert1' f i((table,depth+1,n+1,True ,-1   ),xs)
-convert1' f i((table,depth,n,True ,_),IF0       :xs) = ('\n':) <$$> convert1' f i((table,depth+1,n+1,False,depth),xs)
-convert1' f i((table,depth,n,True ,_),IF1       :xs) = ('\n':) <$$> convert1' f i((table,depth+1,n+1,True ,-1   ),xs)  
- 
--- non-skipping
-convert1' f i((table,depth,n,True ,_),UNDEF  ide:xs)
- | _tabl==table                                      = makeErr'(Message$"C macro "++show ide++" is not defined")(f++"step1'") n 1
- | otherwise                                         = ('\n':) <$$> convert1' f i((_tabl,depth  ,n+1,True ,-1   ),xs)
- where _tabl = M.delete ide table
-convert1' f i((table,depth,n,True ,_),ENDIF     :xs) 
- | depth == 0                                        = makeErr'(UnExpect "#endif")(f++"step1'") n 1 
- | otherwise                                         = ('\n':) <$$> convert1' f i((table,depth-1,n+1,True ,-1   ),xs)
-convert1' f i((table,depth,n,True ,_),ELSE      :xs) 
- | depth == 0                                        = makeErr'(UnExpect "#else")(f++"step1'") n 1 
- | otherwise                                         = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,depth-1),xs)
-convert1' f i((table,depth,n,True ,_),DEFINE ide t:xs)
- | isJust(M.lookup ide table)                        = makeErr'(Message$"C macro "++show ide++" is already defined")(f++"step1'") n 1
- | otherwise                                         = ('\n':) <$$> convert1' f i((_tabl,depth  ,n+1,True ,-1   ),xs)
- where _tabl = M.insert ide t table 
-convert1' f i((table,depth,n,True ,_),OTHER t   :xs) = do
- replaced            <- lift $ replaceBy table t
- (newtable,result)   <- convert1' f i((table,depth,n+1,True ,-1 ),xs)
- return (newtable,replaced ++ "\n" ++ result)
-convert1' f i@(j,_,_)((table,depth,n,True ,_),INCLU  fil:xs) = inclus fil j (table,depth,n,f,i,xs) 
-convert1' f i@(_,j,_)((table,depth,n,True ,_),INCLU2 fil:xs) = inclus fil j (table,depth,n,f,i,xs) 
-
-convert1' f i((table,depth,n,True ,_),WARN msg  :xs) = do
- let lev = case words msg of ("crucial"  :_) -> Crucial; ("important":_) -> Important; ("verbose"  :_) -> Verbose;  _ -> Helpful  
- tellOne(warn ("#warning "++msg) lev (newPos (f++"step1'") n 1))
- ('\n':) <$$> convert1' f i((table,depth  ,n+1,True ,-1   ),xs)
- 
-convert1' f _((_    ,_    ,n,True ,_),ERR  msg  :_ ) = makeErr'(Message$"#error "++msg)(f++"step1'") n 1
-
 {------------------
  | convert1' ends |
  ------------------} 
- 
- 
-inclus :: FilePath -> FileToTxt ->  (Table, Integer, Line, FilePath, Includers, [Pre7]) -> WriterT Warnings (Either ParseError) (Table,String) 
-inclus fil j (table,depth,n,f,i,xs) = case M.lookup fil j of 
- Nothing  -> lift $ makeErr(Message$"library "++show fil++" is not found")(f++"step1'") n 1
+inclus2 :: FilePath -> FileToTxt ->  (CurrentState, Includers) -> StateT CurrentState (WriterT Warnings (Either ParseError)) String    
+inclus2 fil j (CS{defMacro = table, ifDepth = depth,lineNum = n,path = f},i) = case M.lookup fil j of 
+ Nothing  -> lift $ makeErr'(Message$"library "++show fil++" is not found")(f++"step1'") n 1 
  Just (dirf,txt) -> do
   let inclfile = dirf
-  sets   <- lift $ parse parser1 (inclfile ++ "--step1") (txt ++ "\n")
-  -- sets :: [Pre7]
-  (newtable,text)      <- convert1' inclfile i ((table,0,0,True,-1) ,sets)
-  (newtable',result)   <- convert1' f i((newtable,depth  ,n+1,True ,-1 ),xs)
-  return(newtable',"/*# LINE start "++show inclfile++" #*/\n\n"++text++"\n\n/*# LINE end   "++show inclfile++" #*/\n"++result) 
+  sets   <- lift $ lift $ parse parser1 (inclfile ++ "--step1") (txt ++ "\n")
+  (newtable,text)      <- lift $ conv1 i (initial table inclfile)sets
+  put (CS{defMacro = newtable,ifDepth = depth  ,lineNum = n+1,ok = True ,skipDepth = (-1),path = f})
+  return("/*# LINE start "++show inclfile++" #*/\n\n"++text++"\n\n/*# LINE end   "++show inclfile++" #*/\n")  
  
+
  
 {- macro conversion-}
 replaceBy :: Table -> String -> Either ParseError String
@@ -225,6 +310,6 @@ token = tIdentifier <|> tComment <|> tComment2 <|> tOperator <|> -- Comm first, 
   tChar       = try(char '\'' <:> noneOf "'" <:> string "'"   )
   tString     = try(char '"'  <:> many(noneOf "\"") <++> string "\"")
   tSpecial    = strP $ oneOf "#$().;{\\}[]"
-  tComment    = try(do{string"/*";xs<-manyTill anyChar (try (string "*/"));return$"/*"++(xs>>=escStar)++"*/" })
-  tComment2   = try(do{string"//";xs<-manyTill anyChar eof;return$"/*"++(xs>>=escStar)++"*/"})
+  tComment    = try(do{string"/*";xs <- manyTill anyChar (try (string "*/"));return$"/*"++(xs>>=escStar)++"*/" })
+  tComment2   = try(do{string"//";xs <- manyTill anyChar eof;return$"/*"++(xs>>=escStar)++"*/"})
   tSpace      = try(many1 space)

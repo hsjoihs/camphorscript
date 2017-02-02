@@ -1,4 +1,4 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude, NoMonomorphismRestriction #-}
 {-# OPTIONS -Wall #-}
 module Camphor.Main2
 (dispatch4
@@ -95,13 +95,13 @@ lft :: (Monoid s,Monad m) => (a -> b -> m c) -> a -> b -> WriterT s m c
 lft f a b = lift(f a b)
    
 step :: FilePath -> Maybe MemSize -> Includers -> [Txt -> WriterT Warnings (Either ParseError) Txt]   
-step file mem includers  = map ($file) [step1 includers,step2,lft$step3_I,lft$step3_II mem,lft$step5,lft$step6,lft$step7,lft$step8]
+step file mem includers  = map ($file) [step1 includers,step2,lft$step3_I,lft$step3_II mem,lft$step5,lft$step6,lft step7,lft$step8]
 
 -- starts with xth(1-indexed) and ends with yth(1-indexed)
 fromTo' :: Monad m => Int -> Int -> [a -> m a] -> a -> m a
 fromTo' x y xs
- | x<1       = abort("step " ++ showNum x ++ "does not exist")
- | y>8       = abort("step " ++ showNum y ++ "does not exist")
+ | x<1       = abort("step " ++ showNum x ++ " does not exist")
+ | y>8       = abort("step " ++ showNum y ++ " does not exist")
  | otherwise = case drop(x-1)$take y xs of 
   (t:ts) -> foldl (>=>) t ts
   _      -> abort "first number of option -C must not be larger than the second"

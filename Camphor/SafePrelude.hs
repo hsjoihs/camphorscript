@@ -45,7 +45,7 @@ Bool(..),(&&),(||),not,otherwise
 ,ap,liftM,Applicative,(>=>),(<=<),unless
 ,first,second
 ,(<++>),(<:>),(<$$>),(</>)
-,ZipList(..)
+,(<*)
 ,ord,chr
 ,filterM
 ,isPrefixOf,isInfixOf,isSuffixOf
@@ -53,11 +53,12 @@ Bool(..),(&&),(||),not,otherwise
 ,readMay
 ,Foldable(),fold,foldMap,foldr',foldl',foldrM,foldlM,traverse_,for_,sequenceA_,asum,msum,toList,sum,product,maximum,maximumBy,minimum,minimumBy,find
 ,_MtoList,voidM
+,(<++$>)
 )where
 import Prelude hiding(fst,snd,foldr,foldl,mapM_,sequence_,concat,concatMap,and,or,any,all,sum,product,maximum,minimum,elem,notElem)
 import Camphor.Tuple
 import Control.Monad(join,guard,when,ap,liftM,(>=>),(<=<),unless,forM,filterM)
-import Control.Applicative((<*>),(<$>),pure,Applicative,ZipList(..))
+import Control.Applicative((<*>),(<$>),pure,Applicative,(<*))
 import Data.List(genericLength,genericReplicate,genericTake,genericDrop,genericSplitAt,isPrefixOf,isInfixOf,isSuffixOf)
 import Data.Maybe(catMaybes,fromMaybe,isJust,isNothing,listToMaybe,mapMaybe,maybeToList)
 import Data.Char(isSpace,isAlpha,isAlphaNum,toLower,toUpper,ord,chr)
@@ -86,6 +87,10 @@ infixr 5 <:>
 infixl 4 <$$>
 (<$$>) :: (Functor f, Functor f1) => (a -> b) -> f (f1 a) -> f (f1 b)
 (<$$>) = fmap . fmap 
+
+infixl 4 <++$>
+(<++$>) :: (Functor f, Monoid b) => b -> f b -> f b
+a <++$> b = mappend a <$> b
 
 
 data Between a b = East a | West b deriving(Show, Eq, Ord)
