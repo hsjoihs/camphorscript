@@ -7,6 +7,11 @@ pushd %0\..
 cls
 set FAIL=bat\fail2.tmp
 
+echo Do you want to read error messages?
+set show=
+set /p show= Yes(y + Enter)/ No (Enter)  
+if not '%show%'=='' set show=%show:~0,1%
+
 call bat\makeHaskell ccsc
 call bat\makeHaskell ccsrc
 
@@ -14,6 +19,8 @@ call bat\makeHaskell ccsrc
 call bat\setlogname terrresult
 type nul > %LOG% 
 if exist %FAIL% del %FAIL%
+
+
 
 for /F "usebackq" %%i in (`dir /A-D /s /b examples\error\Step1_*.txt`) do (
  call :filename %%i -E
@@ -59,7 +66,8 @@ setlocal
 set /p out=testing %3: < nul
 endlocal
 %1 %2 examples\error\%3  -o bat\k.tmp > bat\%~n3.tmp
-call :output2 "%1 %2 examples\error\%3  -o bat\k.tmp"
+
+call :output2 "%1 %2 examples\error\%3  -o bat\k.tmp" bat\%~n3.tmp
 exit /b
 
 :output2
@@ -71,5 +79,12 @@ type nul > %FAIL%
 ) else (
 echo failed
 echo failed    %1 >> %LOG%
+if '%show%' == 'y' ( 
+type %2 
+echo.
+type %2 >> %LOG%
+echo. >> %LOG%
+)
+
 )
 exit /b

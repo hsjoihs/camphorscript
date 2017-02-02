@@ -1,3 +1,357 @@
+terrresult2014-04-27_20-02-58: 
+failed    "ccsc -E examples\error\Step1_commented_endif.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_commented_endif.txt--step1'" (line 4, column 1):
+expecting #endif
+ 
+failed    "ccsc -E examples\error\Step1_defnum.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_defnum.txt--step1" (line 1, column 9):
+unexpected "1"
+expecting non-breaking space or block comment or identifier
+ 
+failed    "ccsc -E examples\error\Step1_doubledef.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_doubledef.txtstep1'" (line 1, column 1):
+C macro "abc" is already defined
+ 
+failed    "ccsc -E examples\error\Step1_endif.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_endif.txtstep1'" (line 0, column 1):
+unexpected #endif
+ 
+failed    "ccsc -E examples\error\Step1_loneelse.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_loneelse.txtstep1'" (line 0, column 1):
+unexpected #else
+ 
+failed    "ccsc -E examples\error\Step1_loneelse2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_loneelse2.txtstep1'" (line 0, column 1):
+unexpected #else
+ 
+failed    "ccsc -E examples\error\Step1_loneifdef.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_loneifdef.txt--step1" (line 1, column 9):
+unexpected "\n"
+expecting non-breaking space or block comment or identifier
+ 
+failed    "ccsc -E examples\error\Step1_noendif.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_noendif.txt--step1'" (line 1, column 1):
+expecting #endif
+ 
+failed    "ccsc -E examples\error\Step1_noexistinclude.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_noexistinclude.txtstep1'" (line 0, column 1):
+library "doesnotexist__btjztlfoyvechyofuhjj"is not found
+ 
+failed    "ccsc -E examples\error\Step1_undef.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_undef.txtstep1'" (line 0, column 1):
+C macro "abc"is not defined
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidchar.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidchar.txt--step3_II" (line 1, column 5):
+unexpected ";"
+expecting space, block comment or line comment, identifier, letter or digit, "_", "+" or "-"
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidchar2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidchar2.txt--step3_II" (line 1, column 8):
+unexpected "b"
+expecting space, block comment or line comment or ";"
+ 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invaliddelete.txt--step3_II" (line 1, column 7):
+unexpected ";"
+expecting space, block comment or line comment, identifier, letter or digit, "_", "+" or "-"
+ 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invaliddelete2.txt--step3_II" (line 1, column 10):
+unexpected "b"
+expecting space, block comment or line comment or ";"
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidread.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidread.txt--step3_II" (line 1, column 6):
+unexpected "1"
+expecting space, block comment or line comment or identifier
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidread2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidread2.txt--step3_II" (line 1, column 5):
+unexpected ","
+expecting letter or digit, "_", space, block comment or line comment, "+", "-" or "("
+ 
+failed    "ccsc -C44 examples\error\Step4_undeletedinblock.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_undeletedinblock.txt--step3_II'" (line 0, column 0):
+identifier a is not deleted
+ 
+failed    "ccsc -C44 examples\error\Step4_undeletedinwhile.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_undeletedinwhile.txt--step3_II'" (line 0, column 0):
+identifier a is not deleted
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_command.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_command.txt--step7" (line 1, column 1):
+unexpected 'b'
+expecting "inc", "dec", "loop", "pool", "mov", "assert_zero", "output", "_input", space, "/*" or end of input
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_comment.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_comment.txt--step7" (line 1, column 3):
+unexpected end of input
+expecting "*/"
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_inc.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_inc.txt--step7" (line 1, column 5):
+unexpected "$"
+expecting space, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "'", white space or ";"
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_loop.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_loop.txt--step7" (line 1, column 6):
+unexpected "3"
+expecting space or ";"
+ 
+failed    "ccsc -C78 examples\error\Step7_null_mov.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_null_mov.txt--step7" (line 1, column 4):
+unexpected ";"
+expecting white space, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" or "'"
+ 
+failed    "ccsc -C78 examples\error\Step7_rand.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_rand.txt--step7" (line 1, column 1):
+unexpected 'g'
+expecting "inc", "dec", "loop", "pool", "mov", "assert_zero", "output", "_input", space, "/*" or end of input
+ 
+ 
+terrresult2014-04-27_20-02-24: 
+failed    "ccsc -E examples\error\Step1_commented_endif.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_defnum.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_doubledef.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_endif.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_loneelse.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_loneelse2.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_loneifdef.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_noendif.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_noexistinclude.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_undef.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidchar.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidchar2.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete2.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidread.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidread2.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_undeletedinblock.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_undeletedinwhile.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_command.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_comment.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_inc.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_loop.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_null_mov.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_rand.txt  -o bat\k.tmp" 
+ 
+terrresult2014-04-27_12-04-37: 
+failed    "ccsc -E examples\error\Step1_commented_endif.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_commented_endif.txt--step1'" (line 4, column 1):
+expecting #endif
+ 
+failed    "ccsc -E examples\error\Step1_defnum.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_defnum.txt--step1" (line 1, column 9):
+unexpected "1"
+expecting non-breaking space or block comment or identifier
+ 
+failed    "ccsc -E examples\error\Step1_doubledef.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_doubledef.txtstep1'" (line 1, column 1):
+C macro "abc" is already defined
+ 
+failed    "ccsc -E examples\error\Step1_endif.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_endif.txt--step1'" (line 1, column 1):
+unexpected #endif
+ 
+failed    "ccsc -E examples\error\Step1_loneelse.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_loneelse.txt--step1'" (line 5, column 1):
+unexpected #endif
+ 
+failed    "ccsc -E examples\error\Step1_loneelse2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_loneelse2.txt--step1'" (line 5, column 1):
+unexpected #endif
+ 
+failed    "ccsc -E examples\error\Step1_loneifdef.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_loneifdef.txt--step1" (line 1, column 9):
+unexpected "\n"
+expecting non-breaking space or block comment or identifier
+ 
+failed    "ccsc -E examples\error\Step1_noendif.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_noendif.txt--step1'" (line 1, column 1):
+expecting #endif
+ 
+failed    "ccsc -E examples\error\Step1_noexistinclude.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_noexistinclude.txtstep1'" (line 0, column 1):
+unexpected library "doesnotexist__btjztlfoyvechyofuhjj"
+ 
+failed    "ccsc -E examples\error\Step1_undef.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_undef.txtstep1'" (line 0, column 1):
+unexpected C macro "abc"
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidchar.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidchar.txt--step3_II" (line 1, column 5):
+unexpected ";"
+expecting space, block comment or line comment, identifier, letter or digit, "_", "+" or "-"
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidchar2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidchar2.txt--step3_II" (line 1, column 8):
+unexpected "b"
+expecting space, block comment or line comment or ";"
+ 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invaliddelete.txt--step3_II" (line 1, column 7):
+unexpected ";"
+expecting space, block comment or line comment, identifier, letter or digit, "_", "+" or "-"
+ 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invaliddelete2.txt--step3_II" (line 1, column 10):
+unexpected "b"
+expecting space, block comment or line comment or ";"
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidread.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidread.txt--step3_II" (line 1, column 6):
+unexpected "1"
+expecting space, block comment or line comment or identifier
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidread2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidread2.txt--step3_II" (line 1, column 5):
+unexpected ","
+expecting letter or digit, "_", space, block comment or line comment, "+", "-" or "("
+ 
+failed    "ccsc -C44 examples\error\Step4_undeletedinblock.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_undeletedinblock.txt--step3_II'" (line 0, column 0):
+identifier a is not deleted
+ 
+failed    "ccsc -C44 examples\error\Step4_undeletedinwhile.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_undeletedinwhile.txt--step3_II'" (line 0, column 0):
+identifier a is not deleted
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_command.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_command.txt--step7" (line 1, column 1):
+unexpected 'b'
+expecting "inc", "dec", "loop", "pool", "mov", "assert_zero", "output", "_input", space, "/*" or end of input
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_comment.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_comment.txt--step7" (line 1, column 3):
+unexpected end of input
+expecting "*/"
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_inc.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_inc.txt--step7" (line 1, column 5):
+unexpected "$"
+expecting space, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "'", white space or ";"
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_loop.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_loop.txt--step7" (line 1, column 6):
+unexpected "3"
+expecting space or ";"
+ 
+failed    "ccsc -C78 examples\error\Step7_null_mov.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_null_mov.txt--step7" (line 1, column 4):
+unexpected ";"
+expecting white space, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" or "'"
+ 
+failed    "ccsc -C78 examples\error\Step7_rand.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_rand.txt--step7" (line 1, column 1):
+unexpected 'g'
+expecting "inc", "dec", "loop", "pool", "mov", "assert_zero", "output", "_input", space, "/*" or end of input
+ 
+ 
+terrresult2014-04-27_12-02-03: 
+failed    "ccsc -E examples\error\Step1_commented_endif.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_defnum.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_doubledef.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_endif.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_loneelse.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_loneelse2.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_loneifdef.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_noendif.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_noexistinclude.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_undef.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidchar.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidchar2.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete2.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidread.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidread2.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_undeletedinblock.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_undeletedinwhile.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_command.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_comment.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_inc.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_loop.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_null_mov.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_rand.txt  -o bat\k.tmp" 
+ 
+terrresult2014-04-27_12-01-07: 
+failed    "ccsc -E examples\error\Step1_commented_endif.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_defnum.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_doubledef.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_endif.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_loneelse.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_loneelse2.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_loneifdef.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_noendif.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_noexistinclude.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_undef.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidchar.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidchar2.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete2.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidread.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidread2.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_undeletedinblock.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_undeletedinwhile.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_command.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_comment.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_inc.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_loop.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_null_mov.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_rand.txt  -o bat\k.tmp" 
+ 
+terrresult2014-04-27_11-59-31: 
+failed    "ccsc -E examples\error\Step1_commented_endif.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_defnum.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_doubledef.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_endif.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_loneelse.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_loneelse2.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_loneifdef.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_noendif.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_noexistinclude.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_undef.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidchar.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidchar2.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete2.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidread.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidread2.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_undeletedinblock.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_undeletedinwhile.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_command.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_comment.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_inc.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_loop.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_null_mov.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_rand.txt  -o bat\k.tmp" 
+ 
+terrresult2014-04-27_11-58-28: 
+failed    "ccsc -E examples\error\Step1_commented_endif.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_defnum.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_doubledef.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_endif.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_loneelse.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_loneelse2.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_loneifdef.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_noendif.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_noexistinclude.txt  -o bat\k.tmp" 
+failed    "ccsc -E examples\error\Step1_undef.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidchar.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidchar2.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete2.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidread.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_invalidread2.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_undeletedinblock.txt  -o bat\k.tmp" 
+failed    "ccsc -C44 examples\error\Step4_undeletedinwhile.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_command.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_comment.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_inc.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_invalid_loop.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_null_mov.txt  -o bat\k.tmp" 
+failed    "ccsc -C78 examples\error\Step7_rand.txt  -o bat\k.tmp" 
+ 
 terrresult2014-04-27_09-25-16: 
 failed    "ccsc -E examples\error\Step1_commented_endif.txt  -o bat\k.tmp" 
 failed    "ccsc -E examples\error\Step1_defnum.txt  -o bat\k.tmp" 

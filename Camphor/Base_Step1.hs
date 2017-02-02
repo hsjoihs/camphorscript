@@ -130,11 +130,11 @@ convert1' f i((table,depth,n,True ,_),(IFNDEF,ide,_):xs)
  | isJust(M.lookup ide table)                            = ('\n':) <$$> convert1' f i((table,depth+1,n+1,False,depth),xs)
  | otherwise                                             = ('\n':) <$$> convert1' f i((table,depth+1,n+1,True ,(-1) ),xs)
 convert1' f i((table,depth,n,True ,_),(UNDEF ,ide,_):xs)
- | _tabl==table                                          = Left $newErrorMessage (UnExpect$"C macro "++show ide)(newPos (f++"step1'") n 1) 
+ | _tabl==table                                          = Left $newErrorMessage (Message$"C macro "++show ide++"is not defined")(newPos (f++"step1'") n 1) 
  | otherwise                                             = ('\n':) <$$> convert1' f i((_tabl,depth  ,n+1,True ,(-1) ),xs)
  where _tabl = M.delete ide table
 convert1' f i((table,depth,n,True ,_),(INCLU ,_,fil):xs) = case M.lookup fil i of 
- Nothing  ->                                               Left $newErrorMessage (UnExpect$"library "++show fil)(newPos (f++"step1'") n 1) 
+ Nothing  ->                                               Left $newErrorMessage (Message$"library "++show fil++"is not found")(newPos (f++"step1'") n 1) 
  Just txt ->                                               do
   let inclfile = lib_dir </> fil
   sets   <- parse parser1 (inclfile ++ "--step1") (txt ++ "\n")
@@ -143,8 +143,12 @@ convert1' f i((table,depth,n,True ,_),(INCLU ,_,fil):xs) = case M.lookup fil i o
   (newtable',result)   <- convert1' f i((newtable,depth  ,n+1,True ,(-1) ),xs)
   return(newtable',"/* start of "++show inclfile++" */\n\n"++text++"\n\n/*  end  of "++show inclfile++" */\n"++result)
  
-convert1' f i((table,depth,n,True ,_),(ENDIF ,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth-1,n+1,True ,(-1)   ),xs)
-convert1' f i((table,depth,n,True ,_),(ELSE  ,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,depth-1),xs)
+convert1' f i((table,depth,n,True ,_),(ENDIF ,_  ,_):xs) 
+ | depth == 0                                            = Left $newErrorMessage (UnExpect$"#endif")(newPos (f++"step1'") n 1)  
+ | otherwise                                             = ('\n':) <$$> convert1' f i((table,depth-1,n+1,True ,(-1)   ),xs)
+convert1' f i((table,depth,n,True ,_),(ELSE  ,_  ,_):xs) 
+ | depth == 0                                            = Left $newErrorMessage (UnExpect$"#else")(newPos (f++"step1'") n 1) 
+ | otherwise                                             = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,depth-1),xs)
 convert1' f i((table,depth,n,True ,_),(DEFINE,ide,t):xs)
  | isJust(M.lookup ide table)                            = Left $newErrorMessage (Message$"C macro "++show ide++" is already defined")(newPos (f++"step1'") n 1) 
  | otherwise                                             = ('\n':) <$$> convert1' f i((_tabl,depth  ,n+1,True ,(-1) ),xs)
