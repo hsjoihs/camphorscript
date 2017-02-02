@@ -27,8 +27,8 @@ replacer2 _ _ _ Scolon   _     = return[Scolon]
 replacer2 _ _ _ (Sp x)   _     = return[Sp x]
 replacer2 _ _ _ (Comm x) _     = return[Comm x]
 replacer2 _ _ _ (Pragma x) _   = return[Pragma x]
-replacer2 _ _ pos (Infl _ _) _ = Left$newErrorMessage(Message$"cannot declare fixity inside function/operator definition ")pos  
-replacer2 _ _ pos (Infr _ _) _ = Left$newErrorMessage(Message$"cannot declare fixity inside function/operator definition ")pos  
+replacer2 _ _ pos (Infl _ _) _ = Left$newErrorMessage(Message "cannot declare fixity inside function/operator definition ")pos  
+replacer2 _ _ pos (Infr _ _) _ = Left$newErrorMessage(Message "cannot declare fixity inside function/operator definition ")pos  
 
 replacer2 _ _ pos (Char ident) table = case M.lookup ident table of
  Nothing -> return[Char ident]
@@ -158,7 +158,7 @@ rpl1 ms pos ident valuelist table stat = do
 rpl1_1 :: SourcePos -> Sent -> ReplTable -> NonEmpty MacroId -> UserState -> Either ParseError [SimpleSent]
 rpl1_1 pos (Single _ ssent) table2 newMs stat  = replacer2 stat newMs pos ssent table2
 rpl1_1 pos (Block  _ xs) table2 newMs stat = do
- replaced <- sequence [rpl1_1 pos ssent table2 newMs stat | ssent <- xs] -- [NonEmpty SimpleSent]
+ replaced <- sequence [rpl1_1 pos ssent table2 newMs stat | ssent <- xs] 
  return$concat replaced 
    
 rpl2 :: NonEmpty MacroId -> SourcePos -> Oper -> (ValueList,ValueList) -> ReplTable -> UserState -> Either ParseError [SimpleSent]
@@ -173,7 +173,5 @@ rpl2 ms pos oper (vlist1,vlist2) table stat = do
    rpl1_1 pos sent table2 (mname `cons` ms) stat
  
 replaceSingle :: ReplTable -> Value -> Value
-replaceSingle _ m@(Constant _) = m
-replaceSingle table v@(Var idn) = case M.lookup idn table of
- Nothing -> v
- Just val -> val  
+replaceSingle _     m@(Constant _) = m
+replaceSingle table v@(Var idn)    = case M.lookup idn table of Nothing -> v; Just val -> val  

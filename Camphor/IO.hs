@@ -2,13 +2,13 @@
 {-# OPTIONS -Wall #-}
 module Camphor.IO
 (outputParsed
-,Options
 ,getContentsFrom
 ,readFile'
 ,abort
 ,replaceExtension
 ,getDirectoryContents
 ,getArgs
+,splitFileName
 )where
 import Camphor.SafePrelude
 import Prelude(error)
@@ -18,8 +18,6 @@ import System.FilePath
 import System.Directory(getDirectoryContents)
 import System.Environment(getArgs)
 import Data.Char(toLower)
-type Options = [String]
-
 
 outputParsed :: FilePath -> Either ParseError Txt -> IO()
 outputParsed path (Right x) 

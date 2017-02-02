@@ -1,0 +1,13 @@
+/*# LINE start "examples\\__CS\\yIfElseTrue__CS.txt" #*/
+
+
+
+
+
+	char abc;
+
+
+
+
+
+/*# LINE end   "examples\\__CS\\yIfElseTrue__CS.txt" #*/

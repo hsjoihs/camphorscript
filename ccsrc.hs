@@ -3,6 +3,7 @@
 import System.Environment
 import Control.Monad
 import Text.Parsec
+import Camphor.Global.Synonyms
 import Camphor.IO
 import CamphorR.R_Step8
 import CamphorR.R_Step7
@@ -30,7 +31,7 @@ fromTo' x y xs
 
 main :: IO()
 main = do
- args<-getArgs
+ args <- getArgs
  dispatch4 args
 
 dispatch4 :: Options -> IO ()
