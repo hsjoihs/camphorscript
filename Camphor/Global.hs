@@ -3,7 +3,7 @@
 module Camphor.Global
 ((<++>),(<:>),(<$$>),(>=>),(</>)
 
-,Ident,Txt,MemSize,Address
+,Ident,Oper,Txt,MemSize,Address
 
 ,alphaBar,alphaNumBar,identifier,identifier'
 ,nbsp,nbsps,nbnls,nbnl
@@ -62,6 +62,7 @@ infixl 4 <$$>
 -}
 
 type Ident=String
+type Oper=String
 type Txt=String
 type MemSize=Integer
 type Address=Integer
@@ -162,7 +163,7 @@ lineComm = do{string "//";comm<-many(noneOf "\n");newline;return (comm>>=escStar
 blockComm :: Stream s m Char => ParsecT s u m String
 blockComm = try(do{string "/*"; comm<-manyTill anyChar(try(string "*/"));return(comm>>=escStar)}) <?> "block comment"
 
-operator :: Stream s m Char => ParsecT s u m String
+operator :: Stream s m Char => ParsecT s u m Oper
 operator = try(oneOf "!%&*+,-:<=>?@^|~" <:> many(oneOf "!%&*+,-:<=>?@^|~" <|> space ))
 
 

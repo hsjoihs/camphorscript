@@ -5,15 +5,18 @@ module Camphor.PCS_Parser2
 ,Tok(..)
 ,showTok
 ,tok
-,_char , _delete , _paren  , _nerap  , _brace 
- , _ecarb , _scolon , _cnstnt , _infixl , _infixr 
- , _void  , _const, _ident, _num, _comm, _op, _sp, _nl, __
+,_char,_delete,_paren,_nerap,_brace
+,_ecarb,_scolon,_cnstnt,_infixl,_infixr
+,_void,_const,_ident,_num,_comm,_op,_sp,_nl,__
+
+,_and
 )where
 
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Text.Parsec 
 import Camphor.PCS_Parser
 import Data.Functor.Identity
+import Data.Char(isSpace)
 
 _nl :: Stream s Identity (SourcePos, Tok) => Parsec s u Tok
 _nl = _sp <|> _comm
@@ -24,7 +27,7 @@ __ = skipMany _nl
 tok :: Stream s Identity (SourcePos, Tok) => Parsec s u Tok
 tok = _char <|> _delete <|> _paren  <|> _nerap  <|> _brace 
  <|> _ecarb <|> _scolon <|> _cnstnt <|> _infixl <|> _infixr 
- <|> _void  <|> _const <|> _ident <|> _num <|> _comm <|> _op <|> _sp
+ <|> _void  <|> _const  <|> _ident  <|> _num    <|> _comm <|> _op <|> _sp
 
 _char   :: Stream s Identity (SourcePos, Tok) => Parsec s u Tok
 _char   = parseIf CHAR
@@ -78,6 +81,7 @@ _op    :: Stream s Identity (SourcePos, Tok) => Parsec s u Tok
 _op    = parseWhen qqq
  where qqq (_,t@(OP    _)) = Just t ; qqq(_,_) = Nothing
  
+ 
 _sp    :: Stream s Identity (SourcePos, Tok) => Parsec s u Tok
 _sp    = parseWhen qqq
  where qqq (_,t@(SP    _)) = Just t ; qqq(_,_) = Nothing
@@ -96,5 +100,11 @@ posFromTok = fst
 parseIf   :: Stream s Identity (SourcePos, Tok) => Tok -> Parsec s u Tok
 parseIf x = parseWhen (testTokBy x)
 
-parseWhen :: Stream s Identity (SourcePos, Tok) => ((SourcePos, Tok) -> Maybe Tok) -> Parsec s u Tok
+parseWhen :: Stream s Identity (SourcePos, Tok) => ((SourcePos, Tok) -> Maybe a) -> Parsec s u a
 parseWhen = token showTok2 posFromTok
+
+_and :: Stream s Identity (SourcePos, Tok) => Parsec s u () 
+_and = parseWhen qqq
+ where
+  qqq(_,OP o) = if filter(not . isSpace) o == "&" then Just () else Nothing
+  qqq(_,_   ) = Nothing

@@ -18,7 +18,7 @@ parser2' = do{ts<-many tok;eof;return ts;}
 data Tok = 
  CHAR  | DELETE | IDENT Ident   |   NUM Integer   |  
  PAREN | NERAP  | BRACE | ECARB | SCOLON | CNSTNT |
- COMM String    |   OP String   | INFIXL | INFIXR |
+ COMM String    |    OP Oper    | INFIXL | INFIXR |
  VOID  | CONST  |   SP String                       deriving(Show,Eq)
 
 
