@@ -13,7 +13,6 @@ import Camphor.Global.Synonyms
 import Camphor.Global.Operators
 import Text.Parsec hiding(token)
 import Data.Char(isSpace,ord)
-import Control.Applicative hiding ((<|>),many)
 
 
 

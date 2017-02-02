@@ -17,7 +17,6 @@ import Camphor.Base_Step2.Replacer2(replacer2)
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import Camphor.Global.Operators
-import Camphor.Partial
 import Camphor.NonEmpty
 import Text.Parsec  
 import Text.Parsec.Pos(newPos)
@@ -36,102 +35,101 @@ defaultStat = emptyState
 convert :: Sents -> Either ParseError Txt
 convert xs = convert2 defaultStat xs 
 
+convert2 :: UserState -> Sents -> Either ParseError Txt
+convert2 stat sents = snd <$> convert2_2 stat sents
+
 {------------------------------------------------------------------------------------- 
- -                              * definition of convert2 *                           -
+ -                              * definition of convert2_2 *                           -
  -------------------------------------------------------------------------------------}
 
-convert2 :: UserState -> Sents -> Either ParseError Txt
-convert2 _    []                         = Right "" 
-convert2 stat (Single(_  ,Comm comm):xs) = ("/*" ++ comm ++ "*/") <++$> convert2 stat xs
-convert2 stat (Single(_  ,Sp   sp  ):xs) = sp                     <++$> convert2 stat xs
-convert2 stat (Single(_  ,Scolon   ):xs) = ";"                    <++$> convert2 stat xs
-convert2 stat (Single(_  ,Pleq (Var ident) (Constant integer)):xs) = (ident ++ "+=" ++ show integer ++ ";") <++$> convert2 stat xs
-convert2 stat (Single(_  ,Mneq (Var ident) (Constant integer)):xs) = (ident ++ "-=" ++ show integer ++ ";") <++$> convert2 stat xs
-convert2 stat (Single(_  ,Rd   (Var idnt)):xs) = ("read("  ++ idnt ++ ")" ++ ";") <++$> convert2 stat xs
-convert2 stat (Single(_  ,Wrt  (Var idnt)):xs) = ("write(" ++ idnt ++ ")" ++ ";") <++$> convert2 stat xs
-convert2 _ (Single(_  ,Pleq _ _):_) = Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
-convert2 _ (Single(_  ,Mneq _ _):_) = Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
-convert2 _ (Single(_  ,Rd  _ ):_   )= Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
-convert2 _ (Single(_  ,Wrt  _ ):_ ) = Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
+convert2_2 :: UserState -> Sents -> Either ParseError (UserState,Txt)
+convert2_2 stat []                         = Right (stat,"") 
+convert2_2 stat (Single(_  ,Comm comm):xs) = ("/*" ++ comm ++ "*/") <++$$> convert2_2 stat xs
+convert2_2 stat (Single(_  ,Sp   sp  ):xs) = sp                     <++$$> convert2_2 stat xs
+convert2_2 stat (Single(_  ,Scolon   ):xs) = ";"                    <++$$> convert2_2 stat xs
+convert2_2 stat (Single(_  ,Pleq (Var ident) (Constant integer)):xs) = (ident ++ "+=" ++ show integer ++ ";") <++$$> convert2_2 stat xs
+convert2_2 stat (Single(_  ,Mneq (Var ident) (Constant integer)):xs) = (ident ++ "-=" ++ show integer ++ ";") <++$$> convert2_2 stat xs
+convert2_2 stat (Single(_  ,Rd   (Var idnt)):xs) = ("read("  ++ idnt ++ ")" ++ ";") <++$$> convert2_2 stat xs
+convert2_2 stat (Single(_  ,Wrt  (Var idnt)):xs) = ("write(" ++ idnt ++ ")" ++ ";") <++$$> convert2_2 stat xs
+convert2_2 _ (Single(_  ,Pleq _ _):_) = Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
+convert2_2 _ (Single(_  ,Mneq _ _):_) = Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
+convert2_2 _ (Single(_  ,Rd  _ ):_   )= Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
+convert2_2 _ (Single(_  ,Wrt  _ ):_ ) = Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
 
-convert2 stat (Single(pos,Char iden):xs) = do
+convert2_2 stat (Single(pos,Char iden):xs) = do
  newStat <- newC pos iden stat 
- left <- convert2 newStat  xs
- return ("char " ++ iden ++";"++left)
+ (newStat2,left) <- convert2_2 newStat xs
+ return (newStat2,"char " ++ iden ++ ";" ++ left)
  
-convert2 stat (Single(pos,Del  iden):xs) = do
- newStat <- newD pos iden stat -- FIXME
- left <- convert2 newStat  xs
- return ("delete " ++iden++";"++left)
+convert2_2 stat (Single(pos,Del  iden):xs) = do
+ newStat <- newD pos iden stat 
+ (newStat2,left) <- convert2_2 newStat  xs
+ return (newStat2,"delete " ++ iden ++ ";" ++ left)
  
-convert2 stat (Single(pos,Infl fixity op):xs) = do
+convert2_2 stat (Single(pos,Infl fixity op):xs) = do
  newStat <- newL pos fixity op stat 
- left <- convert2 newStat xs 
- return left
+ convert2_2 newStat xs 
  
-convert2 stat (Single(pos,Infr fixity op):xs) = do
+convert2_2 stat (Single(pos,Infr fixity op):xs) = do
  newStat <- newR pos fixity op stat 
- left <- convert2 newStat xs 
- return left
+ convert2_2 newStat xs 
 
-convert2 stat (Single(pos,Func1 name typelist sent):xs) = do
+convert2_2 stat (Single(pos,Func1 name typelist sent):xs) = do
  newStat <- newF1 pos name typelist sent stat 
- left <- convert2 newStat xs
- return left
+ convert2_2 newStat xs
  
-convert2 stat (Single(pos,Call1 name valuelist):xs) = do
+convert2_2 stat (Single(pos,Call1 name valuelist):xs) = do
  result <- newK1 pos name valuelist stat
- left <- convert2 stat xs
- return $ result ++ left
+ (newStat2,left) <- convert2_2 stat xs
+ return (newStat2,result ++ left)
  
-convert2 stat (Single(pos,Func2 op typelist1 typelist2 sent):xs) = do
+convert2_2 stat (Single(pos,Func2 op typelist1 typelist2 sent):xs) = do
  newStat <- newF2 pos op typelist1 typelist2 sent stat
- left <- convert2 newStat xs
- return left
+ convert2_2 newStat xs
  
-convert2 stat (Block ys:xs) = do
+convert2_2 stat (Block ys:xs) = do
  (newStat,result) <- newB (addVFBlock stat) ys -- FIXME: does not check deletion
  let remainingVars = getTopVFBlock newStat
- let log = show remainingVars
+ --let log = show remainingVars
  if not$M.null remainingVars then Left$newErrorMessage(Message$"identifiers not deleted"++show remainingVars)pos else do
- left <- convert2 newStat xs
- return$ log ++ result ++ left
- where pos = undefined
+ (newStat2,left) <- convert2_2 newStat xs
+ return(newStat2,{-log ++ -} result ++ left)
+ where pos = newPos "__FIXME__" 0 0
 
 
 
-convert2 stat (Single(_,Call1WithBlock name valuelist block):xs) = do -- FIXME: does not replace a function call when it's followed by a block
- left <- convert2 stat (Block block :xs)
- return$ showCall name valuelist ++ left
+convert2_2 stat (Single(_,Call1WithBlock name valuelist block):xs) = do -- FIXME: does not replace a function call when it's followed by a block
+ (newStat2,left) <- convert2_2 stat (Block block :xs)
+ return(newStat2,showCall name valuelist ++ left)
   where 
    showCall :: Ident -> ValueList -> String
    showCall nm (SepList(v,ovs)) = nm ++ "(" ++ show' v ++ concat[ (unOp o2) ++ show' v2 | (o2,v2) <- ovs ] ++ ")"
   
 --- (val [op val])op(val [op val]);
-convert2 stat (Single(pos,Call2 op valuelist1 valuelist2):xs) = do
+convert2_2 stat (Single(pos,Call2 op valuelist1 valuelist2):xs) = do
  result <- newK2 pos op valuelist1 valuelist2 stat
- left <- convert2 stat xs
- return(result ++ left)
+ (newStat2,left) <- convert2_2 stat xs
+ return(newStat2,result ++ left)
 
 --- (val [op val])op val [op val] ; 
-convert2 stat (Single(pos,Call3 op  valuelist1 valuelist2):xs) = do
+convert2_2 stat (Single(pos,Call3 op  valuelist1 valuelist2):xs) = do
  result <- newK3 pos op valuelist1 valuelist2 stat
- left <- convert2 stat xs
- return(result ++ left)
+ (newStat2,left) <- convert2_2 stat xs
+ return(newStat2,result ++ left)
 
 --- [val op] (val [op val]) ; 
-convert2 stat (Single(pos,Call4 list  valuelist):xs) = do
+convert2_2 stat (Single(pos,Call4 list  valuelist):xs) = do
  result <- newK4 pos list valuelist stat
- left <- convert2 stat xs
- return(result ++ left)
+ (newStat2,left) <- convert2_2 stat xs
+ return(newStat2,result ++ left)
 
 --- val [op val] op val [op val] ;
-convert2 stat (Single(pos,Call5 valuelist):xs) = do
+convert2_2 stat (Single(pos,Call5 valuelist):xs) = do
  result <- newK5 pos valuelist stat
- left <- convert2 stat xs
- return(result ++ left)
+ (newStat2,left) <- convert2_2 stat xs
+ return(newStat2,result ++ left)
 {-----------------------------------------------------------
- -                   * end of convert2 *                   -
+ -                   * end of convert2_2 *                   -
  -----------------------------------------------------------}
  
 newB :: UserState -> Sents -> Either ParseError (UserState,Txt)
@@ -141,8 +139,8 @@ newB stat ys = do
 
 newB2 :: UserState -> Sents -> Either ParseError (UserState,Txt)
 newB2 stat ys = do
- txt <- convert2 stat ys -- FIXME : state is not passed
- return(stat,txt)
+ (newStat2,txt) <- convert2_2 stat ys 
+ return(newStat2,txt)
 
 -- Function call
 newK1 :: SourcePos -> Ident -> ValueList -> UserState -> Either ParseError Txt

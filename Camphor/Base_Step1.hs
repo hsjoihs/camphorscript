@@ -20,7 +20,6 @@ import Camphor.Global.Utilities
 import Camphor.Global.Operators
 import Camphor.Global.Synonyms
 import Text.Parsec hiding(token)
-import Control.Applicative hiding ((<|>),many)
 import Data.Maybe(isJust)
 import Camphor.Lib
 
