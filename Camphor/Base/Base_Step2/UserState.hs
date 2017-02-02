@@ -20,7 +20,7 @@ import qualified Data.Map as M
 import Text.Parsec.Pos(newPos)
 import Camphor.NonEmpty as NE
 
-type VFInstance = (TypeList, Maybe Sent)
+type VFInstance = (TypeList, Maybe Sent) -- Maybe Sent ::: block or `null function'
 type OpInstance = (TypeList,TypeList, Maybe Sent)
 type OpInfo = (Fixity,[OpInstance])
 data MacroId = Func Ident VFInstance | Operator Oper OpInstance deriving(Show,Eq)  

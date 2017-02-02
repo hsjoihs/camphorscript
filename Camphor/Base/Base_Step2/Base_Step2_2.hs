@@ -90,7 +90,7 @@ func_def = do{
  m <- blockOrNull;  -- {   } or = 0 ;
  case m of 
   East b  -> return(Single p$Func1 name list1 b); 
-  West () -> return(Single p$Func1Null name list1);
+  West () -> return(Single p$Func1Nul name list1);
  }
 -- void 識別子(型 識別子【演算子 型 識別子】){【文】}
 
@@ -106,7 +106,7 @@ op_def = do{
  m <- blockOrNull; -- {   } or = 0 ;
  case m of
   East b  -> return(Single p$Func2 op list1 list2 b)
-  West () -> return(Single p$Func2Null op list1 list2)
+  West () -> return(Single p$Func2Nul op list1 list2)
  }
 -- void(演算子)(型 識別子【演算子 型 識別子】;型 識別子【演算子 型 識別子】){【文】}
  

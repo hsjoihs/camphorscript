@@ -13,7 +13,7 @@ import Camphor.Base.Base_Step2.New
 import Camphor.Base.Base_Step2.Auxilary
 import Camphor.Base.Base_Step2.Base_Step2_2(parser2_2)
 import Camphor.Base.Base_Step2.PCS_Parser(parser2')
-import Camphor.Base.Base_Step2.Replacer2(replacer2)
+import Camphor.Base.Base_Step2.Replacer2(replacer3)
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import Camphor.Global.Operators
@@ -77,7 +77,7 @@ convert2_2 stat (Single pos (Func1 name typelist sent):xs) = do
  newStat <- newF1 pos name typelist (Just sent) stat
  convert2_2 newStat xs
  
-convert2_2 stat (Single pos (Func1Null name typelist):xs) = do
+convert2_2 stat (Single pos (Func1Nul name typelist):xs) = do
  newStat <- newF1 pos name typelist Nothing stat 
  convert2_2 newStat xs 
   
@@ -85,7 +85,7 @@ convert2_2 stat (Single pos (Func2 op typelist1 typelist2 sent):xs) = do
  newStat <- newF2 pos op typelist1 typelist2 (Just sent) stat
  convert2_2 newStat xs
  
-convert2_2 stat (Single pos (Func2Null op typelist1 typelist2):xs) = do
+convert2_2 stat (Single pos (Func2Nul op typelist1 typelist2):xs) = do
  newStat <- newF2 pos op typelist1 typelist2 Nothing stat
  convert2_2 newStat xs 
  
@@ -207,9 +207,15 @@ replacer mname sent stat table = do
  convert2 stat result -- FIXME:: state not passed
  
 simplyReplace :: MacroId -> Sent -> UserState -> ReplTable -> Either ParseError Sents
-simplyReplace mname (Single pos2 ssent) stat table = do
- newSents <- replacer2 stat (nE mname) pos2 ssent table
- return $ map (Single pos2)(toList' newSents)
-simplyReplace mname (Block p xs) stat table = do
- results <- sequence [ simplyReplace mname ssent stat table | ssent <- xs ]
- return [Block p $ concat results]
+simplyReplace mname sent stat table = fst <$> simplyReplaceRVC mname sent stat table M.empty
+ 
+-- simplyReplaceRegardingVariableCollision 
+simplyReplaceRVC :: MacroId -> Sent -> UserState -> ReplTable -> CollisionTable -> Either ParseError (Sents,CollisionTable)
+simplyReplaceRVC mname (Single pos2 ssent) stat table clt = do
+ (newSents,clTable) <- replacer3 stat (nE mname) pos2 ssent table clt
+ return(map (Single pos2)(toList' newSents),clTable)
+simplyReplaceRVC mname (Block p xs) stat table clt = do
+ (results,clTable) <- forStatM xs (\ssent tbl -> simplyReplaceRVC mname ssent stat table tbl) clt
+ {- forStatM is defined in Camphor.Global.Utilities as `forStatM :: (Monad m) => [a] -> (a -> b -> m (c,b)) -> b -> m ([c],b)' 
+ -- and can be used to sequence with passing a state  -}
+ return ([Block p $ concat results],clTable) 

@@ -42,7 +42,7 @@ getInstanceOfCall2 pos op valuelist1 valuelist2 stat = do
 
 getInstanceOfCall1 :: SourcePos -> Ident -> ValueList -> UserState -> Either ParseError VFInstance
 getInstanceOfCall1 pos ident valuelist stat = do
- finfo <- finfo'
+ finfo <- finfo' -- checks if `ident' is a function; if so, look for all the instances.
  let matchingFuncInstance = [ a | a@(typelist,_) <- finfo, valuelist `matches` typelist ]
  case matchingFuncInstance of
   []        -> Left $newErrorMessage(Message$"no type-matching instance of "++show ident++" defined")pos  
