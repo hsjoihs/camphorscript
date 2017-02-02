@@ -15,6 +15,7 @@ import Camphor.NonEmpty
 import Data.Maybe(isJust,listToMaybe)
 import Text.Parsec  
 import qualified Data.Map as M 
+import Control.Monad.State
 
 unwrapAllMay :: [Value] -> Maybe [Ident]
 unwrapAllMay vs = mapM unwrap vs
@@ -27,13 +28,13 @@ unwrapAllMay vs = mapM unwrap vs
    ***************************
 ----------------------------------------------------------------------------------}  
 replacer3 :: 
- UserState -> NonEmpty MacroId -> SourcePos -> SimpleSent -> ReplTable -> Maybe TmpStat -> CollisionTable -> Either ParseError ([SimpleSent],CollisionTable)
+ UserState -> NonEmpty MacroId -> SourcePos -> SimpleSent -> ReplTable -> Maybe TmpStat -> StateT CollisionTable (Either ParseError) [SimpleSent]
 -- simple ones --
 replacer3 _ _ _ Scolon   _ _    = wrp[Scolon]
 replacer3 _ _ _ (Sp x)   _ _    = wrp[Sp x]
 replacer3 _ _ _ (Comm x) _ _    = wrp[Comm x]
 replacer3 _ _ _ (Pragma x) table _  = case x of
- ("MEMORY":"using":vars) -> \clt -> do -- replaces the ARGUMENT of `using' pragma ...*1
+ ("MEMORY":"using":vars) -> StateT $ \clt -> do -- replaces the ARGUMENT of `using' pragma ...*1
   let replaced = replaceSingles table clt (map Var vars)
   let censored = unwrapAllMay replaced
   case censored of 
@@ -42,8 +43,7 @@ replacer3 _ _ _ (Pragma x) table _  = case x of
  _                       -> wrp[Pragma x] 
 
 {- 
- *1 when the function
-     `void fnc(char& a){ char b; char c; /*# MEMORY using b c#*/dowith(a) }'
+ *1 when the function `void fnc(char& a){ char b; char c; /*# MEMORY using b c#*/dowith(a) }'
      is called with a variable d, it has to be 
 	 { char b__TMP_1; char c__TMP_1; /*# MEMORY using b__TMP_1 c__TMP_1*/dowith(d) }
 	 -} 
@@ -59,7 +59,7 @@ replacer3 _ _ pos (Func2Nul oper _ _) _ _ = err$cantdefine("operator "++show ope
 -- char & delete -- 
 replacer3 stat _ pos (Char ident) table _ = case M.lookup ident table of
  Just _  -> err$newErrorMessage(Message$"cannot redefine an argument "++show ident)pos 
- Nothing -> \clTable -> do
+ Nothing -> StateT $ \clTable -> do
   if ident `M.member` clTable then Left$newErrorMessage(Message$"dual definition of variable "++show ident)pos else return()
   let identEggs = [ new | n <- [1..] :: [Integer], let new = ident ++ "__TMP_" ++ show n, not (stat `containsAnyIdent` new)]
   newIdent <- maybeToEither (newErrorMessage(Message$"FIXME: fatal error")pos)(listToMaybe identEggs) -- FIXME: fatal error
@@ -67,7 +67,7 @@ replacer3 stat _ pos (Char ident) table _ = case M.lookup ident table of
   
 replacer3 _ _ pos (Del ident) table _ = case M.lookup ident table of
  Just _  -> err$newErrorMessage(Message$"cannot delete an argument"++show ident)pos 
- Nothing -> \clTable -> do
+ Nothing -> StateT $ \clTable -> do
   newIdent <- maybeToEither (newErrorMessage(Message$"variable "++show ident++" is not defined")pos) (M.lookup ident clTable)
   return([Del newIdent],M.delete ident clTable)
 
@@ -77,57 +77,57 @@ replacer3 stat (n:|ns) pos (Call1 ident valuelist) table using
  | otherwise = do
   let matchingInstance = [ a | a@(Func name (typelist,_)) <- (n:ns), name == ident , valuelist `matches` typelist]
   case matchingInstance of
-   []    -> rpl3 (n:|ns) pos ident valuelist table stat using 
+   []    -> StateT $ rpl3 (n:|ns) pos ident valuelist table stat using 
    (x:_) -> err$newErrorMessage(Message$"cannot call "++show' x++" recursively inside "++show' n)pos
 
-replacer3 stat (n:|ns) pos (Call1WithBlock ident valuelist pos2 block) table using = \coltable -> do  -- ident is not replaced
+replacer3 stat (n:|ns) pos (Call1WithBlock ident valuelist pos2 block) table using = StateT $ \coltable -> do  -- ident is not replaced
  let newValuelist = replaceSingles table coltable valuelist
  newblock <- makeNewBlock (Block pos2 block) coltable
  return([Call1WithBlock ident newValuelist pos2 newblock],coltable)
  where
   makeNewBlock :: Sent -> CollisionTable -> Either ParseError Sents
-  makeNewBlock sent clt = fst <$> makeNewBlock2 sent clt
+  makeNewBlock sent clt = fst <$> runStateT(makeNewBlock2 sent) clt
   
-  makeNewBlock2 :: Sent -> CollisionTable -> Either ParseError (Sents,CollisionTable)
-  makeNewBlock2 (Single _ ssent) = \clt -> do
-   (res,nclt) <- replacer3 stat (n:|ns) pos ssent table using clt
+  makeNewBlock2 :: Sent -> StateT CollisionTable (Either ParseError) Sents
+  makeNewBlock2 (Single _ ssent) = StateT $ \clt -> do
+   (res,nclt) <- runStateT (replacer3 stat (n:|ns) pos ssent table using) clt
    return(map(Single pos)(toList' res),nclt)
-  makeNewBlock2 (Block  _ xs) = \clt -> do
-   (replaced,nclt) <- forStatM xs makeNewBlock2 clt --sequence [makeNewBlock sent | sent <- xs] 
+  makeNewBlock2 (Block  _ xs) = StateT $ \clt -> do
+   (replaced,nclt) <- forStatM xs (runStateT . makeNewBlock2) clt --sequence [makeNewBlock sent | sent <- xs] 
    return(concat replaced,nclt)   
 
 replacer3 stat (n:|ns) pos (Call2 oper valuelist1 valuelist2) table using = do
  let matchingInstance = [ a | a@(Operator o (typelist1,typelist2,_)) <- (n:ns), o == oper, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ]
  case matchingInstance of
-   []    -> rpl4 (n:|ns) pos oper (valuelist1,valuelist2) table stat using 
+   []    -> StateT $ rpl4 (n:|ns) pos oper (valuelist1,valuelist2) table stat using 
    (x:_) -> err$newErrorMessage(Message$"cannot call "++show' x++" recursively inside "++show' n)pos
      
 
-replacer3 stat narr pos (Call3 op valuelist1 valuelist2) table using = \coltable -> do
+replacer3 stat narr pos (Call3 op valuelist1 valuelist2) table using = StateT $ \coltable -> do
  isValidCall3 pos op valuelist2 stat
- replacer3 stat narr pos (Call2 op valuelist1 valuelist2) table using coltable
+ runStateT(replacer3 stat narr pos (Call2 op valuelist1 valuelist2) table using) coltable
 
 replacer3 stat narr pos (Call4 []     valuelist ) table using = replacer3 stat narr pos (Call5 valuelist) table using
-replacer3 stat narr pos (Call4 (x:xs) valuelist2) table using = \coltable -> do
+replacer3 stat narr pos (Call4 (x:xs) valuelist2) table using = StateT $ \coltable -> do
  (valuelist1,op) <- getCall4Left pos (x:|xs) stat
- replacer3 stat narr pos (Call2 op valuelist1 valuelist2) table using coltable
+ runStateT(replacer3 stat narr pos (Call2 op valuelist1 valuelist2) table using) coltable
 
 replacer3 _ _ _ (Call5 (SepList(Constant _,[]))) _ _ = wrp[Scolon]
 replacer3 _ _ _ (Call5 (SepList(Var ident,[]))) table _ = case M.lookup ident table of
- Nothing -> \clt -> return([Call5(SepList(newIdentIP clt ident,[]))],clt)
- Just x  -> wrp[Call5(SepList(x                   ,[]))]
-replacer3 stat narr pos (Call5 (SepList(x,ov:ovs))) table using = \coltable -> do
+ Nothing -> StateT $ \clt -> return([Call5(SepList(newIdentIP clt ident,[]))],clt)
+ Just x  -> wrp[Call5(SepList(x,[]))]
+replacer3 stat narr pos (Call5 (SepList(x,ov:ovs))) table using = StateT $ \coltable -> do
  (oper,vlist1,vlist2) <- getCall5Result pos (x,ov:|ovs) stat
- replacer3 stat narr pos (Call2 oper vlist1 vlist2) table using coltable
+ runStateT (replacer3 stat narr pos (Call2 oper vlist1 vlist2) table using) coltable
  
 --- built-in (+=) & (-=) ---
 replacer3 _ _ pos (Pleq (Var v1) (Constant v2)) table _ = case M.lookup v1 table of
- Nothing        -> \clt -> return([Pleq (newIdentIP clt v1)(Constant v2)],clt)
+ Nothing        -> StateT $ \clt -> return([Pleq (newIdentIP clt v1)(Constant v2)],clt)
  Just v@(Var _) -> wrp[Pleq v (Constant v2)]
  Just _         -> err$cantbeleft v1 "+=" pos 
 
 replacer3 _ _ pos (Mneq (Var v1) (Constant v2)) table _ = case M.lookup v1 table of
- Nothing        -> \clt -> return([Mneq (newIdentIP clt v1)(Constant v2)],clt)
+ Nothing        -> StateT $ \clt -> return([Mneq (newIdentIP clt v1)(Constant v2)],clt)
  Just v@(Var _) -> wrp[Mneq v (Constant v2)]
  Just _         -> err$cantbeleft v1 "-=" pos  
 
@@ -138,16 +138,16 @@ replacer3 stat ns pos (Mneq (Var v1) (Var v2)) table using = basis Mneq "-=" (st
 
 
 --- built-in read() & write() ---
-replacer3 stat ns pos (Rd  c@(Constant _)) table using = replacer3 stat ns pos (Call1 "read" (SepList (c,[]))) table using 
+replacer3 stat ns pos (Rd  c@(Constant _)) table using = replacer3 stat ns pos (Call1 "read"  (SepList (c,[]))) table using 
 replacer3 stat ns pos (Wrt c@(Constant _)) table using = replacer3 stat ns pos (Call1 "write" (SepList (c,[]))) table using
 
 replacer3 stat ns pos (Rd (Var ident)) table using = case M.lookup ident table of
- Nothing        -> \clt -> return([Rd (newIdentIP clt ident)],clt)
+ Nothing        -> StateT $ \clt -> return([Rd (newIdentIP clt ident)],clt)
  Just v@(Var _) -> wrp[Rd v] 
  Just c         -> replacer3 stat ns pos (Call1 "read" (SepList (c,[]))) table using 
 
 replacer3 stat ns pos (Wrt (Var ident)) table using = case M.lookup ident table of
- Nothing        -> \clt -> return([Wrt (newIdentIP clt ident)],clt)
+ Nothing        -> StateT $ \clt -> return([Wrt (newIdentIP clt ident)],clt)
  Just v@(Var _) -> wrp[Wrt v] 
  Just c         -> replacer3 stat ns pos (Call1 "write" (SepList (c,[]))) table using
  
@@ -156,25 +156,24 @@ replacer3 stat ns pos (Wrt (Var ident)) table using = case M.lookup ident table 
    * end of replacer3 *
    ********************
 ----------------------------------------------------------------------------------}
-wrp :: (Monad m) => b -> a -> m (b,a)
-wrp b a = return(b,a)
+wrp :: (Monad m) => b -> StateT s m b
+wrp b = StateT $ \s -> return(b,s)
 
-err :: a -> t -> Either a b
-err a _ = Left a  
+err :: a -> StateT s (Either a) b
+err a = StateT $ \_ -> Left a  
   
 -- replaces `variable += variable' or `variable -= variable' 
-basis :: (Value -> Value -> SimpleSent) -> String
- -> (UserState, NonEmpty MacroId, SourcePos, Ident, Ident, M.Map Ident Value, Maybe TmpStat)
- -> CollisionTable -> Either ParseError ([SimpleSent],CollisionTable)
+basis :: (Value -> Value -> SimpleSent) -> String -> 
+ (UserState, NonEmpty MacroId, SourcePos, Ident, Ident, M.Map Ident Value, Maybe TmpStat) -> StateT CollisionTable (Either ParseError) [SimpleSent]
 basis constr op (stat,ns,pos,v1,v2,table,using) = case M.lookup v1 table of
- Nothing        -> \clt -> res (newIdentIP clt v1) clt
+ Nothing        -> StateT $ \clt -> runStateT(res (newIdentIP clt v1)) clt
  Just v@(Var _) -> res v 
  Just _         -> err$cantbeleft v1 op pos 
  where
- res :: Value -> CollisionTable -> Either ParseError ([SimpleSent],CollisionTable)
+ res :: Value -> StateT CollisionTable (Either ParseError) [SimpleSent]
  res v = case M.lookup v2 table of
-  Nothing      -> \clt -> replacer3 stat ns pos (Call2 (wrap op) (SepList(v,[])) (SepList(newIdentIP clt v2,[]))) table using clt
-  Just (Var y) -> \clt -> replacer3 stat ns pos (Call2 (wrap op) (SepList(v,[])) (SepList(Var y            ,[]))) table using clt
+  Nothing      -> StateT $ \clt -> runStateT(replacer3 stat ns pos (Call2 (wrap op) (SepList(v,[])) (SepList(newIdentIP clt v2,[]))) table using) clt
+  Just (Var y) -> StateT $ \clt -> runStateT(replacer3 stat ns pos (Call2 (wrap op) (SepList(v,[])) (SepList(Var y            ,[]))) table using) clt
   Just c       -> wrp[constr v c]
 
   
@@ -222,7 +221,7 @@ rpl1_1 pos sent table2 newMs stat using clt =
  
 --- simply replace the parameters using the arguments  
 rpl1_2 :: SourcePos -> Sent -> ReplTable -> NonEmpty MacroId -> UserState -> Maybe TmpStat -> CollisionTable -> Either ParseError ([SimpleSent],CollisionTable)
-rpl1_2 pos (Single _ ssent) table2 newMs stat using coltable = replacer3 stat newMs pos ssent table2 using coltable -- replace the inner block
+rpl1_2 pos (Single _ ssent) table2 newMs stat using coltable = runStateT(replacer3 stat newMs pos ssent table2 using) coltable -- replace the inner block
 rpl1_2 pos (Block  _ xs)    table2 newMs stat using coltable = do
  (results,clTable) <- forStatM xs (\ssent clt -> rpl1_2 pos ssent table2 newMs stat using clt) coltable
  return(concat results,clTable)

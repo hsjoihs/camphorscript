@@ -18,17 +18,14 @@ import Camphor.Lib
 import Camphor.CmdOptions
 import Data.List(isPrefixOf)
 import qualified Data.Map as M
-import Data.Maybe
 import Control.Monad
+
 
 getLibs :: FilePath -> IO FileToTxt 
 getLibs dir = do
  conts'    <- getDirectoryContents dir
- let conts = [ (file,dir </> file) | file <- conts', not("." `isPrefixOf` file)]
- libs'     <- forM conts $ \(f,dirf) -> do
-  e <- doesFileExist dirf
-  if e then return(Just (f,dirf)) else return(Nothing)
- let libs = catMaybes libs'; libs1 = map fst libs; libs2 = map snd libs
+ libs <- filterM (doesFileExist . snd) [ (file,dir </> file) | file <- conts', not("." `isPrefixOf` file)]
+ let libs1 = map fst libs; libs2 = map snd libs
  texts <- mapM getContentsFrom libs2
  return (M.fromList $ zip libs1 (zip libs2 texts))
 
@@ -44,13 +41,13 @@ main = do
  
 dispatch4 :: Options -> IO ()
 dispatch4 [] = mapM_ putStrLn info
-dispatch4 xs = case optionParse xs (Nothing,Nothing,(4,8),Nothing,[],[]) of
+dispatch4 xs = case optionParse xs (Nothing,Nothing,(4,8),Nothing,[],[],False,False) of
  Left e -> abort e
- Right (infile,outf,(a,b),mem,fds,lds) -> do
+ Right (infile,outf,(a,b),mem,fds,lds,ni,nl) -> do
   let file_dir = fst $ splitFileName infile
   contents  <- getContentsFrom infile
-  includer  <- getManyLibs (lib_dir:lds)
-  includer2 <- getManyLibs (file_dir:fds)
+  includer  <- getManyLibs (if nl then lds else  lib_dir:lds)
+  includer2 <- getManyLibs (if ni then fds else file_dir:fds)
   outputParsed outf (fromTo' a b (step infile (includer,includer2) mem) contents) 
 
 step :: FilePath -> Includers -> Maybe MemSize -> [Txt -> Either ParseError Txt]   
