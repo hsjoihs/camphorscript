@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
-module Camphor.PCS_Parser
+module Camphor.Base_Step2.PCS_Parser
 (parser2'
 ,Tok(..)
 ,showTok

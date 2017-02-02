@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
 {- Functional macro expansion -}
-module Camphor.Base_Step2
+module Camphor.Base_Step2.Base_Step2
 (step2
 --,parser2'
 
@@ -11,8 +11,8 @@ module Camphor.Base_Step2
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Control.Applicative hiding(many,(<|>))
 import Camphor.Partial
-import Camphor.Base_Step2_2
-import Camphor.UserState
+import Camphor.Base_Step2.Base_Step2_2
+import Camphor.Base_Step2.UserState
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import Text.Parsec 
@@ -131,7 +131,7 @@ replaceOpMacro pos op valuelist1 valuelist2 stat = do
  let matchingOpInstance = [ a | a@(typelist1,typelist2,_) <- opinfo, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ] 
  case matchingOpInstance of 
   []        -> Left $newErrorMessage(Message$"no type-matching instance of "++show op)pos 
-  [instnce] -> replacer instnce valuelist1 valuelist2
+  [instnce] -> replacer instnce valuelist1 valuelist2 stat
   xs        -> Left $newErrorMessage(Message$show(length xs)++" type-matching instances of "++show op++" defined")pos 
  where
   opinfo' = case findOpContents stat op of  -- Either ParseError [(TypeList,TypeList, Sent)]
@@ -143,16 +143,25 @@ replaceOpMacro pos op valuelist1 valuelist2 stat = do
 -- type ValueList = (Value,[(Oper,Value)])   
 -- type Sent  = Upgrade (Extra,SimpleSent) = Single (Extra,SimpleSent) | Block [Upgrade (Extra,SimpleSent)]
 -- type Extra = SourcePos
-replacer :: (TypeList,TypeList, Sent) -> ValueList -> ValueList -> Either ParseError Txt
-replacer (typelist1,typelist2,Single(pos2,ssent)) valuelist1 valuelist2 = 
- replacer2 pos2 ssent $makeReplacerTable2 (typelist1,typelist2) (valuelist1,valuelist2)
+replacer :: (TypeList,TypeList, Sent) -> ValueList -> ValueList -> UserState -> Either ParseError Txt
+replacer (typelist1,typelist2,Single(pos2,ssent)) valuelist1 valuelist2 stat = do
+ newSSent <- replacer2 pos2 ssent $makeReplacerTable2 (typelist1,typelist2) (valuelist1,valuelist2)
+ convert2 stat [Single(pos2,newSSent)]
  
-replacer (typelist1,typelist2,Block xs) valuelist1 valuelist2 = do 
- result <- sequence [replacer (typelist1,typelist2,x) valuelist1 valuelist2 | x <- xs] -- :: Either ParseError [Txt]
+replacer (typelist1,typelist2,Block xs) valuelist1 valuelist2 stat = do 
+ result <- sequence [replacer (typelist1,typelist2,x) valuelist1 valuelist2 stat | x <- xs] -- :: Either ParseError [Txt]
  return$concat(["{"]++result++["}"])
- 
-replacer2 :: SourcePos -> SimpleSent -> M.Map Ident Value -> Either ParseError Txt
-replacer2 pos ssent table = undefined
+
+{- 
+data SimpleSent =
+ Char Ident | Del Ident | Scolon | Infl Fix Oper | Infr Fix Oper | Sp String | Comm String | 
+ Func1 Ident TypeList Sent | Func2 Oper TypeList TypeList Sent | Call1 Ident ValueList |
+ Call2 Oper ValueList ValueList | Call3 Oper ValueList ValueList | Call4 [(Value,Oper)] ValueList | Call5 ValueList deriving(Show)
+-} 
+replacer2 :: SourcePos -> SimpleSent -> M.Map Ident Value ->  Either ParseError SimpleSent
+replacer2 pos (Char ident) table = case M.lookup ident table of
+ Nothing -> return(Char ident)
+ Just _  -> Left$newErrorMessage(Message$"cannot redefine argument "++show ident)pos 
  
 
 toList1 :: TypeList -> [Ident]
@@ -161,8 +170,8 @@ toList1 (_,t,xs) = t:[x|(_,_,x)<-xs]
 toList2 :: ValueList -> [Value]
 toList2 (v,xs) = v:map snd xs 
  
-makeReplacerTable :: TypeList -> ValueList -> M.Map Ident Value
-makeReplacerTable tlist vlist = M.fromList$zip(toList1 tlist)(toList2 vlist) 
+--makeReplacerTable :: TypeList -> ValueList -> M.Map Ident Value
+--makeReplacerTable tlist vlist = M.fromList$zip(toList1 tlist)(toList2 vlist) 
 
 makeReplacerTable2 :: (TypeList,TypeList) -> (ValueList,ValueList) -> M.Map Ident Value
 makeReplacerTable2 (t1,t2)(v1,v2) = M.fromList$zip(toList1 t1++toList1 t2)(toList2 v1++toList2 v2)

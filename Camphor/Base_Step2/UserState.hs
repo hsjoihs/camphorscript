@@ -1,22 +1,28 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
-module Camphor.UserState
+module Camphor.Base_Step2.UserState
 (Fixity(..)
-,UserState(..)
-,emptyState,containsIdent,addIdent,removeIdent,addOpFixity,getOpName,containsOp,findOpContents,matches
+,UserState(..),VFInfo,OpInfo,VFList,OpList
+,emptyState
+,containsIdent,addIdent,removeIdent,getIdentContents
+,addOpFixity,getOpName,containsOp,findOpContents,matches
 )where
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
-import Camphor.Base_Step2_2
+import Camphor.Base_Step2.Base_Step2_2
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import qualified Data.Map as M
 
 
 data Fixity = InfixL Integer Oper | InfixR Integer Oper deriving(Show,Eq) 
-type V_and_F_list = M.Map Ident (Either () [(TypeList, Sent)])
-type OpList = M.Map Oper OpInfo
+
+type VFInfo = Either () [(TypeList, Sent)]
 type OpInfo = (Fixity,[(TypeList,TypeList, Sent)])
-data UserState = UserState V_and_F_list OpList
+
+type VFList = M.Map Ident VFInfo
+type OpList = M.Map Oper OpInfo
+
+data UserState = UserState VFList OpList
 {-
 
 UserState should contain the following things...
@@ -36,8 +42,11 @@ emptyState = UserState M.empty M.empty
 containsIdent :: UserState -> Ident -> Bool
 containsIdent (UserState vflist _) ident = ident `M.member` vflist 
 
-addIdent :: UserState -> Ident -> (Either () [(TypeList, Sent)]) -> UserState
-addIdent    (UserState vflist oplist) ident dat = UserState (M.insert ident dat vflist) oplist 
+addIdent :: UserState -> Ident -> VFInfo -> UserState
+addIdent      (UserState vflist oplist) ident dat = UserState (M.insert ident dat vflist) oplist 
+
+getIdentContents :: UserState -> Ident -> Maybe VFInfo
+getIdentContents (UserState vflist _) ident = M.lookup ident vflist
 
 removeIdent :: UserState -> Ident -> UserState
 removeIdent (UserState vflist oplist) ident     = UserState (M.delete ident vflist) oplist
@@ -49,7 +58,7 @@ addOpFixity (UserState vflist oplist) fixity =
 containsOp :: UserState -> Oper -> Bool
 containsOp (UserState _ oplist) oper = oper `M.member` oplist
 
-findOpContents :: UserState -> Oper -> Maybe (Fixity,[(TypeList,TypeList, Sent)])
+findOpContents :: UserState -> Oper -> Maybe OpInfo
 findOpContents (UserState _ oplist) oper = M.lookup oper oplist
 
 matches :: ValueList -> TypeList -> Bool

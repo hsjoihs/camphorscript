@@ -1,6 +1,6 @@
 ﻿{-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
-module Camphor.Base_Step2_2
+module Camphor.Base_Step2.Base_Step2_2
 (parser2_2
 ,parser2'
 ,Upgrade(..),Sent,Sents,Type(..),Value(..),TypeList,ValueList,Extra,SimpleSent(..)
@@ -9,7 +9,7 @@ import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,s
 import Camphor.Global.Synonyms
 import Text.Parsec 
 import Control.Applicative hiding ((<|>),many)
-import Camphor.PCS_Parser2
+import Camphor.Base_Step2.PCS_Parser2
 import Data.Functor.Identity
 
 
