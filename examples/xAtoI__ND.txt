@@ -1,0 +1,51 @@
+      
+mov 0; inc 4; 
+mov 0; loop; mov 1; inc 4; 
+	mov 1; loop; mov 2; inc 3; 
+		mov 1; dec 1; 
+	mov 1; pool; 
+	mov 0; dec 1; 
+mov 0; pool; 
+mov 3; _input; 
+mov 4; _input; 
+mov 5; _input; 
+mov 2; loop; mov 3; dec 1; 
+	mov 4; dec 1; 
+	mov 5; dec 1; 
+	mov 2; dec 1; 
+mov 2; pool; 
+mov 5; loop; mov 6; inc 1; 
+	mov 5; dec 1; 
+mov 5; pool; 
+mov 4; loop; mov 5; inc 5; 
+	mov 5; loop; mov 6; inc 2; 
+		mov 5; dec 1; 
+	mov 5; pool; 
+	mov 4; dec 1; 
+mov 4; pool; 
+mov 3; loop; mov 4; inc 5; 
+	mov 4; loop; mov 5; inc 5; 
+		mov 5; loop; mov 6; inc 4; 
+			mov 5; dec 1; 
+		mov 5; pool; 
+		mov 4; dec 1; 
+	mov 4; pool; 
+	mov 3; dec 1; 
+mov 3; pool; 
+mov 6; output; 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

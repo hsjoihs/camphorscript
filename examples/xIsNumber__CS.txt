@@ -7,7 +7,7 @@ b -=1;/* b=47 */
 
 read(c);
 
-c -=| ~b;/* using (d,e)*/
+c -|= ~b;/* using (d,e)*/
 delete b;
 d += c;  /* using e*/
 

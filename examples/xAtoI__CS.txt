@@ -1,0 +1,38 @@
+#include <stdcalc>
+char a; char b; char c; char dig1; char dig2; char dig3; char g;
+
+a += 4;
+while(a){
+	b += 4; c += 3 * ~b; // c+=12;
+	a -= 1;
+} // c += 48
+delete a; delete b;
+read(dig1);
+read(dig2);
+read(dig3);
+while(c){
+	dig1-=1;
+	dig2-=1;
+	dig3-=1;
+	c-=1;
+}
+g += ~dig3;
+
+while(dig2){
+	dig3 += 5;
+	g += 2* ~dig3; // g += 10;
+	
+	dig2-=1;
+} // g += ~dig2 * 10;
+
+while(dig1){
+	dig2+=5;
+	while(dig2){
+		dig3+=5;
+		g += 4* ~ dig3; // g+=20;
+		
+		dig2-=1;
+	} //g += 100;
+	dig1-=1;
+} // g+= ~dig1 * 100
+write(g);

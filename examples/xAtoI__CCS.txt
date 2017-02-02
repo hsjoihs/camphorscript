@@ -1,0 +1,60 @@
+char a; char b; char c; char d; char e; char f; char g;
+a+=4;
+while(a){
+	b+=4;
+	while(b){
+		c+=3;
+		b-=1;
+	}
+	a-=1;
+}
+read(d);
+read(e);
+read(f);
+while(c){
+	d-=1;
+	e-=1;
+	f-=1;
+	c-=1;
+}
+while(f){
+	g+=1;
+	f-=1;
+}
+while(e){
+	f+=5;
+	while(f){
+		g+=2;
+		f-=1;
+	}
+	e-=1;
+}
+while(d){
+	e+=5;
+	while(e){
+		f+=5;
+		while(f){
+			g+=4;
+			f-=1;
+		}
+		e-=1;
+	}
+	d-=1;
+}
+write(g);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
