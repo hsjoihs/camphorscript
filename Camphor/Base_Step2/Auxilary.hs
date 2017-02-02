@@ -9,7 +9,7 @@ module Camphor.Base_Step2.Auxilary
 ,makeReplacerTable,makeReplacerTable2,ReplTable
 ,isConsistent,contradiction
 ,NonEmptyValue
-,breakBy',reverse',reverse''
+,breakBy',reverse',reverse'',concat'
 ,isValidCall3,getCall4Left,getInstanceOfCall1,getInstanceOfCall2
 ,map'
 ) where
@@ -22,6 +22,9 @@ import Text.Parsec
 import Camphor.NonEmpty
 import qualified Data.Map as M
 
+concat' :: NonEmpty(NonEmpty a) -> NonEmpty a
+concat' (xs:|[]) = xs 
+concat' (xs:|(xs2:xss)) = xs `append` (concat' (xs2:|xss))
 
 getInstanceOfCall2 :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError (TypeList,TypeList, Sent)
 getInstanceOfCall2 pos op valuelist1 valuelist2 stat = do

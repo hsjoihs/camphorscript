@@ -2,7 +2,7 @@
 module Camphor.NonEmpty
 (NonEmpty(..)
 ,toList
-,cons,snoc,snoc2
+,cons,snoc,snoc2,append
 ,last'
 ,shiftPair
 ,minimumBy'
@@ -13,6 +13,7 @@ data NonEmpty a = (:|)a [a] deriving(Show)
 
 infixr 5 :|
 infixr 5 `cons`
+infixr 5 `append`
 infixl 5 `snoc`
 infixl 5 `snoc2`
 
@@ -28,6 +29,10 @@ snoc :: NonEmpty a -> a -> NonEmpty a
 snoc2 :: [a] -> a -> NonEmpty a
 [] `snoc2` a = a :| []
 (x:xs) `snoc2` a = x :| (xs++[a])
+
+append :: NonEmpty a -> NonEmpty a -> NonEmpty a
+(x:|[]     ) `append` ys = x `cons` ys
+(x:|(x2:xs)) `append` ys = x `cons` ((x2:|xs) `append` ys)
 
 
 last' :: NonEmpty a -> a

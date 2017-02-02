@@ -75,7 +75,6 @@ convert2 stat (Single(pos,Call1 name valuelist):Single(_,Scolon):xs) = do
  left <- convert2 stat xs
  return $ result ++ left
  
-
 convert2 stat (Single(pos,Func2 op typelist1 typelist2 sent):xs) = do
  newStat <- newF2 pos op typelist1 typelist2 sent stat
  left <- convert2 newStat xs
@@ -295,9 +294,8 @@ rpl1 :: NonEmpty MacroId -> SourcePos -> Ident -> ValueList -> M.Map Ident Value
 rpl1 ms pos ident valuelist table stat = do
  let newValuelist = map' tmp valuelist
  instnce@(typelist,sent) <- getInstanceOfCall1 pos ident newValuelist stat
- let mname = Func ident instnce
- --replacer2 stat (mname `cons` ms) pos __ __
- undefined
+ let mname = Func ident instnce ; table2 = makeReplacerTable typelist newValuelist
+ rpl1_1 pos sent table2 (mname `cons` ms) stat 
  where
   tmp :: Value -> Value
   tmp m@(Constant _) = m
@@ -305,20 +303,13 @@ rpl1 ms pos ident valuelist table stat = do
    Nothing -> v
    Just val -> val   
 
-{-
-
-replacer2 :: UserState -> NonEmpty MacroId -> SourcePos -> SimpleSent -> M.Map Ident Value ->  Either ParseError (NonEmpty SimpleSent)
-
-replacer funcname sent stat $ makeReplacerTable typelist valuelist
-
-replacer :: MacroId -> Sent -> UserState -> ReplTable -> Either ParseError Txt
-replacer mname (Single(pos2,ssent)) stat table = do
- newSents <- replacer2 stat (mname:|[]) pos2 ssent table
- case newSents of newSSent:|[] -> convert2 stat [Single(pos2,newSSent)] ; (x:|xs) -> convert2 stat [Block$map(\k->Single(pos2,k))(x:xs)]
-replacer mname (Block xs) stat table = do
- result <- sequence [replacer mname ssent stat table | ssent <- xs]
- return$concat(["{"]++result++["}"])
--}   
+rpl1_1 :: SourcePos -> Sent -> ReplTable -> NonEmpty MacroId -> UserState -> Either ParseError (NonEmpty SimpleSent)
+rpl1_1 pos (Single(_,ssent)) table2 newMs stat  = replacer2 stat newMs pos ssent table2
+rpl1_1 pos (Block xs) table2 newMs stat = do
+ replaced <- sequence [rpl1_1 pos ssent table2 newMs stat | ssent <- xs] -- [NonEmpty SimpleSent]
+ case replaced of 
+  [] -> return(Scolon:|[])
+  (r:rs) -> return$concat' (r:|rs)
    
 rpl2 :: NonEmpty MacroId -> SourcePos -> Oper -> (ValueList,ValueList) -> M.Map Ident Value -> UserState -> Either ParseError (NonEmpty SimpleSent)
 rpl2 (n:|ns) pos oper (vlist1,vlist2) table stat = undefined
