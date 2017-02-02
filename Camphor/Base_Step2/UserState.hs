@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts , TypeSynonymInstances , FlexibleInstances, NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
 module Camphor.Base_Step2.UserState
-(Fixity(..),OpInfo,MacroId(..)
+(Fixity(..),OpInfo,MacroId(..),VFInstance,OpInstance
 ,emptyState,UserState()
 ,containsIdent,addIdent,removeIdent,getVFContents,addOpContents
 ,addOpFixity,getOpName,containsOp,getOpContents,matches,getFixValue
@@ -9,6 +9,7 @@ module Camphor.Base_Step2.UserState
 ,show',PrettyPrint
 ,addVFBlock,getTopVFBlock,deleteTopVFBlock
 ,overlaps,typelistIdentConflict,valuelistIdentConflict
+,getName
 )where
 import Camphor.SafePrelude
 import Camphor.SepList as Sep
@@ -20,12 +21,18 @@ import Text.Parsec.Pos(newPos)
 import Camphor.NonEmpty as NE
 
 data Fixity = InfixL Integer Oper | InfixR Integer Oper deriving(Show,Eq) 
-type VFInfo = Either () [(TypeList, Sent)]
-type OpInfo = (Fixity,[(TypeList,TypeList, Sent)])
-data MacroId = Func Ident (TypeList,Sent) | Operator Oper (TypeList,TypeList,Sent) deriving(Show,Eq)  
+type VFInstance = (TypeList, Maybe Sent)
+type VFInfo = Between () [VFInstance]
+type OpInstance = (TypeList,TypeList, Maybe Sent)
+type OpInfo = (Fixity,[OpInstance])
+data MacroId = Func Ident VFInstance | Operator Oper OpInstance deriving(Show,Eq)  
 type VFList = NonEmpty(M.Map Ident VFInfo)
 type OpList = M.Map Oper OpInfo
 data UserState = UserState VFList OpList deriving(Show)
+
+getName :: MacroId -> String
+getName (Func ident _) = show ident
+getName (Operator oper _ ) = unOp oper
 
 overlaps :: TypeList -> TypeList -> Bool
 overlaps (SepList ((typ,_),xs)) (SepList ((typ2,_),xs2)) 
@@ -39,10 +46,10 @@ overlaps (SepList ((typ,_),xs)) (SepList ((typ2,_),xs2))
   _           `clashesWith` _             = True
 
 typelistIdentConflict :: TypeList -> Bool
-typelistIdentConflict = conflict . map snd . Sep.toList
+typelistIdentConflict = conflict . map snd . toList'
 
 valuelistIdentConflict :: ValueList -> Bool
-valuelistIdentConflict = conflict . Sep.toList
+valuelistIdentConflict = conflict . filter isVar . toList'
   
 isInfixL :: Fixity -> Bool
 isInfixL (InfixL _ _) = True
@@ -84,19 +91,18 @@ getFixValue (InfixR fix _) = fix
 getOpName :: Fixity -> Oper
 getOpName (InfixL _ op) = op
 getOpName (InfixR _ op) = op
-
 emptyState :: UserState
 emptyState = UserState deffun defop
  where
   deffun :: VFList
   deffun = nE(M.fromList[
-   ("read" ,Right[(single CHAR_AND "bbbb",Single(newPos "__DEFAULT__" 0 0,Rd (Var "bbbb")))]),
-   ("write",Right[(single CHAR_AND "bbbb",Single(newPos "__DEFAULT__" 0 0,Wrt(Var "bbbb")))])
+   ("read" ,West$[(single CHAR_AND "bbbb",Just$Single(newPos "__DEFAULT__" 0 0,Rd $Var "bbbb"))]),
+   ("write",West$[(single CHAR_AND "bbbb",Just$Single(newPos "__DEFAULT__" 0 0,Wrt$Var "bbbb"))])
    ])
   defop :: OpList
   defop = M.fromList[defau "+="$Pleq (Var "aaaa") (Var "NNNN") ,defau "-="$Mneq(Var "aaaa")(Var "NNNN")]
   defau :: String -> SimpleSent -> (Oper,OpInfo)
-  defau a s = (wrap a,(InfixR 5 (wrap a),[(single CHAR_AND "aaaa",single CNSTNT_CHAR "NNNN", Single(newPos "__DEFAULT__" 0 0,s))]))
+  defau a s = (wrap a,(InfixR 5 (wrap a),[(single CHAR_AND "aaaa",single CNSTNT_CHAR "NNNN", Just$Single(newPos "__DEFAULT__" 0 0,s))]))
   single :: Type -> Ident -> TypeList
   single a b = SepList ((a,b),[])
 
@@ -131,16 +137,16 @@ addOpFixity :: UserState -> Fixity -> UserState
 addOpFixity (UserState vflist oplist) fixity = 
  UserState vflist (M.insert (getOpName fixity) (fixity,[]) oplist)
  
-addOpContents :: UserState -> Oper -> (TypeList,TypeList,Sent) -> (e,e,e) -> Either e UserState
+addOpContents :: UserState -> Oper -> OpInstance -> (e,e,e) -> Either e UserState
 addOpContents stat@(UserState vflist oplist) op (typelist1,typelist2,sent) (notfound,doubledefine,doubleparam) = case getOpContents stat op of
  Nothing -> Left notfound
  Just(fix,list)
-  | conflict $ map snd $ Sep.toList typelist1 ++ Sep.toList typelist2 -> Left doubleparam
+  | conflict $ map snd $ toList' typelist1 ++ toList' typelist2 -> Left doubleparam
   | otherwise -> do
    newlist <- newlist' doubledefine
    return $ UserState vflist (M.insert op (fix,newlist) oplist)
    where 
-    newlist' :: e -> Either e [(TypeList,TypeList,Sent)]
+    newlist' :: e -> Either e [OpInstance]
     newlist' e  
      | any id [ typelist1 `overlaps` tlist1 && typelist2 `overlaps` tlist2 | (tlist1,tlist2,_) <- list ] = Left e
      | otherwise = Right $ (typelist1,typelist2,sent):list

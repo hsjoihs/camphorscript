@@ -2,7 +2,7 @@
 {-# OPTIONS -Wall #-}
 module Camphor.NonEmpty
 (NonEmpty(..)
-,toList
+,toList'
 ,cons,snoc,snoc2,append
 ,last'
 ,shiftPair
@@ -13,6 +13,7 @@ module Camphor.NonEmpty
 ,nE
 )where
 import Camphor.SafePrelude 
+import Camphor.Listlike
 data NonEmpty a = (:|)a [a] deriving(Show)
 
 infixr 5 :|
@@ -28,9 +29,8 @@ searchBy f (x :| (x2:xs)) = case f x of
  Just b  -> Just b
 
 
-toList :: NonEmpty a -> [a]
-{-# INLINE toList #-}
-toList (x :| xs) = x:xs
+instance Listlike NonEmpty where
+ toList' (x :| xs) = x:xs
 
 cons :: a -> NonEmpty a -> NonEmpty a
 {-# INLINE cons #-}

@@ -1,10 +1,11 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
 module Camphor.SepList
-(SepList(..),reverse,toList,toSeparatorList
+(SepList(..),reverse,toList',toSeparatorList
 ) where
 import Camphor.SafePrelude hiding(reverse)
 import qualified Camphor.SafePrelude as P
+import Camphor.Listlike
 
 newtype SepList s a = SepList{ unSep :: (a,[(s,a)]) } deriving(Show,Eq)
 
@@ -22,8 +23,8 @@ reverse (SepList l) = SepList(reverse' l)
  tmp (a,(b,a2):xs) = (q,(b,a):w) where (q,w) = reverse' (a2,xs)
    }
    
-toList :: SepList b a -> [a]
-toList (SepList(v,xs)) = v:map snd xs 
+instance Listlike(SepList b) where
+ toList' (SepList(v,xs)) = v:map snd xs 
 
 toSeparatorList :: SepList b a -> [b]
 toSeparatorList (SepList(_,xs)) = map fst xs

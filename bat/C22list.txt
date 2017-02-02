@@ -6,4 +6,5 @@ xFunc 5
 xCopyVar 6
 xCopyVar2 7
 xIsNumber 8
+qNullDeclare 9
 ; PCS -> HCCS

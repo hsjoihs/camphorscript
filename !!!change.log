@@ -5,7 +5,24 @@ Step2から黒魔術排除
 Step2のautotesterrへの登録
 テスト例を増やす
 可読性も上げる
-toListの衝突が面倒なのでToListという型クラスを作ろう
+
+
+ver 0.6.8 17:56 2014/06/20 (金)
+--課題--
+void func(char& a) = 0;などの「ヌル関数宣言」が欲しい
+func(1,1);がoverlapping_argumentsになるバグ発見、直さねば
+
+--解決--
+ヌル関数宣言の処理を書いた
+データ構造を大幅にいじったので割と面倒だった
+overlapはfilterを挟んで対策
+テストもした
+
+--その他--
+toListの衝突が面倒だったのでListlikeという型クラスを作成。なおMapは無理な模様
+replacer2の戻り値を[SimpleSent]に変更
+
+
 
 ver 0.6.7 23:17 2014/06/18 (水)
 --課題--

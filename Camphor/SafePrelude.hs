@@ -29,4 +29,6 @@ Bool(..),(&&),(||),not,otherwise
 -- ,ReadS,Read,readsPrec,readList,reads,readParen,lex
 ,IO,putChar,putStr,putStrLn,print,getChar,getLine,getContents,interact
 ,FilePath,readFile,writeFile,appendFile,readIO,readLn
+,Between(..)
 )where
+data Between a b = East a | West b deriving(Show, Eq, Ord)

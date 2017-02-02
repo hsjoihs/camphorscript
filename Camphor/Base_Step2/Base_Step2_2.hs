@@ -56,6 +56,8 @@ block' = do{p <- getPosition; _brace; ss <- many sent;_ecarb; return(p,ss)}
 block :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 block = Block <$> block'
 
+blockOrNull :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity (Between Sent ())
+blockOrNull = try(East <$> block) <|> (_eq >> __ >> _zero >> __ >> _scolon >> return (West ()));
 
 func_def :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 func_def = do{
@@ -64,8 +66,10 @@ func_def = do{
  _paren;               __;             -- (
  list1 <- getTypeList; __;             -- char& a
  _nerap;               __;             -- )
- m <- block;                           -- {         }
- return(simple p$Func1 name list1 m)
+ m <- blockOrNull;  -- {   } or = 0 ;
+ case m of 
+  East b  -> return(simple p$Func1 name list1 b); 
+  West () -> return(simple p$Func1Null name list1);
  }
 -- void 識別子(型 識別子【演算子 型 識別子】){【文】}
 
@@ -78,8 +82,10 @@ op_def = do{
  _scolon;              __; -- ;
  list2 <- getTypeList; __; -- constant char N
  _nerap;               __; -- )
- m <- block;               -- {    }
- return(simple p$Func2 op list1 list2 m)
+ m <- blockOrNull; -- {   } or = 0 ;
+ case m of
+  East b  -> return(simple p$Func2 op list1 list2 b)
+  West () -> return(simple p$Func2Null op list1 list2)
  }
 -- void(演算子)(型 識別子【演算子 型 識別子】;型 識別子【演算子 型 識別子】){【文】}
  

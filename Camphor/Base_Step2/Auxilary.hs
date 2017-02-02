@@ -28,7 +28,7 @@ getLastPos (Single(pos,_)) = pos
 getLastPos (Block (p,[])) = p
 getLastPos (Block (_,x:xs)) = getLastPos $ last' (x:|xs)
 
-getInstanceOfCall2 :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError (TypeList,TypeList, Sent)
+getInstanceOfCall2 :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError OpInstance
 getInstanceOfCall2 pos op valuelist1 valuelist2 stat = do
  opinfo <- opinfo'
  let matchingOpInstance = [ a | a@(typelist1,typelist2,_) <- opinfo, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ] 
@@ -37,10 +37,10 @@ getInstanceOfCall2 pos op valuelist1 valuelist2 stat = do
   [instnce] -> return instnce
   xs        -> Left $newErrorMessage(Message$show(length xs)++" type-matching instances of "++show op++" defined")pos 
  where
-  opinfo' :: Either ParseError [(TypeList,TypeList, Sent)]
+  opinfo' :: Either ParseError [OpInstance]
   opinfo' = fmap snd $ getOpContents2 pos stat op
 
-getInstanceOfCall1 :: SourcePos -> Ident -> ValueList -> UserState -> Either ParseError (TypeList,Sent)
+getInstanceOfCall1 :: SourcePos -> Ident -> ValueList -> UserState -> Either ParseError VFInstance
 getInstanceOfCall1 pos ident valuelist stat = do
  finfo <- finfo'
  let matchingFuncInstance = [ a | a@(typelist,_) <- finfo, valuelist `matches` typelist ]
@@ -49,11 +49,11 @@ getInstanceOfCall1 pos ident valuelist stat = do
   [instnce] -> return instnce
   xs        -> Left $newErrorMessage(Message$show(length xs)++" type-matching instances of "++show ident++" defined")pos   
  where
-  finfo' :: Either ParseError [(TypeList, Sent)]
+  finfo' :: Either ParseError [VFInstance]
   finfo' = case getVFContents stat ident of 
    Nothing          -> Left $newErrorMessage(Message$"function "++show ident++" is not defined")pos 
-   Just(Left())     -> Left $newErrorMessage(Message$"cannot call "++show ident++" because it is defined as a variable")pos
-   Just(Right info) -> Right $ info 
+   Just(East())     -> Left $newErrorMessage(Message$"cannot call "++show ident++" because it is defined as a variable")pos
+   Just(West info) -> Right $ info 
 
 getCall4Left :: SourcePos -> NonEmpty (Value, Oper) -> UserState -> Either ParseError (ValueList, Oper)
 getCall4Left pos (x:|xs) stat = do  
@@ -143,10 +143,10 @@ getOpsFixities' pos stat (_,(op,_):|ovs) = do
   return(fx:|fxs)
 
 makeReplacerTable :: TypeList -> ValueList -> ReplTable
-makeReplacerTable tlist vlist = M.fromList$zip(toIdentList tlist)(S.toList vlist) 
+makeReplacerTable tlist vlist = M.fromList$zip(toIdentList tlist)(toList' vlist) 
 
 makeReplacerTable2 :: (TypeList,TypeList) -> (ValueList,ValueList) -> ReplTable
-makeReplacerTable2 (t1,t2)(v1,v2) = M.fromList$zip(toIdentList t1++toIdentList t2)(S.toList v1++S.toList v2)
+makeReplacerTable2 (t1,t2)(v1,v2) = M.fromList$zip(toIdentList t1++toIdentList t2)(toList' v1++toList' v2)
 
 isConsistent :: [Fixity] -> Bool
 isConsistent xs = all isInfixL xs || all isInfixR xs

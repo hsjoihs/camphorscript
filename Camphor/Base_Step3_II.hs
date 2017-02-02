@@ -114,26 +114,26 @@ convert3' m f((n ,s:|st ,ls),(Top(DEL,ide     ):xs)) = case (M.lookup ide s) of
 convert3' m f(state         ,(Top(NUL,sp      ):xs)) = (sp++) <$$> convert3' m f(state,xs) 
 
 
-convert3' m f((n ,st    ,ls),(Mid(ADD,ide,  nm):xs)) = case (lookup' ide (toList st)) of
+convert3' m f((n ,st    ,ls),(Mid(ADD,ide,  nm):xs)) = case (lookup' ide (toList' st)) of
    Just  k                                      -> (("mov "++show k++"; inc "++nm++"; ")++) <$$> convert3' m  f((n,st,ls),xs)
    Nothing                                      -> makeErr(msgIde ide "is not defined")(f++"--step3_II'") 0 0
    
-convert3' m f((n ,st    ,ls),(Mid(SUB,ide,  nm):xs)) = case (lookup' ide (toList st)) of
+convert3' m f((n ,st    ,ls),(Mid(SUB,ide,  nm):xs)) = case (lookup' ide (toList' st)) of
    Just  k                                      -> (("mov "++show k++"; dec "++nm++"; ")++) <$$> convert3' m  f((n,st,ls),xs)
    Nothing                                      -> makeErr(msgIde ide "is not defined")(f++"--step3_II'") 0 0
 
-convert3' m f((n ,st    ,ls),(Top(REA,ide     ):xs)) = case (lookup' ide (toList st)) of
+convert3' m f((n ,st    ,ls),(Top(REA,ide     ):xs)) = case (lookup' ide (toList' st)) of
    Just  k                                      -> (("mov "++show k++"; _input; ")++) <$$> convert3'  m f((n,st,ls),xs)
    Nothing                                      -> makeErr(msgIde ide "is not defined")(f++"--step3_II'") 0 0
 
-convert3' m f((n ,st    ,ls),(Top(WRI,ide     ):xs)) = case (lookup' ide (toList st)) of
+convert3' m f((n ,st    ,ls),(Top(WRI,ide     ):xs)) = case (lookup' ide (toList' st)) of
    Just  k                                      -> (("mov "++show k++"; output; ")++) <$$> convert3'  m f((n,st,ls),xs)
    Nothing                                      -> makeErr(msgIde ide "is not defined")(f++"--step3_II'") 0 0
 
 convert3' m f(state         ,(Null             :xs)) = (' ':) <$$> convert3' m f(state,xs)
 convert3' m f(state         ,(Top(COM,cm)      :xs)) = (cm++) <$$> convert3' m f(state,xs)
 
-convert3' m f((n ,st    ,ls),(Bot(WHI,ide,Ns v):xs)) = case (lookup' ide (toList st)) of
+convert3' m f((n ,st    ,ls),(Bot(WHI,ide,Ns v):xs)) = case (lookup' ide (toList' st)) of
    Just k                                       -> do
     (table1,res1) <- convert3'  m f((n+1,M.empty `cons` st,ls),v ) -- inside the loop
     if not(M.null table1) 

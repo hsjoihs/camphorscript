@@ -73,16 +73,24 @@ convert2_2 stat (Single(pos,Infr fixity op):xs) = do
  convert2_2 newStat xs 
 
 convert2_2 stat (Single(pos,Func1 name typelist sent):xs) = do
- newStat <- newF1 pos name typelist sent stat 
+ newStat <- newF1 pos name typelist (Just sent) stat
  convert2_2 newStat xs
+ 
+convert2_2 stat (Single(pos,Func1Null name typelist):xs) = do
+ newStat <- newF1 pos name typelist Nothing stat 
+ convert2_2 newStat xs 
+  
+convert2_2 stat (Single(pos,Func2 op typelist1 typelist2 sent):xs) = do
+ newStat <- newF2 pos op typelist1 typelist2 (Just sent) stat
+ convert2_2 newStat xs
+ 
+convert2_2 stat (Single(pos,Func2Null op typelist1 typelist2):xs) = do
+ newStat <- newF2 pos op typelist1 typelist2 Nothing stat
+ convert2_2 newStat xs 
  
 convert2_2 stat (Single(pos,Call1 name valuelist):xs) = do
  result <- newK1 pos name valuelist stat
  result <++$$> convert2_2 stat xs
- 
-convert2_2 stat (Single(pos,Func2 op typelist1 typelist2 sent):xs) = do
- newStat <- newF2 pos op typelist1 typelist2 sent stat
- convert2_2 newStat xs
  
 convert2_2 stat (Block (p,ys):xs) = do
  (newStat,res) <- convert2_2 (addVFBlock stat) ys
@@ -157,8 +165,8 @@ newK5 :: SourcePos -> ValueList -> UserState -> Either ParseError Txt
 newK5 _   (SepList(Constant _,[])) _     = return "" -- 123; is a nullary sentence
 newK5 pos (SepList(Var ident ,[])) stat  = case getVFContents stat ident of
  Nothing        -> Left $newErrorMessage(Message$"identifier "++show ident++" is not defined")pos 
- Just(Left ())  -> return ""
- Just(Right _)  -> Left $newErrorMessage(Message$"cannot use variable "++show ident++" because it is already defined as a function")pos  
+ Just(East ())  -> return ""
+ Just(West _ )  -> Left $newErrorMessage(Message$"cannot use variable "++show ident++" because it is already defined as a function")pos  
 
 newK5 pos (SepList(x,ov:ovs)) stat = do
  (oper,vlist1,vlist2) <- getCall5Result pos (x,ov:|ovs) stat
@@ -167,10 +175,10 @@ newK5 pos (SepList(x,ov:ovs)) stat = do
 --- macro-replacing function for operator
 replaceOpMacro :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError Txt
 replaceOpMacro pos op valuelist1 valuelist2 stat
- | conflict (Sep.toList valuelist1 ++ Sep.toList valuelist2) = Left$newErrorMessage(Message$"overlapping arguments of operator "++show op)pos 
+ | conflict$ filter isVar $ (toList' valuelist1 ++ toList' valuelist2) = Left$newErrorMessage(Message$"overlapping arguments of operator "++show op)pos 
  | otherwise = do
   instnce <- getInstanceOfCall2 pos op valuelist1 valuelist2 stat
-  replacerOfOp (Operator op instnce) instnce valuelist1 valuelist2 stat
+  replacerOfOp (Operator op instnce) instnce valuelist1 valuelist2 stat pos
    
 --- macro-replacing function for operator   
 replaceFuncMacro :: SourcePos -> Ident -> ValueList -> UserState -> Either ParseError Txt   
@@ -178,15 +186,19 @@ replaceFuncMacro pos ident valuelist stat
  | valuelistIdentConflict valuelist = Left$newErrorMessage(Message$"overlapping arguments of function "++show ident)pos 
  | otherwise = do
   instnce <- getInstanceOfCall1 pos ident valuelist stat
-  replacerOfFunc (Func ident instnce) instnce valuelist stat
+  replacerOfFunc (Func ident instnce) instnce valuelist stat pos 
 
-replacerOfOp :: MacroId -> (TypeList,TypeList, Sent) -> ValueList -> ValueList -> UserState -> Either ParseError Txt
-replacerOfOp opname (typelist1,typelist2,sent) valuelist1 valuelist2 stat = 
- replacer opname sent stat $ makeReplacerTable2 (typelist1,typelist2) (valuelist1,valuelist2)
+replacerOfOp :: MacroId -> OpInstance -> ValueList -> ValueList -> UserState -> SourcePos -> Either ParseError Txt
+replacerOfOp opname (typelist1,typelist2,sent') valuelist1 valuelist2 stat pos = 
+ case sent' of 
+  Nothing   -> Left$newErrorMessage(Message$"cannot call operator "++getName opname++" because it is defined as null")pos 
+  Just sent -> replacer opname sent stat $ makeReplacerTable2 (typelist1,typelist2) (valuelist1,valuelist2)
 
-replacerOfFunc :: MacroId -> (TypeList, Sent) -> ValueList -> UserState -> Either ParseError Txt
-replacerOfFunc funcname (typelist,sent) valuelist stat =
- replacer funcname sent stat $ makeReplacerTable typelist valuelist
+replacerOfFunc :: MacroId -> VFInstance -> ValueList -> UserState -> SourcePos -> Either ParseError Txt
+replacerOfFunc funcname (typelist,sent') valuelist stat pos =
+ case sent' of
+  Nothing   -> Left$newErrorMessage(Message$"cannot call function "++getName funcname++" because it is defined as null")pos
+  Just sent -> replacer funcname sent stat $ makeReplacerTable typelist valuelist
  
 replacer :: MacroId -> Sent -> UserState -> ReplTable -> Either ParseError Txt
 replacer mname sent stat table = do
@@ -196,7 +208,7 @@ replacer mname sent stat table = do
 simplyReplace :: MacroId -> Sent -> UserState -> ReplTable -> Either ParseError Sents
 simplyReplace mname (Single(pos2,ssent)) stat table = do
  newSents <- replacer2 stat (nE mname) pos2 ssent table
- return $ map (\k->Single(pos2,k))(NE.toList newSents)
+ return $ map (\k->Single(pos2,k))(toList' newSents)
  
 simplyReplace mname (Block (p,xs)) stat table = do
  results <- sequence [ simplyReplace mname ssent stat table | ssent <- xs ]

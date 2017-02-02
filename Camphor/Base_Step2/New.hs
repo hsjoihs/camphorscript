@@ -19,7 +19,7 @@ import Text.Parsec
 newC :: SourcePos -> Ident -> UserState -> Either ParseError UserState
 newC pos ident stat 
  | stat `containsIdent` ident = Left $newErrorMessage(Message$"identifier "++show ident++" is already defined")pos
- | otherwise                  = Right$addIdent stat ident (Left())
+ | otherwise                  = Right$addIdent stat ident (East())
  
 newD :: SourcePos -> Ident -> UserState -> Either ParseError UserState
 newD pos ident stat 
@@ -41,18 +41,18 @@ newR pos fixity op stat = case getOpContents stat op of
   | otherwise               -> Left$newErrorMessage(Message$"conflicting fixity definitions of operator "++show op)pos
 
 -- Function definition
-newF1 :: SourcePos -> Ident -> TypeList -> Sent -> UserState -> Either ParseError UserState
+newF1 :: SourcePos -> Ident -> TypeList -> Maybe Sent -> UserState -> Either ParseError UserState
 newF1 pos name typelist sent stat
  | typelistIdentConflict typelist = Left $ newErrorMessage(Message$"overlapping parameters of function "++show name)pos
  | otherwise = case getVFContents stat name of
-  Just(Left ())  -> Left $newErrorMessage(Message$"cannot define function "++show name++" because it is already defined as a variable")pos
-  Nothing        -> Right$addIdent stat name (Right[(typelist,sent)])
-  Just(Right xs) 
+  Just(East ())  -> Left $newErrorMessage(Message$"cannot define function "++show name++" because it is already defined as a variable")pos
+  Nothing        -> Right$addIdent stat name (West[(typelist,sent)])
+  Just(West xs) 
    | any (\(tlist,_) -> typelist `overlaps` tlist) xs   -> Left $ newErrorMessage(Message$"type-overlapping definition of function"++show name)pos
-   | otherwise                                          -> return $ addIdent stat name (Right$(typelist,sent):xs)
+   | otherwise                                          -> return $ addIdent stat name (West$(typelist,sent):xs)
  
 -- Operator definition 
-newF2 :: SourcePos -> Oper -> TypeList -> TypeList -> Sent -> UserState -> Either ParseError UserState
+newF2 :: SourcePos -> Oper -> TypeList -> TypeList -> Maybe Sent -> UserState -> Either ParseError UserState
 newF2 pos op typelist1 typelist2 sent stat = 
  addOpContents stat op (typelist1,typelist2,sent) $ 
   (newErrorMessage(Message$"fixity of operator "++show op++" is not defined")pos,
