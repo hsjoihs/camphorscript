@@ -4,7 +4,7 @@ module Camphor.Base_Step2.Type
 (Type(..),Value(..),Ident
 ,NonEmptyValue,ReplTable
 ,Tok(..)
-,Upgrade(..),Extra,Sent,Sents,TypeList,ValueList,SimpleSent(..),isVar
+,Upgrade(..),Extra,Sent,Sents,TypeList,ValueList,SimpleSent(..),Fixity(..),isVar
 )where
 import Camphor.SepList
 import Camphor.SafePrelude
@@ -25,7 +25,7 @@ data Tok =
  VOID  | CONST  |   SP String                       deriving(Show,Eq)
  
 -- Base_Step2_2
-data Upgrade a b = Single (a,b) | Block (a,[Upgrade a b]) deriving(Show,Eq)
+data Upgrade a b = Single a b | Block a [Upgrade a b] deriving(Show,Eq)
 type Extra = SourcePos
 type Sent  = Upgrade Extra SimpleSent
 type Sents = [Sent]
@@ -40,6 +40,9 @@ data SimpleSent =
  deriving(Show,Eq)
 data Type = CNSTNT_CHAR | CONST_CHAR | CHAR_AND deriving(Show,Eq)
 data Value = Var Ident | Constant Integer deriving(Show,Eq,Ord)
+
+-- UserState
+data Fixity = InfixL Integer Oper | InfixR Integer Oper deriving(Show,Eq) 
 
 isVar :: Value -> Bool
 isVar (Var _) = True; isVar _ = False

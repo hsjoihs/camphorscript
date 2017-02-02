@@ -1,6 +1,6 @@
 char abc;
 
-/* start of "lib\\void.txt" */
+/*# LINE start "lib\\void.txt" #*/
 
 5     5   5555   555  55555
  5   5   5    5   5   5    5
@@ -8,6 +8,6 @@ char abc;
    5      5555   555  55555
 
 
-/*  end  of "lib\\void.txt" */
+/*# LINE end   "lib\\void.txt" #*/
 
 char def;

@@ -21,12 +21,12 @@ import Camphor.Global.Utilities
 import Text.Parsec 
 import Camphor.NonEmpty
 import qualified Data.Map as M
-
+import Data.Maybe(listToMaybe)
 
 getLastPos :: Sent -> SourcePos
-getLastPos (Single(pos,_)) = pos
-getLastPos (Block (p,[])) = p
-getLastPos (Block (_,x:xs)) = getLastPos $ last' (x:|xs)
+getLastPos (Single pos _) = pos
+getLastPos (Block  p [] ) = p
+getLastPos (Block  _ (x:xs)) = getLastPos $ last' (x:|xs)
 
 getInstanceOfCall2 :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError OpInstance
 getInstanceOfCall2 pos op valuelist1 valuelist2 stat = do
@@ -154,5 +154,5 @@ isConsistent xs = all isInfixL xs || all isInfixR xs
 contradiction :: [Fixity] -> Maybe Fixity
 contradiction [ ] = Nothing
 contradiction [_] = Nothing
-contradiction (InfixL _ _:xs) = case filter isInfixR xs of [] -> Nothing; (x:_) -> Just x
-contradiction (InfixR _ _:xs) = case filter isInfixL xs of [] -> Nothing; (x:_) -> Just x
+contradiction (InfixL _ _:xs) = listToMaybe $ filter isInfixR xs 
+contradiction (InfixR _ _:xs) = listToMaybe $ filter isInfixL xs 

@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts , TypeSynonymInstances , FlexibleInstances, NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
 module Camphor.Base_Step2.UserState
-(Fixity(..),OpInfo,MacroId(..),VFInstance,OpInstance
+(OpInfo,MacroId(..),VFInstance,OpInstance
 ,emptyState,UserState()
 ,containsIdent,addIdent,removeIdent,getVFContents,addOpContents
 ,addOpFixity,getOpName,containsOp,getOpContents,matches,getFixValue
@@ -20,15 +20,15 @@ import qualified Data.Map as M
 import Text.Parsec.Pos(newPos)
 import Camphor.NonEmpty as NE
 
-data Fixity = InfixL Integer Oper | InfixR Integer Oper deriving(Show,Eq) 
 type VFInstance = (TypeList, Maybe Sent)
-type VFInfo = Between () [VFInstance]
 type OpInstance = (TypeList,TypeList, Maybe Sent)
 type OpInfo = (Fixity,[OpInstance])
 data MacroId = Func Ident VFInstance | Operator Oper OpInstance deriving(Show,Eq)  
+-- private
 type VFList = NonEmpty(M.Map Ident VFInfo)
 type OpList = M.Map Oper OpInfo
 data UserState = UserState VFList OpList deriving(Show)
+type VFInfo = Between () [VFInstance]
 
 getName :: MacroId -> String
 getName (Func ident _) = show ident
@@ -96,13 +96,13 @@ emptyState = UserState deffun defop
  where
   deffun :: VFList
   deffun = nE(M.fromList[
-   ("read" ,West$[(single CHAR_AND "bbbb",Just$Single(newPos "__DEFAULT__" 0 0,Rd $Var "bbbb"))]),
-   ("write",West$[(single CHAR_AND "bbbb",Just$Single(newPos "__DEFAULT__" 0 0,Wrt$Var "bbbb"))])
+   ("read" ,West$[(single CHAR_AND "bbbb",Just$Single(newPos "__DEFAULT__" 0 0) $ Rd $Var "bbbb")]),
+   ("write",West$[(single CHAR_AND "bbbb",Just$Single(newPos "__DEFAULT__" 0 0) $ Wrt$Var "bbbb")])
    ])
   defop :: OpList
-  defop = M.fromList[defau "+="$Pleq (Var "aaaa") (Var "NNNN") ,defau "-="$Mneq(Var "aaaa")(Var "NNNN")]
+  defop = M.fromList[defau "+="$Pleq (Var "aaaa") (Var "NNNN"), defau "-="$Mneq(Var "aaaa")(Var "NNNN")]
   defau :: String -> SimpleSent -> (Oper,OpInfo)
-  defau a s = (wrap a,(InfixR 5 (wrap a),[(single CHAR_AND "aaaa",single CNSTNT_CHAR "NNNN", Just$Single(newPos "__DEFAULT__" 0 0,s))]))
+  defau a s = (wrap a,(InfixR 5 (wrap a),[(single CHAR_AND "aaaa", single CNSTNT_CHAR "NNNN", Just$Single(newPos "__DEFAULT__" 0 0)s)]))
   single :: Type -> Ident -> TypeList
   single a b = SepList ((a,b),[])
 

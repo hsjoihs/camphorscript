@@ -101,14 +101,14 @@ replacer2 stat (n:|ns) pos (Call1 ident valuelist) table
    
 replacer2 stat (n:|ns) pos (Call1WithBlock ident valuelist pos2 block) table = do  -- ident is not replaced
  let newValuelist = fmap (replaceSingle table) valuelist
- newblock <- makeNewBlock (Block (pos2,block))
+ newblock <- makeNewBlock (Block pos2 block)
  return[Call1WithBlock ident newValuelist pos2 newblock]
  where
   makeNewBlock :: Sent -> Either ParseError Sents
-  makeNewBlock (Single(_,ssent)) = do
+  makeNewBlock (Single _ ssent) = do
    res <- replacer2 stat (n:|ns) pos ssent table
-   return$map (\x->Single(pos,x))(toList' res)
-  makeNewBlock (Block (_,xs)) = do
+   return$map(Single pos)(toList' res)
+  makeNewBlock (Block  _ xs) = do
    replaced <- sequence [makeNewBlock sent | sent <- xs] 
    return$ concat replaced
 
@@ -155,8 +155,8 @@ rpl1 ms pos ident valuelist table stat = do
    rpl1_1 pos sent table2 (mname `cons` ms) stat 
   
 rpl1_1 :: SourcePos -> Sent -> ReplTable -> NonEmpty MacroId -> UserState -> Either ParseError [SimpleSent]
-rpl1_1 pos (Single(_,ssent)) table2 newMs stat  = replacer2 stat newMs pos ssent table2
-rpl1_1 pos (Block (_,xs)) table2 newMs stat = do
+rpl1_1 pos (Single _ ssent) table2 newMs stat  = replacer2 stat newMs pos ssent table2
+rpl1_1 pos (Block  _ xs) table2 newMs stat = do
  replaced <- sequence [rpl1_1 pos ssent table2 newMs stat | ssent <- xs] -- [NonEmpty SimpleSent]
  return$concat replaced 
    

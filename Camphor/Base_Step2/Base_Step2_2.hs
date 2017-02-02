@@ -14,9 +14,6 @@ import Data.Functor.Identity
 parser2_2 :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sents
 parser2_2 = do{xs <- many sent; eof; return xs;} 
 
-simple :: SourcePos -> SimpleSent -> Sent
-simple p x = Single(p,x)
- 
 sent :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 sent = def <|> del <|> scl <|>
  infl <|> infr <|> spac <|> block <|> comm <|> 
@@ -24,37 +21,37 @@ sent = def <|> del <|> scl <|>
  op_call1 <|> op_call2 <|> op_call3 <|> op_call4 <|> op_call5
 
 def :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
-def = do{p <- getPosition; _char;   __; i <-_ident; __;_scolon;return(simple p$Char i)}
+def = do{p <- getPosition; _char;   __; i <-_ident; __;_scolon;return(Single p$Char i)}
 --        char           abcd            ;
 
 del :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
-del = do{p <- getPosition; _delete; __; i <-_ident; __;_scolon;return(simple p$Del i)}
+del = do{p <- getPosition; _delete; __; i <-_ident; __;_scolon;return(Single p$Del i)}
 --        delete         abcd            ;
 
 scl :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
-scl = do{p <- getPosition; _scolon; return (simple p Scolon)}
+scl = do{p <- getPosition; _scolon; return (Single p Scolon)}
 --      ;
 
 infl :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
-infl = do{p <- getPosition; _infixl; __; n <-_num; __; _paren; __; o <-_op; __; _nerap; __; _scolon; return(simple p$Infl n o)}
+infl = do{p <- getPosition; _infixl; __; n <-_num; __; _paren; __; o <-_op; __; _nerap; __; _scolon; return(Single p$Infl n o)}
 --         infixl          15              (            &&              )           ;          
 
 infr :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
-infr = do{p <- getPosition; _infixr; __; n <-_num; __; _paren; __; o <-_op; __; _nerap; __; _scolon; return(simple p$Infr n o)}
+infr = do{p <- getPosition; _infixr; __; n <-_num; __; _paren; __; o <-_op; __; _nerap; __; _scolon; return(Single p$Infr n o)}
 --         infixr          15              (            &&              )           ;          
 
 spac :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
-spac = do{p <- getPosition; s <- _sp;  return(simple p$Sp s)} 
+spac = do{p <- getPosition; s <- _sp;  return(Single p$Sp s)} 
 
 comm :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
-comm = do{p <- getPosition; s <- _comm;return(simple p$Comm s)} 
+comm = do{p <- getPosition; s <- _comm;return(Single p$Comm s)} 
 
 block' :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity (SourcePos,Sents)
 block' = do{p <- getPosition; _brace; ss <- many sent;_ecarb; return(p,ss)}
 --           {      a; b; c;       }
 
 block :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
-block = Block <$> block'
+block = (uncurry Block) <$> block'
 
 blockOrNull :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity (Between Sent ())
 blockOrNull = try(East <$> block) <|> (_eq >> __ >> _zero >> __ >> _scolon >> return (West ()));
@@ -68,8 +65,8 @@ func_def = do{
  _nerap;               __;             -- )
  m <- blockOrNull;  -- {   } or = 0 ;
  case m of 
-  East b  -> return(simple p$Func1 name list1 b); 
-  West () -> return(simple p$Func1Null name list1);
+  East b  -> return(Single p$Func1 name list1 b); 
+  West () -> return(Single p$Func1Null name list1);
  }
 -- void 識別子(型 識別子【演算子 型 識別子】){【文】}
 
@@ -84,8 +81,8 @@ op_def = do{
  _nerap;               __; -- )
  m <- blockOrNull; -- {   } or = 0 ;
  case m of
-  East b  -> return(simple p$Func2 op list1 list2 b)
-  West () -> return(simple p$Func2Null op list1 list2)
+  East b  -> return(Single p$Func2 op list1 list2 b)
+  West () -> return(Single p$Func2Null op list1 list2)
  }
 -- void(演算子)(型 識別子【演算子 型 識別子】;型 識別子【演算子 型 識別子】){【文】}
  
@@ -103,7 +100,7 @@ func_call :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 func_call = try(do{
  p <- getPosition; 
  (name,vs) <- func_call_without_semicolon; __;
- _scolon; return(simple p$Call1 name vs)
+ _scolon; return(Single p$Call1 name vs)
  }) 
 
 func_call_with_block ::  Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent 
@@ -111,7 +108,7 @@ func_call_with_block = try(do{
  p <- getPosition;
  (name,vs) <- func_call_without_semicolon; __;
  (p2,m) <- block';
- return(simple p$Call1WithBlock name vs p2 m)
+ return(Single p$Call1WithBlock name vs p2 m)
  })
 
  
@@ -124,7 +121,7 @@ op_call1 = do{
  _scolon;                                       __; -- ;
  vs2 <- getValueList;                           __; -- 1
  _nerap;                                        __; -- )
- _scolon; return(simple p$Call2 op vs1 vs2);
+ _scolon; return(Single p$Call2 op vs1 vs2);
  ----- Semicolon *is* parsed because troubles that can occur in normal functions cannot occur with operators
  }
 
@@ -142,7 +139,7 @@ op_call2 = try(do{
  vs2 <- getValueList;                __;
  _nerap;                             __;
  
- _scolon; return(simple p$Call2 op vs1 vs2);  --- Same as op_call1 because it always means the same thing
+ _scolon; return(Single p$Call2 op vs1 vs2);  --- Same as op_call1 because it always means the same thing
  })
  
  
@@ -158,7 +155,7 @@ op_call3 = try(do{
  
  vs2 <- getValueList;                __;
 
- _scolon; return(simple p$Call3 op vs1 vs2); 
+ _scolon; return(Single p$Call3 op vs1 vs2); 
  })
 
 ---   値【演算子 値】 演算子(値 【演算子 値】); or (値 【演算子 値】);
@@ -169,7 +166,7 @@ op_call4 = try(do{
  _paren;                                               __;
  vs <- getValueList;                                   __;
  _nerap;                                               __;
- _scolon; return(simple p$Call4 xs vs);
+ _scolon; return(Single p$Call4 xs vs);
  
  })
  
@@ -177,7 +174,7 @@ op_call4 = try(do{
 op_call5 :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 op_call5 = try(do{
  p <- getPosition; 
- vs <- getValueList; __; _scolon; return(simple p$Call5 vs)
+ vs <- getValueList; __; _scolon; return(Single p$Call5 vs)
  })
 typ :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Type
 typ = 

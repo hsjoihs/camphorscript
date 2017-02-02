@@ -1,8 +1,8 @@
-/* start of "lib\\stdcalc.txt" */
+/*# LINE start "lib\\stdcalc.txt" #*/
 
 
 
-/* start of "lib\\fixdecl.txt" */
+/*# LINE start "lib\\fixdecl.txt" #*/
 
 
 
@@ -16,7 +16,7 @@
 
 
 
-/*  end  of "lib\\fixdecl.txt" */
+/*# LINE end   "lib\\fixdecl.txt" #*/
 
 
 /* a=0; */
@@ -25,15 +25,11 @@
 
 
 
-/* start of "lib\\eq_til.txt" */
+/*# LINE start "lib\\eq_til.txt" #*/
 
 
 
-/* start of "lib\\fixdecl.txt" */
-
-
-
-
+/*# LINE start "lib\\fixdecl.txt" #*/
 
 
 
@@ -43,7 +39,11 @@
 
 
 
-/*  end  of "lib\\fixdecl.txt" */
+
+
+
+
+/*# LINE end   "lib\\fixdecl.txt" #*/
 	/* a+= ~z */
 
 	/* (a,b)+= ~z*/
@@ -66,15 +66,13 @@
 
 
 
-/*  end  of "lib\\eq_til.txt" */
+/*# LINE end   "lib\\eq_til.txt" #*/
 
-/* start of "lib\\eq_bang_til.txt" */
-
-
-
-/* start of "lib\\fixdecl.txt" */
+/*# LINE start "lib\\eq_bang_til.txt" #*/
 
 
+
+/*# LINE start "lib\\fixdecl.txt" #*/
 
 
 
@@ -86,7 +84,9 @@
 
 
 
-/*  end  of "lib\\fixdecl.txt" */
+
+
+/*# LINE end   "lib\\fixdecl.txt" #*/
 	/* a+= !~z*/
 
 	/* (a,b)+= !~z*/
@@ -97,7 +97,7 @@
 
 
 
-/*  end  of "lib\\eq_bang_til.txt" */
+/*# LINE end   "lib\\eq_bang_til.txt" #*/
 
 
 
@@ -113,7 +113,7 @@
 
 
 
-/*  end  of "lib\\stdcalc.txt" */
+/*# LINE end   "lib\\stdcalc.txt" #*/
 char a;char b;char c;char d;char e;char f;char g;
 
 a+=6;

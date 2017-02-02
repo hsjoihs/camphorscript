@@ -23,7 +23,7 @@ import Data.Maybe(isJust)
 import Camphor.Lib
 
 import qualified Data.Map as M
-{- C macro  -}
+{- C macro -}
 step1 :: (M.Map FilePath Txt) -> FilePath -> Txt -> Either ParseError Txt
 step1 includer file str = parse parser1' (file ++ "--step1") (str ++ "\n") >>= convert1 file includer
 
@@ -59,9 +59,6 @@ other = do
   do{(_,_,ys) <- other; return(OTHER,"",xs++"/"++ys) }
   }
  
-
-  
-  
   
 {-functional not yet-}
 define :: Stream s m Char => ParsecT s u m Set
@@ -120,10 +117,10 @@ convert1' f i((table,depth,n,False,o),(INCLU ,_  ,_):xs) = ('\n':) <$$> convert1
 convert1' f i((table,depth,n,False,o),(DEFINE,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,o    ),xs)
 convert1' f i((table,depth,n,False,o),(OTHER ,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,o    ),xs)
 convert1' f i((table,depth,n,False,o),(ENDIF ,_  ,_):xs)
- | depth - 1 == o  {-reached a block that you entered -} = ('\n':) <$$> convert1' f i((table,depth-1,n+1,True ,(-1) ),xs)
+ | depth - 1 == o  {-reached the block you entered -}    = ('\n':) <$$> convert1' f i((table,depth-1,n+1,True ,(-1) ),xs)
  | otherwise                                             = ('\n':) <$$> convert1' f i((table,depth-1,n+1,False,o    ),xs)
 convert1' f i((table,depth,n,False,o),(ELSE ,_  ,_):xs)
- | depth - 1 == o  {-reached a block that you entered -} = ('\n':) <$$> convert1' f i((table,depth  ,n+1,True ,(-1) ),xs)
+ | depth - 1 == o  {-reached the block you entered -}    = ('\n':) <$$> convert1' f i((table,depth  ,n+1,True ,(-1) ),xs)
  | otherwise                                             = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,depth),xs)
  
 -- non-skipping
@@ -148,7 +145,7 @@ convert1' f i((table,depth,n,True ,_),(INCLU ,_,fil):xs) = case M.lookup fil i o
   -- sets :: [Set]
   (newtable,text)      <- convert1' inclfile i ((table,0,0,True,(-1)) ,sets)
   (newtable',result)   <- convert1' f i((newtable,depth  ,n+1,True ,(-1) ),xs)
-  return(newtable',"/* start of "++show inclfile++" */\n\n"++text++"\n\n/*  end  of "++show inclfile++" */\n"++result)
+  return(newtable',"/*# LINE start "++show inclfile++" #*/\n\n"++text++"\n\n/*# LINE end   "++show inclfile++" #*/\n"++result)
  
 convert1' f i((table,depth,n,True ,_),(ENDIF ,_  ,_):xs) 
  | depth == 0                                            = makeErr(UnExpect$"#endif")(f++"step1'") n 1 

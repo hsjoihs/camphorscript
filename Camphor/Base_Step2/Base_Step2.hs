@@ -44,86 +44,86 @@ convert2 stat sents = snd <$> convert2_2 stat sents
 
 convert2_2 :: UserState -> Sents -> Either ParseError (UserState,Txt)
 convert2_2 stat []                         = Right (stat,"") 
-convert2_2 stat (Single(_  ,Comm comm):xs) = ("/*" ++ comm ++ "*/") <++$$> convert2_2 stat xs
-convert2_2 stat (Single(_  ,Sp   sp  ):xs) = sp                     <++$$> convert2_2 stat xs
-convert2_2 stat (Single(_  ,Scolon   ):xs) = ";"                    <++$$> convert2_2 stat xs
-convert2_2 stat (Single(_  ,Pleq (Var ident) (Constant integer)):xs) = (ident ++ "+=" ++ show integer ++ ";") <++$$> convert2_2 stat xs
-convert2_2 stat (Single(_  ,Mneq (Var ident) (Constant integer)):xs) = (ident ++ "-=" ++ show integer ++ ";") <++$$> convert2_2 stat xs
-convert2_2 stat (Single(_  ,Rd   (Var idnt)):xs) = ("read("  ++ idnt ++ ")" ++ ";") <++$$> convert2_2 stat xs
-convert2_2 stat (Single(_  ,Wrt  (Var idnt)):xs) = ("write(" ++ idnt ++ ")" ++ ";") <++$$> convert2_2 stat xs
-convert2_2 _ (Single(_  ,Pleq _ _):_) = Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
-convert2_2 _ (Single(_  ,Mneq _ _):_) = Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
-convert2_2 _ (Single(_  ,Rd   _  ):_) = Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
-convert2_2 _ (Single(_  ,Wrt  _  ):_) = Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
+convert2_2 stat (Single _  (Comm comm):xs) = ("/*" ++ comm ++ "*/") <++$$> convert2_2 stat xs
+convert2_2 stat (Single _  (Sp   sp  ):xs) = sp                     <++$$> convert2_2 stat xs
+convert2_2 stat (Single _  (Scolon   ):xs) = ";"                    <++$$> convert2_2 stat xs
+convert2_2 stat (Single _  (Pleq (Var ident) (Constant integer)):xs) = (ident ++ "+=" ++ show integer ++ ";") <++$$> convert2_2 stat xs
+convert2_2 stat (Single _  (Mneq (Var ident) (Constant integer)):xs) = (ident ++ "-=" ++ show integer ++ ";") <++$$> convert2_2 stat xs
+convert2_2 stat (Single _  (Rd   (Var idnt)):xs) = ("read("  ++ idnt ++ ")" ++ ";") <++$$> convert2_2 stat xs
+convert2_2 stat (Single _  (Wrt  (Var idnt)):xs) = ("write(" ++ idnt ++ ")" ++ ";") <++$$> convert2_2 stat xs
+convert2_2 _    (Single _  (Pleq _ _) :_) = Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
+convert2_2 _    (Single _  (Mneq _ _) :_) = Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
+convert2_2 _    (Single _  (Rd   _  ) :_) = Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
+convert2_2 _    (Single _  (Wrt  _  ) :_) = Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
 
-convert2_2 stat (Single(pos,Char iden):xs) = do
+convert2_2 stat (Single pos (Char iden) :xs) = do
  newStat <- newC pos iden stat 
  ("char " ++ iden ++ ";") <++$$> convert2_2 newStat xs
  
-convert2_2 stat (Single(pos,Del  iden):xs) = do
+convert2_2 stat (Single pos (Del  iden) :xs) = do
  newStat <- newD pos iden stat 
  ("delete " ++ iden ++ ";") <++$$> convert2_2 newStat xs
  
-convert2_2 stat (Single(pos,Infl fixity op):xs) = do
+convert2_2 stat (Single pos (Infl fixity op) :xs) = do
  newStat <- newL pos fixity op stat 
  convert2_2 newStat xs 
  
-convert2_2 stat (Single(pos,Infr fixity op):xs) = do
+convert2_2 stat (Single pos (Infr fixity op) :xs) = do
  newStat <- newR pos fixity op stat 
  convert2_2 newStat xs 
 
-convert2_2 stat (Single(pos,Func1 name typelist sent):xs) = do
+convert2_2 stat (Single pos (Func1 name typelist sent):xs) = do
  newStat <- newF1 pos name typelist (Just sent) stat
  convert2_2 newStat xs
  
-convert2_2 stat (Single(pos,Func1Null name typelist):xs) = do
+convert2_2 stat (Single pos (Func1Null name typelist):xs) = do
  newStat <- newF1 pos name typelist Nothing stat 
  convert2_2 newStat xs 
   
-convert2_2 stat (Single(pos,Func2 op typelist1 typelist2 sent):xs) = do
+convert2_2 stat (Single pos (Func2 op typelist1 typelist2 sent):xs) = do
  newStat <- newF2 pos op typelist1 typelist2 (Just sent) stat
  convert2_2 newStat xs
  
-convert2_2 stat (Single(pos,Func2Null op typelist1 typelist2):xs) = do
+convert2_2 stat (Single pos (Func2Null op typelist1 typelist2):xs) = do
  newStat <- newF2 pos op typelist1 typelist2 Nothing stat
  convert2_2 newStat xs 
  
-convert2_2 stat (Single(pos,Call1 name valuelist):xs) = do
+convert2_2 stat (Single pos (Call1 name valuelist):xs) = do
  result <- newK1 pos name valuelist stat
  result <++$$> convert2_2 stat xs
  
-convert2_2 stat (Block (p,ys):xs) = do
+convert2_2 stat (Block p ys:xs) = do
  (newStat,res) <- convert2_2 (addVFBlock stat) ys
  let result = "{" ++ res ++ "}"
  let remainingVars = getTopVFBlock newStat
- let pos = getLastPos (Block (p,ys))
+ let pos = getLastPos (Block p ys)
  if not$M.null remainingVars then Left$newErrorMessage(Message$"identifiers not deleted")pos else do
  newStat3 <- deleteTopVFBlock newStat $ newErrorMessage(Message$"FIXME: code 0004 ")pos
  result <++$$> convert2_2 newStat3 xs
 
 -- FIXME: does not replace a function call when it's followed by a block
-convert2_2 stat (Single(_,Call1WithBlock name valuelist pos2 block):xs) = showCall name valuelist <++$$> convert2_2 stat (Block (pos2,block):xs)
+convert2_2 stat (Single _ (Call1WithBlock name valuelist pos2 block):xs) = showCall name valuelist <++$$> convert2_2 stat (Block pos2 block:xs)
  where 
   showCall :: Ident -> ValueList -> String
   showCall nm (SepList(v,ovs)) = nm ++ "(" ++ show' v ++ concat[ (unOp o2) ++ show' v2 | (o2,v2) <- ovs ] ++ ")"
   
 --- (val [op val])op(val [op val]);
-convert2_2 stat (Single(pos,Call2 op valuelist1 valuelist2):xs) = do
+convert2_2 stat (Single pos (Call2 op valuelist1 valuelist2):xs) = do
  result <- newK2 pos op valuelist1 valuelist2 stat
  result <++$$> convert2_2 stat xs
 
 --- (val [op val])op val [op val] ; 
-convert2_2 stat (Single(pos,Call3 op valuelist1 valuelist2):xs) = do
+convert2_2 stat (Single pos (Call3 op valuelist1 valuelist2):xs) = do
  result <- newK3 pos op valuelist1 valuelist2 stat
  result <++$$> convert2_2 stat xs
 
 --- [val op] (val [op val]) ; 
-convert2_2 stat (Single(pos,Call4 list valuelist):xs) = do
+convert2_2 stat (Single pos (Call4 list valuelist):xs) = do
  result <- newK4 pos list valuelist stat
  result <++$$> convert2_2 stat xs
 
 --- val [op val] op val [op val] ;
-convert2_2 stat (Single(pos,Call5 valuelist):xs) = do
+convert2_2 stat (Single pos (Call5 valuelist):xs) = do
  result <- newK5 pos valuelist stat
  result <++$$> convert2_2 stat xs
 {-----------------------------------------------------------
@@ -206,10 +206,10 @@ replacer mname sent stat table = do
  convert2 stat result -- FIXME:: state not passed
  
 simplyReplace :: MacroId -> Sent -> UserState -> ReplTable -> Either ParseError Sents
-simplyReplace mname (Single(pos2,ssent)) stat table = do
+simplyReplace mname (Single pos2 ssent) stat table = do
  newSents <- replacer2 stat (nE mname) pos2 ssent table
- return $ map (\k->Single(pos2,k))(toList' newSents)
+ return $ map (Single pos2)(toList' newSents)
  
-simplyReplace mname (Block (p,xs)) stat table = do
+simplyReplace mname (Block p xs) stat table = do
  results <- sequence [ simplyReplace mname ssent stat table | ssent <- xs ]
- return [Block (p,concat results)]
+ return [Block p $ concat results]

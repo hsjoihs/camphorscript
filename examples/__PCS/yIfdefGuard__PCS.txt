@@ -1,6 +1,6 @@
 char sss;
 
-/* start of "lib\\void3.txt" */
+/*# LINE start "lib\\void3.txt" #*/
 
 
 
@@ -16,15 +16,15 @@ char sss;
 
 
 
-/*  end  of "lib\\void3.txt" */
+/*# LINE end   "lib\\void3.txt" #*/
 
 char ttt;
 
-/* start of "lib\\void4.txt" */
+/*# LINE start "lib\\void4.txt" #*/
 
 char vvv;
 
-/* start of "lib\\void3.txt" */
+/*# LINE start "lib\\void3.txt" #*/
 
 
 
@@ -40,12 +40,12 @@ char vvv;
 
 
 
-/*  end  of "lib\\void3.txt" */
+/*# LINE end   "lib\\void3.txt" #*/
 
 char www;
 
 
-/*  end  of "lib\\void4.txt" */
+/*# LINE end   "lib\\void4.txt" #*/
 
 char uuu;
 
