@@ -1,4 +1,5 @@
-module Camphor.NonNullList
+{-# OPTIONS -Wall #-}
+module Camphor.NonEmpty
 (NonEmpty(..)
 ,toList
 ,cons

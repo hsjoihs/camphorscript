@@ -1,4 +1,4 @@
-{-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
 module Camphor.Global
 (identifier,identifier'
@@ -67,7 +67,7 @@ nbnls=skipMany nbnl
 
 
 strP :: Stream s m Char => ParsecT s u m Char -> ParsecT s u m String
-strP = fmap (\x -> [x])
+strP = fmap (:[])
 
 uint :: Stream s m Char => ParsecT s u m String
 uint = many1 digit <?> "unsigned integer"

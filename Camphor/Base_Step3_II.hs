@@ -1,8 +1,8 @@
-{-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
 {- Desugaring -}
-module Camphor.Base_Step3
-(step3
+module Camphor.Base_Step3_II
+(step3_II
 ,parser3
 ,convert3
 
@@ -12,7 +12,7 @@ module Camphor.Base_Step3
 import Camphor.Global
 import Text.Parsec hiding(token)
 import Control.Applicative hiding ((<|>),many)
-import Camphor.NonNullList
+import Camphor.NonEmpty
 import qualified Data.Map as M
 import Text.Parsec.Error
 import Text.Parsec.Pos
@@ -28,9 +28,9 @@ type Node b c d f =        OneOf d f(b,c,Tree b c d f)
 
 type Set3 = Node Com3_bot Ident (Com3_top,String) (Com3_mid,[Char],[Char])
 
-step3 :: FilePath -> Txt -> Either ParseError Txt
-step3 file str = do
- sets <- parse parser3 (file++"--step3") str
+step3_II :: FilePath -> Txt -> Either ParseError Txt
+step3_II file str = do
+ sets <- parse parser3 (file++"--step3_II") str
  convert3 file sets
  
 parser3 :: Stream s m Char => ParsecT s u m [Set3]
@@ -92,32 +92,32 @@ convert3' _((_ ,s:|_  ,_ ),[]                    ) = Right (s,"")
 
 
 convert3' f((n ,s:|st ,ls),(Top(DEF,ide     ):xs)) 
- | isJust(M.lookup ide s)                        = Left $newErrorMessage (Message$"identifier "++show ide++"is already defined")(newPos (f++"--step3'") 0 0)
+ | isJust(M.lookup ide s)                        = Left $newErrorMessage (Message$"identifier "++show ide++"is already defined")(newPos (f++"--step3_II'") 0 0)
  | otherwise                                     = convert3' f((n, M.insert ide new s :| st,new:ls),xs)
   where new　=　minUnused ls
 
 convert3' f((n ,s:|st ,ls),(Top(DEL,ide     ):xs)) = case (M.lookup ide s) of
    Just  k                                      -> convert3' f((n, M.delete ide s :| st,remove k ls),xs)
-   Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined or is already deleted in this scope")(newPos (f++"--step3'") 0 0)
+   Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined or is already deleted in this scope")(newPos (f++"--step3_II'") 0 0)
 
 convert3' f(state         ,(Top(NUL,sp      ):xs)) = (sp++) <$$> convert3' f(state,xs) 
 
 
 convert3' f((n ,st    ,ls),(Mid(ADD,ide,  nm):xs)) = case (lookup' ide (toList st)) of
    Just  k                                      -> (\x->"mov "++show k++"; inc "++nm++"; "++x) <$$> convert3'  f((n,st,ls),xs)
-   Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos (f++"--step3'") 0 0)
+   Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos (f++"--step3_II'") 0 0)
    
 convert3' f((n ,st    ,ls),(Mid(SUB,ide,  nm):xs)) = case (lookup' ide (toList st)) of
    Just  k                                      -> (\x->"mov "++show k++"; dec "++nm++"; "++x) <$$> convert3'  f((n,st,ls),xs)
-   Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos (f++"--step3'") 0 0)
+   Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos (f++"--step3_II'") 0 0)
 
 convert3' f((n ,st    ,ls),(Top(REA,ide     ):xs)) = case (lookup' ide (toList st)) of
    Just  k                                      -> (\x->"mov "++show k++"; _input; "++x) <$$> convert3'  f((n,st,ls),xs)
-   Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos (f++"--step3'") 0 0)
+   Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos (f++"--step3_II'") 0 0)
 
 convert3' f((n ,st    ,ls),(Top(WRI,ide     ):xs)) = case (lookup' ide (toList st)) of
    Just  k                                      -> (\x->"mov "++show k++"; output; "++x) <$$> convert3'  f((n,st,ls),xs)
-   Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos (f++"--step3'") 0 0)
+   Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos (f++"--step3_II'") 0 0)
 
 convert3' f(state         ,(Null             :xs)) = (' ':) <$$> convert3' f(state,xs)
 convert3' f(state         ,(Top(COM,cm)      :xs)) = (cm++) <$$> convert3' f(state,xs)
@@ -127,17 +127,17 @@ convert3' f((n ,st    ,ls),(Bot(WHI,ide,Ns v):xs)) = case (lookup' ide (toList s
     (table1,res1) <- convert3'  f((n+1,M.empty `cons` st,ls),v ) -- inside the loop
     if not(M.null table1) 
      then let leftList = map fst $ M.toList table1 in 
-     Left $ newErrorMessage (Message$"identifier"++message leftList++" not deleted")(newPos (f++"--step3'") 0 0) 
+     Left $ newErrorMessage (Message$"identifier"++message leftList++" not deleted")(newPos (f++"--step3_II'") 0 0) 
      else do
     (table2,res2) <- convert3'  f((n  ,st               ,ls),xs) -- left
     return $ (table2,"mov " ++ show k ++ "; loop; " ++ res1 ++ "mov " ++ show k ++ "; pool; " ++ res2)
-   Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos (f++"--step3'") 0 0)
+   Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos (f++"--step3_II'") 0 0)
    
 convert3' f((n ,st    ,ls),(Bot(BLO,_  ,Ns v):xs)) =  do
     (table1,res1) <- convert3'  f((n+1,M.empty `cons` st,ls),v ) -- inside the loop
     if not(M.null table1) 
      then let leftList = map fst $ M.toList table1 in 
-     Left $ newErrorMessage (Message$"identifier"++message leftList++" not deleted")(newPos (f++"--step3'") 0 0) 
+     Left $ newErrorMessage (Message$"identifier"++message leftList++" not deleted")(newPos (f++"--step3_II'") 0 0) 
      else do
     (table2,res2) <- convert3'  f((n  ,st               ,ls),xs) -- left
     return $ (table2,res1 ++ res2)

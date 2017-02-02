@@ -1,4 +1,4 @@
-{-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  -fno-warn-unused-imports #-}
 {- (in|de)crement optimization -}
 module Camphor.Base_Step6

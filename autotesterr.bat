@@ -27,9 +27,15 @@ for /F "usebackq" %%i in (`dir /A-D /s /b examples\error\Step7_*.txt`) do (
  call :filename %%i -C78
 )
 
+echo %LOG2%: > bat\terrresult.tmp
+type %LOG% >>  bat\terrresult.tmp
+echo. >>  bat\terrresult.tmp
+type terrresult.log >> bat\terrresult.tmp
+type bat\terrresult.tmp > terrresult.log
 echo.
 echo %LOG2%:
 type %LOG%
+del %LOG%
 if exist %FAIL% (
 del %FAIL%
 ) else (

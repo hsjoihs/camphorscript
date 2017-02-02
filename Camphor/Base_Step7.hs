@@ -1,5 +1,5 @@
-{-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
-{-# OPTIONS -Wall -fno-warn-unused-do-bind   -fno-warn-unused-imports #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
 {- symbolization -}
 module Camphor.Base_Step7
 (step7

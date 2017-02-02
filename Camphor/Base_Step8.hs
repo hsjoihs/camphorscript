@@ -1,5 +1,5 @@
-{-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
-{-# OPTIONS -Wall -fno-warn-unused-imports #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# OPTIONS -Wall #-}
 {- comment deletion -}
 module Camphor.Base_Step8
 (step8
@@ -11,7 +11,6 @@ module Camphor.Base_Step8
 import Camphor.Global
 import Text.Parsec hiding(token)
 import Control.Applicative hiding ((<|>),many)
-import Data.List(genericTake)
 import Data.Functor.Identity
 
 
@@ -20,7 +19,7 @@ step8 file str = convert8 <$> (parse parser8 (file++"--step8") str) {-removes un
 
 parser8 :: Stream s m Char => ParsecT s u m [String]
 parser8 = many char'
- where char' = (:[]) <$> oneOf "+-<>[],." <|> (noneOf "+-<>[],." >> return "")
+ where char' = strP (oneOf "+-<>[],.") <|> (noneOf "+-<>[],." >> return "")
  
 
 convert8 :: [String] -> String

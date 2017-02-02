@@ -1,5 +1,5 @@
 {-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts #-}
-{-# OPTIONS -Wall -fno-warn-unused-do-bind  -fno-warn-missing-signatures -fno-warn-unused-imports #-}
+{-# OPTIONS -Wall -fno-warn-unused-do-bind  -fno-warn-unused-imports #-}
 {- memory allocation -}
 module Camphor.Base_Step5
 (

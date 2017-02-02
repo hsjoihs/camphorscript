@@ -47,9 +47,15 @@ call :compile ccsrc    -C88   xtoLower__BF_c.txt      R88test4   xtoLower__BF_i.
 
 call :compile ccsrc    -C87   xIsNumber__BF_c.txt     R87test    xIsNumber__ND_rev.txt
 
+echo %LOG2%: > bat\testresult.tmp
+type %LOG% >>  bat\testresult.tmp
+echo. >>  bat\testresult.tmp
+type testresult.log >> bat\testresult.tmp
+type bat\testresult.tmp > testresult.log
 echo.
 echo %LOG2%:
 type %LOG%
+del %LOG%
 if exist %FAIL% (
 del %FAIL%
 ) else (
