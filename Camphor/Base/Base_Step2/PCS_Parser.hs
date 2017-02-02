@@ -26,7 +26,7 @@ ident_parser   = do
  x <- identifier
  case toIdent2 x of
   Right i -> return(p,IDENT i)
-  Left _ -> (oneOf "" <?> "identifier") >> return(p,SP " ")
+  Left _ -> (oneOf "" <?> "identifier") >> return(p,SP "") -- noreturn
  
  
 ident_parser' :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
@@ -94,14 +94,23 @@ _op :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
 _op      = do{p <- getPosition; x <- operator2 <|> operator;return[(p,OP x)]}
 
 operator2 :: Stream s m Char => ParsecT s u m Oper
-operator2 = try $ do
+operator2 = wrap <$> op4
+ 
+op4 :: Stream s m Char => ParsecT s u m String
+op4 = try $ op3 <|> do{
+ char '<'; spaces;
+ x <- op4; spaces;
+ char '>'; return $ "<"++x++">"
+ }
+ 
+op3 :: Stream s m Char => ParsecT s u m String
+op3 = try $ do
  char '<';        spaces;
  char '{';        spaces;
  i <- identifier; spaces;
  char '}';        spaces;
- char '>';        spaces;
- return $ wrap $ "<{"++i++"}>" -- fixme
- 
+ char '>';
+ return $ "<{"++i++"}>" -- fixme
 
 
 showTok :: Tok -> String

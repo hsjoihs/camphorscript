@@ -24,19 +24,7 @@
 			<h3>1-1.</h3>
 			<p>Alpha <strong>Beta</strong> Gamma</p>
 			<p>
-			<strong class="very">TO DO: __
-			none
-			op
-			resblc
-			spaces
-			comment
-			pragma
-			syncall
-			opcall1
-			opcall2
-			opcall3
-			opcall4
-			opcall5</strong>
+			
 			</p>
 			<span class="source">source: <a href="">LINK2</a>[ http://www.examples.com/2.html ]</span>
 			
@@ -60,39 +48,41 @@
 		<h2 class="content"><a href="#" id="a2" class="btn">2. Lexical Structure</a></h2>
 			<h3>2-1. Metasyntax Notations</h3>
 				<p>The syntax of this language is represented by these notations:</p>
-				<p>
-					<table class="ta">
-					<tr><td>[ <span class="pat">pattern</span> ]</td><td> optional </td></tr>
-					<tr><td> {  <span class="pat">pattern</span>  } </td><td> zero or more repetitions </td></tr>
-					<tr><td>( <span class="pat">pattern</span> )</td><td> grouping </td></tr>
-					<tr><td><span class="pat">pat1</span>  |  <span class="pat">pat2</span></td><td> choice   </td></tr>
-					<tr><td><span class="pat">pat1</span> = <span class="pat">pat2</span>;&nbsp;</td><td> definition   </td></tr>
-					<tr><td><span class="str">"string"</span>   </td><td> string   </td></tr>
-					<tr><td><span class="str">'string'</span>   </td><td> string   </td></tr>
-					<tr><td><span class="pat">pat1</span>, <span class="pat">pat2</span> </td><td> concatenation </td></tr>
-					<tr><td><span class="pat">pat1</span>- <span class="pat">pat2</span> </td><td> exception </td></tr>
-					<tr><td><span class="spe">? 0x2A ?</span> </td><td> character by hex charcode  </td></tr>
-					</table>
-				</p>
-				<!-- <p>If not specified, whitespaces are expressed implicitly; concatenation implies whitespaces.</p> -->
+				<table class="ta">
+				<tr><td>[ <span class="pat">pattern</span> ]</td><td> optional </td></tr>
+				<tr><td> {  <span class="pat">pattern</span>  } </td><td> zero or more repetitions </td></tr>
+				<tr><td>( <span class="pat">pattern</span> )</td><td> grouping </td></tr>
+				<tr><td><span class="pat">pat1</span>  |  <span class="pat">pat2</span></td><td> choice   </td></tr>
+				<tr><td><span class="pat">pat1</span> = <span class="pat">pat2</span>;&nbsp;</td><td> definition   </td></tr>
+				<tr><td><span class="str">"string"</span>   </td><td> string   </td></tr>
+				<tr><td><span class="str">'string'</span>   </td><td> string   </td></tr>
+				<tr><td><span class="pat">pat1</span>, <span class="pat">pat2</span> </td><td> concatenation </td></tr>
+				<tr><td><span class="pat">pat1</span> - <span class="pat">pat2</span> </td><td> exception </td></tr>
+				<tr><td><span class="spe">? 0x2A ?</span> </td><td> character (hexadecimal)  </td></tr>
+				</table>
 				<p>Note that exception binds more strongly than concatenation and concatenation binds more strongly than choice.</p>
-				<!-- <p>Delta</p> -->
 			<br /><h3>2-2. Program Structure</h3>
 				<p>A Preprocessed CamphorScript program consists of zero or more sentences.</p>
 				<p>Definitions of sentences are described in Chapter <a href="#a4">4</a> and Chapter <a href="#a6">6</a>.</p>
 		</div>
 		<div class="chapter">
 		<h2 class="content"><a href="#" id="a3" class="btn">3. Tokens</a></h2>
+			
 			<h3>3-1. Characters</h3>
 			
 			<p>
-				<span class="pat">allchar</span> = 
+				<span class="pat">anychar</span> = 
 				<span class="pat">alphanumbar</span> |
 				<span class="pat">opsymbol</span> |
 				<span class="pat">bracs</span> |
 				<span class="pat">future</span> |
 				<span class="pat">white</span> |
 				<span class="pat">scolon</span>;
+			</p>
+			<p>
+				<span class="pat">allchar</span> = 
+				<span class="pat">anychar</span> |
+				<span class="spe">? 0x5C ?</span>;
 			</p>
 			<p>
 				<span class="pat">opsymbol</span> = 
@@ -225,9 +215,50 @@
 				<span class="str">'_'</span>;
 			</p>
 			
-			<p>Characters not in <span class="pat">anychar</span> cannot be used in a Preprocessed CamphorScript program.</p>
+			<p>Characters not in <span class="pat">anychar</span> cannot be used in a Preprocessed CamphorScript program except inside comments or pragmas.</p>
+			<br /><h3>3-2. Spaces and Comments</h3>
+			<p>
+				As in languages such as C, Preprocessed CamphorScript ignores most of the spaces. 
+			</p>
+			<p>
+				The exceptions are:
+			</p>
+			<ul>
+				<li>between two <span class="pat">alphanumbar</span>s</li>
+				<li>inside character literals</li>
+			</ul>
 			
-			<br /><h3>3-2. Identifiers</h3>
+			<p>
+				Comments are also ignored, parsed like spaces are, 
+				except when they are after <span class="pat">opsymbol</span>s followed by zero or more spaces.
+			</p>
+			<p>
+				<span class="pat">__</span> = 
+				{
+					<span class="pat">none</span>
+				};
+			</p>
+			<p>
+				<span class="pat">none</span> = 
+				<span class="pat">spaces</span> |
+				<span class="pat">comment</span>;
+			</p>
+			<p>
+				<span class="pat">spaces</span> = 
+				<span class="pat">white</span>, 
+				{
+					<span class="pat">white</span>
+				};
+			</p>
+			<p>
+				<span class="pat">comment</span> = 
+				( 
+					<span class="str">'/*'</span>,
+					{ <span class="pat">allchar</span> },
+					<span class="str">'*/'</span>
+				) - <span class="pat">pragma</span>;
+			</p>
+			<br /><h3>3-3. Identifiers</h3>
 			<p>An identifier can be used for the name of a variable or a function. </p>
 			<p>
 				<span class="pat">ident</span> =
@@ -249,7 +280,36 @@
 				<span class="str">'block'</span>;
 			</p>
 			
-			<br /><h3>3-3. Literals</h3>
+			<br /><h3>3-4. Operator Identifiers</h3>
+			<p>An operator identifier can be used for the name of an operator.</p>
+			<p>
+				<span class="pat">op</span> =
+				<span class="pat">op2</span> |
+				<span class="pat">opsymbol</span>, 
+				{
+					<span class="pat">opsymbol</span> |
+					<span class="pat">white</span>
+				};
+			</p>
+			<p>
+				<span class="pat">op2</span> =
+				<span class="pat">op3</span> |
+				<span class="str">'&lt;'</span>, <span class="pat">spaces</span>,
+				<span class="pat">op2</span>, <span class="pat">spaces</span>,
+				<span class="str">'&gt;'</span>;
+			</p>
+			<p>
+				<span class="pat">op3</span> =
+				<span class="str">'&lt;'</span>, <span class="pat">spaces</span>,
+				<span class="str">'{'</span>, <span class="pat">spaces</span>,
+				<span class="pat">alphabar</span>, 
+				{
+					<span class="pat">alphanumbar</span>
+				}, <span class="pat">spaces</span>,
+				<span class="str">'}'</span>, <span class="pat">spaces</span>,
+				<span class="str">'&gt;'</span>;
+			</p>
+			<br /><h3>3-4. Literals</h3>
 			<p>In Preprocessed CamphorScript, there are two kinds of literals: numeric literals and character literals. They only differ in the way they are expressed in the source code.</p>
 			<p>
 				A numeric literal is a sequence of 0-9. Unlike some languages, even number literals starting with zero are considered to be decimal, not octal.
@@ -276,7 +336,7 @@
 				<span class="str">"'"</span>;
 			</p>
 			
-			<br /><h3>3-4. Type Bases</h3>
+			<br /><h3>3-5. Type Bases</h3>
 			<p>A type base represents a set of data. Types, which are properties of r-values, are derived from type bases.</p>
 			<p>
 				The following type base is built-in.
@@ -299,7 +359,7 @@
 				either make it a run-time error or add/subtract 256 implicitly to fit it in the 0-255 range.
 			</p>
 		-->
-				<div class="chapter">
+		<div class="chapter">
 		<h2 class="content"><a href="#" id="a4" class="btn">4. Variables</a></h2>
 			<p>A variable is defined using, or <strong>linked</strong> to, a type base, storing a datum that belongs to the type base. </p>
 			
@@ -329,9 +389,7 @@
 					<span class="pat">num</span>
 			   ];
 			</p>
-			<!--
-
-			-->
+			
 			<br /><h3>4-2. Variable Deletion</h3>
 			<p>Variables are deleted by deletion statements.</p>
 			<p>Variables defined in a block must be deleted in the same block.</p>
@@ -357,13 +415,14 @@
 				{ <span class="pat">sentence</span> }
 				<span class="str">'}'</span>;
 			</p>
+
 		</div>
 		<div class="chapter">
 		<h2 class="content"><a href="#" id="a5" class="btn">5. Types</a></h2>
 			<h3>5-1. Types</h3>
 			<p>
 				In Preprocessed CamphorScript, every r-value has a type, 
-				including the parameters used in <a href="#a6">functions, operators and block syntaxes</a>.
+				including the parameters used in the definitions of <a href="#a6">functions, operators and block syntaxes</a>.
 			</p>
 			
 			
@@ -438,8 +497,7 @@
 					<span class="pat">value</span>, <span class="pat">__</span>
 				};
 			</p>
-			<br /><h3>5-3. TypeLists</h3>
-				<p>
+			<p>
 				The following table shows whether or not an r-value can be passed to a parameter.
 			</p>
 			<table class="tb">
@@ -448,8 +506,6 @@
 			<tr><td><span class="code">const T</span></td>   <td>No </td><td>Yes</td><td>No </td></tr>
 			<tr><td><span class="code">constant T</span></td><td>No </td><td>Yes</td><td>Yes</td></tr>
 			</table>
-			<p>tailtypelist</p>
-			<p>valuelist</p>
 		</div>
 
 		<div class="chapter">
@@ -459,7 +515,7 @@
 				In Preprocessed CamphorScript, "functions", "operators" and "block syntaxes" are merely an advanced version of C-style macros; thus, all of them, excluding those that are built-in, are inlined. 
 			</p>
 			<p>
-				Because macros in C do not have the concept of type, it cannot prevent wrong arguments from being passed to them.
+				Because macros in languages such as C do not have the concept of type, it cannot prevent wrong arguments from being passed to them.
 				The type system of Preprocessed CamphorScript prevents such cases, making it easier to write structured programs in an otherwise function-less language.
 			</p>
 			<p>
@@ -560,8 +616,16 @@
 			</tr>
 			</table>
 			
+			<br /><h3>6-5. BLOCK Statement</h3>
+			<p>A BLOCK statement, not to be confused with a block, is a statement made by appending a semicolon 
+			after the reseved word <span class="code">block</span>.</p>
+			<p>It can only be used inside the latter block of block syntax definition.</p>
+			<p>
+				<span class="pat">resblc</span> = 
+				<span class="str">'block'</span>, <span class="pat">__</span>,  <span class="pat">scolon</span>;
+			</p>
 			
-			<br /><h3>6-5. Block Syntax Definition</h3>
+			<br /><h3>6-6. Block Syntax Definition</h3>
 			<p>Block syntaxes are defined by syntax definition statements.</p>
 			<p>
 				<span class="pat">syndef</span> = 
@@ -587,7 +651,7 @@
 				<td>repeats executing <span class="code">block</span> while <span class="code">a</span> is non-zero</td>
 			</tr>
 			</table>
-			<br /><h3>6-6. Function Call</h3>
+			<br /><h3>6-7. Function Call</h3>
 			<p>Functions are called by function call statements.</p>
 			<p>
 				<span class="pat">funccall</span> = 
@@ -598,27 +662,133 @@
 				<span class="pat">scolon</span>;
 			</p>
 			<p>
-				Further details of function calls are described in 6-1.
+				Further details of function calls are explained in 6-1.
 			</p>
-			<!-- <br /><h3>4-9. Operator Call</h3> -->
+			<br /><h3>6-8. Block Syntax Call</h3>
+			<p>Block syntaxes are called by block syntax call statements.</p>
+			<p>
+				<span class="pat">syncall</span> = 
+				<span class="pat">ident</span>, <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				(
+					<span class="pat">valuelist</span> | 
+					<span class="pat">tailvaluelist</span>
+				), <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">block2</span>;
+			</p>
+			<br /><h3>6-9. Operator Call </h3>
+			<p>An operator is called by operator call statements; however, there are five ways to call an operator.</p>
+			<p>The first way is <strong>prefix notation</strong>, where an operator being called comes first, surrounded by parentheses.</p>
+			<p>Two operands are separated by a semicolon and then surrounded by parentheses.</p>
+			<p>
+				<span class="pat">opcall1</span> = 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">op</span>, <span class="pat">__</span>,
+ 				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">valuelist</span>, <span class="pat">__</span>, 
+				<span class="pat">scolon</span>, <span class="pat">__</span>, 
+				<span class="pat">valuelist</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">scolon</span>;
+			</p>
+			<p>The second way is <strong>fully-parenthesized infix notation</strong>, where two operands are both surrounded by parentheses and the operator comes between the two.</p>
+			<p>
+				<span class="pat">opcall2</span> = 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">valuelist</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">op</span>, <span class="pat">__</span>,
+ 				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">valuelist</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">scolon</span>;
+			</p>
+			<p>The third way is <strong>left-parenthesized infix notation</strong>, where only the left operand is parenthesized.</p>
+			<p>
+				This notation also requires that the all the operators (if any) in the right <span class="pat">valuelist</span> 
+				must satisfy at least one of the following properties:
+			</p>
+			<ul>
+			<li>has stronger fixity than the "central" operator</li>
+			<li>has the same fixity as the "central" operator and both are <span class="code">infixr</span></li>
+			</ul>
+			<p>
+				<span class="pat">opcall3</span> = 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">valuelist</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">op</span>, <span class="pat">__</span>,
+				<span class="pat">valuelist</span>, <span class="pat">__</span>, 
+				<span class="pat">scolon</span>;
+			</p>
+			<p>The fourth way is <strong>right-parenthesized infix notation</strong>, where only the right operand is parenthesized.</p>
+			<p>
+				This notation also requires that the all the operators (if any) in the left <span class="pat">valuelist</span> 
+				must satisfy at least one of the following properties:
+			</p>
+			<ul>
+			<li>has stronger fixity than the "central" operator</li>
+			<li>has the same fixity as the "central" operator and both are <span class="code">infixl</span></li>
+			</ul>
+			<p>
+				<span class="pat">opcall4</span> = 
+				<span class="pat">opcall4a</span> |
+				<span class="pat">opcall4b</span>;
+			</p>
+			<p>
+				<span class="pat">opcall4a</span> = 
+				<span class="pat">value</span>, <span class="pat">__</span>, 
+				<span class="pat">op</span>, <span class="pat">__</span>,
+				{
+					<span class="pat">value</span>, <span class="pat">__</span>, 
+					<span class="pat">op</span>, <span class="pat">__</span>
+				}, <span class="pat">__</span>, 
+ 				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">valuelist</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">scolon</span>;
+			</p>
+			<p>
+				<span class="pat">opcall4b</span> = 
+ 				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">valuelist</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">scolon</span>;
+			</p>
+			<p>The final way is <strong>non-parenthesized infix notation</strong>, where operands are not parenthesized. This is essentially a <span class="pat">valuelist</span> followed by a semicolon.</p>
+			<p>The actual operator to be called is determined by the following steps:</p>
+			<ol>
+				<li>If there is no operator, nothing is called.</li>
+				<li>Look for the operator(s) with the smallest fixity.</li>
+				<li>If all the operator(s) with the smallest fixity are <span class="code">infixl</span>, the leftmost one is called.</li>
+				<li>If all the operator(s) with the smallest fixity are <span class="code">infixr</span>, the rightmost one is called.</li>
+				<li>If mixed, the statement is invalid.</li>
+			</ol>
+			<p>
+				<span class="pat">opcall5</span> = 
+				<span class="pat">valuelist</span>, <span class="pat">__</span>, 
+				<span class="pat">scolon</span>;
+			</p>
 		</div>
-	
-		<!--
-scolon<!-- scl -=->    | 
-resblc<!-- bLOCK -=->  | 
-spaces<!-- spac -=->   |
-comment<!-- comm -=->  |
-pragma<!-- pragma -=-> |
-syncall<!-- syntax_call -=-> |
-opcall1<!-- op_call1 -=-> |
-opcall2<!-- op_call2 -=-> |
-opcall3<!-- op_call3 -=-> |
-opcall4<!-- op_call4 -=-> |
-opcall5<!-- op_call5 -=-> ;</p>
-		-->
 		<div class="chapter">
-		<h2 class="content"><a href="#" id="a7" class="btn">7. Full Lexical Structure</a> </h2>
-			<h3>7-1. Program and Sentence</h3>
+			<h2 class="content"><a href="#" id="a7" class="btn">7. Pragmas</a></h2>
+			
+			<h3>7-1. Pragmas</h3>
+			<p>Pragmas are special statements used to give additional instuctions to the compiler. </p>
+			<p>A compiler does not need to implement any pragmas, though unrecognized pragmas should be ignored.</p>
+			<p>
+				<span class="pat">pragma</span> = 
+					<span class="str">'/*#'</span>,
+					{ <span class="pat">allchar</span> },
+					<span class="str">'#*/'</span>;
+			</p>
+		</div>
+		
+		<div class="chapter">
+		<h2 class="content"><a href="#" id="a8" class="btn">8. Full Lexical Structure</a> </h2>
+			<h3>8-1. Program and Sentence</h3>
 			<p><span class="pat">program</span> =   {   <span class="pat">sentence</span>  };</p>
 			<p><span class="pat">sentence</span> = 
 				   <span class="pat">vardef</span><!-- def -->    |
@@ -641,16 +811,482 @@ opcall5<!-- op_call5 -=-> ;</p>
 				   <span class="pat">opcall3</span><!-- op_call3 --> |
 				   <span class="pat">opcall4</span><!-- op_call4 --> |
 				   <span class="pat">opcall5</span>;<!-- op_call5 --> </p>
-			<br /><h3>7-2. Tokens</h3>
-				<!--	 -->
-			<p>Alpha</p>
-			<p>Beta</p>
-			<p>Gamma</p>
-			<p>Delta</p>	
-			<br /><h3>7-3. Sentences</h3>
-			<!--
+			<br /><h3>8-2. Characters</h3>
+			<p>
+				<span class="pat">anychar</span> = 
+				<span class="pat">alphanumbar</span> |
+				<span class="pat">opsymbol</span> |
+				<span class="pat">bracs</span> |
+				<span class="pat">future</span> |
+				<span class="pat">white</span> |
+				<span class="pat">scolon</span>;
+			</p>
+			<p>
+				<span class="pat">allchar</span> = 
+				<span class="pat">anychar</span> |
+				<span class="spe">? 0x5C ?</span>;
+			</p>
+			<p>
+				<span class="pat">opsymbol</span> = 
+				<span class="str">'!'</span> |
+				<span class="str">'%'</span> |
+				<span class="str">'&amp;'</span> |
+				<span class="str">'*'</span> |
+				<span class="str">'+'</span> |
+				<span class="str">','</span> |
+				<span class="str">'-'</span> |
+				<span class="str">'/'</span> |
+				<span class="str">':'</span> |
+				<span class="str">'&lt;'</span> |
+				<span class="str">'='</span> |
+				<span class="str">'&gt;'</span> |
+				<span class="str">'?'</span> |
+				<span class="str">'@'</span> |
+				<span class="str">'^'</span> |
+				<span class="str">'|'</span> |
+				<span class="str">'~'</span>;
+			</p>
+			<p>
+				<span class="pat">bracs</span> =
+				<span class="str">'('</span> |
+				<span class="str">')'</span> |
+				<span class="str">'{'</span> |
+				<span class="str">'}'</span> |
+				<span class="str">'"'</span> |
+				<span class="str">"'"</span>;
+			</p>
+			<p>
+				<span class="pat">scolon</span> = <span class="str">';'</span>;
+			</p>
+			<p>
+				<span class="pat">white</span> = 
+				<span class="spe">? 0x20 ?</span> | 
+				<span class="pat">nswhite</span>;
+			</p>
+			<p>
+				<span class="pat">nswhite</span> = 
+				<span class="pat">newline</span> | 
+				<span class="spe">? 0x09 ?</span>;
+			</p>
+			<p>
+				<span class="pat">newline</span> = 
+				<span class="spe">? 0x0A ?</span> | 
+				<span class="spe">? 0x0D ?</span>;
+			</p>
+			<p>
+				<span class="pat">future</span> =
+				<span class="str">'#'</span> |
+				<span class="str">'$'</span> |
+				<span class="str">'.'</span> |
+				<span class="str">'`'</span> |
+				<span class="str">'['</span> |
+				<span class="str">']'</span>;
+			</p>
 		
-			-->
+			
+			<p>
+				<span class="pat">digit</span> = 
+				<span class="str">'0'</span> |
+				<span class="str">'1'</span> |
+				<span class="str">'2'</span> |
+				<span class="str">'3'</span> |
+				<span class="str">'4'</span> |
+				<span class="str">'5'</span> |
+				<span class="str">'6'</span> |
+				<span class="str">'7'</span> |
+				<span class="str">'8'</span> |
+				<span class="str">'9'</span>;
+			</p>
+			<p>
+				<span class="pat">alphanumbar</span> = <span class="pat">alphabar</span> | <span class="pat">digit</span>;
+			</p>
+			<p>
+				<span class="pat">alphabar</span> = 
+				<span class="str">'A'</span> |
+				<span class="str">'B'</span> |
+				<span class="str">'C'</span> |
+				<span class="str">'D'</span> |
+				<span class="str">'E'</span> |
+				<span class="str">'F'</span> |
+				<span class="str">'G'</span> |
+				<span class="str">'H'</span> |
+				<span class="str">'I'</span> |
+				<span class="str">'J'</span> |
+				<span class="str">'K'</span> |
+				<span class="str">'L'</span> |
+				<span class="str">'M'</span> |
+				<span class="str">'N'</span> |
+				<span class="str">'O'</span> |
+				<span class="str">'P'</span> |
+				<span class="str">'Q'</span> |
+				<span class="str">'R'</span> |
+				<span class="str">'S'</span> |
+				<span class="str">'T'</span> |
+				<span class="str">'U'</span> |
+				<span class="str">'V'</span> |
+				<span class="str">'W'</span> |
+				<span class="str">'X'</span> |
+				<span class="str">'Y'</span> |
+				<span class="str">'Z'</span> |
+				<span class="str">'a'</span> |
+				<span class="str">'b'</span> |
+				<span class="str">'c'</span> |
+				<span class="str">'d'</span> |
+				<span class="str">'e'</span> |
+				<span class="str">'f'</span> |
+				<span class="str">'g'</span> |
+				<span class="str">'h'</span> |
+				<span class="str">'i'</span> |
+				<span class="str">'j'</span> |
+				<span class="str">'k'</span> |
+				<span class="str">'l'</span> |
+				<span class="str">'m'</span> |
+				<span class="str">'n'</span> |
+				<span class="str">'o'</span> |
+				<span class="str">'p'</span> |
+				<span class="str">'q'</span> |
+				<span class="str">'r'</span> |
+				<span class="str">'s'</span> |
+				<span class="str">'t'</span> |
+				<span class="str">'u'</span> |
+				<span class="str">'v'</span> |
+				<span class="str">'w'</span> |
+				<span class="str">'x'</span> |
+				<span class="str">'y'</span> |
+				<span class="str">'z'</span> |
+				<span class="str">'_'</span>;
+			</p>
+			<br /><h3>8-3. Tokens</h3>
+			<p>
+				<span class="pat">__</span> = 
+				{
+					<span class="pat">none</span>
+				};
+			</p>
+			<p>
+				<span class="pat">none</span> = 
+				<span class="pat">spaces</span> |
+				<span class="pat">comment</span>;
+			</p>
+			<p>
+				<span class="pat">spaces</span> = 
+				<span class="pat">white</span>, 
+				{
+					<span class="pat">white</span>
+				};
+			</p>
+			<p>
+				<span class="pat">comment</span> = 
+				( 
+					<span class="str">'/*'</span>,
+					{ <span class="pat">allchar</span> },
+					<span class="str">'*/'</span>
+				) - <span class="pat">pragma</span>;
+			</p>
+			<p>
+				<span class="pat">ident</span> =
+				( <span class="pat">alphabar</span>, 
+				{
+					<span class="pat">alphanumbar</span>
+				} ) - <span class="pat">reserved</span>;
+			</p>
+			<p>
+				<span class="pat">reserved</span> =
+				<span class="str">'char'</span> |
+				<span class="str">'delete'</span> |
+				<span class="str">'infixl'</span> |
+				<span class="str">'infixr'</span> |
+				<span class="str">'void'</span> |
+				<span class="str">'constant'</span> |
+				<span class="str">'const'</span> |
+				<span class="str">'syntax'</span> |
+				<span class="str">'block'</span>;
+			</p>
+				<p>
+				<span class="pat">op</span> =
+				<span class="pat">op2</span> |
+				<span class="pat">opsymbol</span>, 
+				{
+					<span class="pat">opsymbol</span> |
+					<span class="pat">white</span>
+				};
+			</p>
+			<p>
+				<span class="pat">op2</span> =
+				<span class="pat">op3</span> |
+				<span class="str">'&lt;'</span>, <span class="pat">spaces</span>,
+				<span class="pat">op2</span>, <span class="pat">spaces</span>,
+				<span class="str">'&gt;'</span>;
+			</p>
+			<p>
+				<span class="pat">op3</span> =
+				<span class="str">'&lt;'</span>, <span class="pat">spaces</span>,
+				<span class="str">'{'</span>, <span class="pat">spaces</span>,
+				<span class="pat">alphabar</span>, 
+				{
+					<span class="pat">alphanumbar</span>
+				}, <span class="pat">spaces</span>,
+				<span class="str">'}'</span>, <span class="pat">spaces</span>,
+				<span class="str">'&gt;'</span>;
+			</p>
+			<p>
+				<span class="pat">num</span> = <span class="pat">uint1</span> | <span class="pat">uint2</span>;
+			</p>
+			<p>
+				<span class="pat">uint1</span> = <span class="pat">digit</span>, { <span class="pat">digit</span> };
+			</p>
+			<p>
+				<span class="pat">uint2</span> = 
+				<span class="str">"'"</span>,
+				( 
+					<span class="pat">allchar</span> - 
+					(
+						<span class="str">"'"</span>  |
+						<span class="pat">nswhite</span> 
+					)
+				),
+				<span class="str">"'"</span>;
+			</p>
+			<p>
+				<span class="pat">typebase</span> = <span class="str">'char'</span>; 
+			</p>
+			<br /><h3>8-4. Variables</h3>
+			<p>
+				<span class="pat">vardef</span> =
+				<span class="pat">typebase</span>, <span class="pat">none</span>, <span class="pat">__</span>, 
+				<span class="pat">singledef</span>, <span class="pat">__</span>, 
+				{
+					<span class="str">','</span>, <span class="pat">__</span>, 
+					<span class="pat">singledef</span>, <span class="pat">__</span>
+				},
+				<span class="pat">__</span>,  <span class="pat">scolon</span>;
+			</p>
+			<p><span class="pat">singledef</span> = 
+			   <span class="pat">ident</span>, <span class="pat">__</span>, 
+			   [ 
+					<span class="str">'='</span>, <span class="pat">__</span>, 
+					{
+						<span class="pat">ident</span>, <span class="pat">__</span>, 
+						<span class="str">'='</span>, <span class="pat">__</span> 
+					}, 
+					<span class="pat">num</span>
+			   ];
+			</p>
+			<p>
+				<span class="pat">vardel</span> = 
+				<span class="str">'delete'</span>, <span class="pat">none</span>, <span class="pat">__</span>, 
+				<span class="pat">ident</span>, <span class="pat">__</span>, 
+				<span class="pat">scolon</span>;
+			</p>
+			<p>
+				<span class="pat">value</span> = 
+				<span class="pat">ident</span> |
+				<span class="pat">num</span>;
+			</p>
+			<p>
+				<span class="pat">block2</span> = 
+				<span class="str">'{'</span>, 
+				{ <span class="pat">sentence</span> }
+				<span class="str">'}'</span>;
+			</p>
+			<br /><h3>8-5. Types</h3>
+			<p>
+				<span class="pat">type</span> = 
+				<span class="str">'constant'</span>, <span class="pat">none</span>, <span class="pat">__</span>, 
+				<span class="pat">typebase</span>, <span class="pat">none</span> |
+				<span class="str">'const'</span>, <span class="pat">none</span>, <span class="pat">__</span>, 
+				<span class="pat">typebase</span>, <span class="pat">none</span> |
+				<span class="pat">typebase</span>, <span class="pat">__</span>, 
+				<span class="str">'&amp;'</span>;
+			</p>
+			<p>
+				<span class="pat">typelist</span> = 
+				<span class="pat">type</span>, <span class="pat">__</span>, 
+				<span class="pat">ident</span>, <span class="pat">__</span>, 
+				{
+					<span class="pat">op</span>, <span class="pat">__</span>, 
+					<span class="pat">type</span>, <span class="pat">__</span>, 
+					<span class="pat">ident</span>, <span class="pat">__</span>
+				};
+			</p>
+			<p>
+				<span class="pat">valuelist</span> = 
+				<span class="pat">value</span>, <span class="pat">__</span>, 
+				{
+					<span class="pat">op</span>, <span class="pat">__</span>, 
+					<span class="pat">value</span>, <span class="pat">__</span>
+				};
+			</p>
+			<p>
+				<span class="pat">tailtypelist</span> = 
+				{
+					<span class="pat">op</span>, <span class="pat">__</span>, 
+					<span class="pat">type</span>, <span class="pat">__</span>, 
+					<span class="pat">ident</span>, <span class="pat">__</span>
+				};
+			</p>
+			<p>
+				<span class="pat">tailvaluelist</span> = 
+				{
+					<span class="pat">op</span>, <span class="pat">__</span>, 
+					<span class="pat">value</span>, <span class="pat">__</span>
+				};
+			</p>
+			<br /><h3>8-6. Functions, Operators and Block Syntaxes</h3>
+			<p>
+				<span class="pat">funcdef</span> = 
+				<span class="str">'void'</span>, <span class="pat">none</span>, <span class="pat">__</span>, 
+				<span class="pat">ident</span>,  <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">typelist</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">blockornull</span>;
+			</p>
+			<p>
+				<span class="pat">blockornull</span> = 
+				<span class="pat">block2</span> | 
+				<span class="str">'='</span>, <span class="pat">__</span>, 
+				<span class="str">'0'</span>, <span class="pat">__</span>, 
+				<span class="pat">scolon</span>;
+			</p>
+			<p>
+				<span class="pat">infixl</span> = 
+				<span class="str">'infixl'</span>, <span class="pat">none</span>, <span class="pat">__</span>, 
+				<span class="pat">num</span>, <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">op</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">scolon</span>;
+			</p>
+			<p>
+				<span class="pat">infixr</span> = 
+				<span class="str">'infixr'</span>, <span class="pat">none</span>, <span class="pat">__</span>, 
+				<span class="pat">num</span>, <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">op</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">scolon</span>;
+			</p>
+			<p>
+				<span class="pat">operdef</span> = 
+				<span class="str">'void'</span>, <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">op</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">typelist</span>, <span class="pat">__</span>, 
+				<span class="pat">scolon</span>, <span class="pat">__</span>, 
+				<span class="pat">typelist</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">blockornull</span>;
+			</p>
+			<p>
+				<span class="pat">resblc</span> = 
+				<span class="str">'block'</span>, <span class="pat">__</span>,  <span class="pat">scolon</span>;
+			</p>
+			<p>
+				<span class="pat">syndef</span> = 
+				<span class="str">'syntax'</span>, <span class="pat">none</span>, <span class="pat">__</span>, 
+				<span class="pat">ident</span>, <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				(<span class="pat">typelist</span> | <span class="pat">tailtypelist</span>), <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="str">'{'</span>, <span class="pat">__</span>, 
+				<span class="str">'block'</span>, <span class="pat">__</span>, 
+				{
+					<span class="pat">scolon</span> | <span class="pat">__</span>
+				}
+				<span class="str">'}'</span>, <span class="pat">__</span>, 
+				<span class="pat">block2</span>;
+			</p>
+			<p>
+				<span class="pat">funccall</span> = 
+				<span class="pat">ident</span>, <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">valuelist</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">scolon</span>;
+			</p>
+			<p>
+				<span class="pat">syncall</span> = 
+				<span class="pat">ident</span>, <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				(
+					<span class="pat">valuelist</span> | 
+					<span class="pat">tailvaluelist</span>
+				), <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">block2</span>;
+			</p>
+			<p>
+				<span class="pat">opcall1</span> = 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">op</span>, <span class="pat">__</span>,
+ 				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">valuelist</span>, <span class="pat">__</span>, 
+				<span class="pat">scolon</span>, <span class="pat">__</span>, 
+				<span class="pat">valuelist</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">scolon</span>;
+			</p>
+			<p>
+				<span class="pat">opcall2</span> = 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">valuelist</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">op</span>, <span class="pat">__</span>,
+ 				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">valuelist</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">scolon</span>;
+			</p>
+			<p>
+				<span class="pat">opcall3</span> = 
+				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">valuelist</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">op</span>, <span class="pat">__</span>,
+				<span class="pat">valuelist</span>, <span class="pat">__</span>, 
+				<span class="pat">scolon</span>;
+			</p>
+			<p>
+				<span class="pat">opcall4</span> = 
+				<span class="pat">opcall4a</span> |
+				<span class="pat">opcall4b</span>;
+			</p>
+			<p>
+				<span class="pat">opcall4a</span> = 
+				<span class="pat">value</span>, <span class="pat">__</span>, 
+				<span class="pat">op</span>, <span class="pat">__</span>,
+				{
+					<span class="pat">value</span>, <span class="pat">__</span>, 
+					<span class="pat">op</span>, <span class="pat">__</span>
+				}, <span class="pat">__</span>, 
+ 				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">valuelist</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">scolon</span>;
+			</p>
+			<p>
+				<span class="pat">opcall4b</span> = 
+ 				<span class="str">'('</span>, <span class="pat">__</span>, 
+				<span class="pat">valuelist</span>, <span class="pat">__</span>, 
+				<span class="str">')'</span>, <span class="pat">__</span>, 
+				<span class="pat">scolon</span>;
+			</p>
+			<p>
+				<span class="pat">opcall5</span> = 
+				<span class="pat">valuelist</span>, <span class="pat">__</span>, 
+				<span class="pat">scolon</span>;
+			</p>
+			<br /><h3>8-7. Pragmas</h3>
+			<p>
+				<span class="pat">pragma</span> = 
+					<span class="str">'/*#'</span>,
+					{ <span class="pat">allchar</span> },
+					<span class="str">'#*/'</span>;
+			</p>
 		</div>
 		
 	</div>
@@ -663,7 +1299,8 @@ opcall5<!-- op_call5 -=-> ;</p>
 			<li><a href="#a4">4. Variables</a></li>
 			<li><a href="#a5">5. Types</a></li>
 			<li><a href="#a6">6. Functions, Operators and Syntaxes</a></li>
-			<li><a href="#a7">7. Full Lexical Structure</a></li>
+			<li><a href="#a7">7. Pragmas</a></li>
+			<li><a href="#a8">8. Full Lexical Structure</a></li>
 		</ul>
 
 		<br /><h3>References</h3>

@@ -8,6 +8,7 @@ import Camphor.Global.Parsers
 import Camphor.Global.Synonyms
 import Text.Parsec hiding(token,State)
 import Camphor.Transformer
+import Data.Text.Lazy () -- Stream Txt m Char
 {- 
 	For now, it will delete lines and automatically adds indentation. 
 	As character literals are already processed in Base_Step2,

@@ -70,7 +70,7 @@ import Control.Arrow(first,second)
 import System.FilePath((</>))
 import Data.Foldable(Foldable(),fold,foldMap,foldr,foldr',foldl,foldl',foldrM,foldlM,traverse_,for_,sequenceA_,asum,mapM_,forM_,sequence_,msum,toList,concat,concatMap,and,or,any,all,sum,product,maximum,maximumBy,minimum,minimumBy,elem,notElem,find)
 import qualified Data.Map as M
-
+import Data.Text.Lazy () -- Stream Txt m Char
 
 mod256 :: Integral a => a -> a
 mod256 a = a `mod` 256

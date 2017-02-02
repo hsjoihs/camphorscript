@@ -1,3 +1,6 @@
+optoresult2014-09-28_02-41-07: 
+success: "ccsc -C24 -fincdecmerge examples2\__PCS\xIncDecMerge__PCS.txt -o bat\O24test1.tmp" 
+ 
 optoresult2014-09-23_23-26-03: 
 success: "ccsc -C24 -fincdecmerge examples2\__PCS\xIncDecMerge__PCS.txt -o bat\O24test1.tmp" 
  

@@ -250,7 +250,7 @@ op_call3 = try(do{
 op_call4 :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity [Sent]
 op_call4 = try(do{
  p <- getPosition; 
- xs <- many(do{a <- value; __; b <- _op; return(a,b)}); __;
+ xs <- many(do{a <- value; __; b <- _op; __; return(a,b)}); __;
  _paren;                                               __;
  vs <- getValueList;                                   __;
  _nerap;                                               __;

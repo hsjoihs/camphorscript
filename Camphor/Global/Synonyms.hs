@@ -20,7 +20,7 @@ module Camphor.Global.Synonyms
 import Camphor.SafePrelude
 import Camphor.Oper
 -- import Camphor.IOTxt
-import Text.Parsec.Prim
+-- import Text.Parsec.Prim
 import qualified Data.Map as M
 import qualified Data.Text.Lazy as T
 
@@ -34,8 +34,8 @@ unpack :: Txt -> String
 unpack {-T t = t-} = T.unpack
 
 
-instance (Monad m) => Stream Txt m Char where
- uncons = return . T.uncons
+-- instance (Monad m) => Stream Txt m Char where
+ -- uncons = return . T.uncons
  -- uncons (T [])     = return $ Nothing
  -- uncons (T (t:ts)) = return $ Just (t,T ts)
 (<+++$$>) :: (Functor f, Functor f1) => String -> f (f1 Txt) -> f (f1 Txt) 

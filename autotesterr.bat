@@ -14,11 +14,11 @@ if not '%show%'=='' set show=%show:~0,1%
 
 
 echo ---Making ccsc.hs---
-%~d0\ghc2\ghc\2013.2.0.0\bin\ghc --make  ccsc
+ghc --make  ccsc
 echo ---Finished---
 echo.
 echo ---Making ccsrc.hs---
-%~d0\ghc2\ghc\2013.2.0.0\bin\ghc --make  ccsrc
+ghc --make  ccsrc
 echo ---Finished---
 echo.
 

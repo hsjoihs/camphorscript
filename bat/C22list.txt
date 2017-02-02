@@ -19,4 +19,5 @@ qUsingInherit 18
 qSynUseCollision 19
 xFizzbuzz 20
 yNewOp 21
+yNewOp2 22
 ; PCS -> HCCS

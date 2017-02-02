@@ -14,6 +14,7 @@ import Camphor.Transformer
 import Data.Word (Word8)
 import HiddenChar.HiddenChar
 import Camphor.VirtualIO
+import Data.Text.Lazy () -- Stream Txt m Char
 
 type VIO = VirtualIO Char Char 
 

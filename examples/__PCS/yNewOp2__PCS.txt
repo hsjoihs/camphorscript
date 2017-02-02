@@ -1,0 +1,20 @@
+infixl 20 (<{foo}>);
+infixl 20 (<<{foo}>>);
+
+void (<{foo}>) (char& a; char& b)
+{
+	write(a);
+	write(b);
+}
+
+void (<<{foo}>>) (char& a; char& b)
+{
+	write(b);
+	write(a);
+}
+
+
+char q = 42; char r = 43;
+q <{foo}> r;
+
+q < < { foo } > > r;
