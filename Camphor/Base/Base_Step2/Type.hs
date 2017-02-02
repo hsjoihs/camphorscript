@@ -26,7 +26,7 @@ newtype Ident2 = Ident2{unId :: String} deriving(Show,Ord,Eq)
 -- Auxilary
 type NonEmptyValue = (Value,NonEmpty (Oper,Value))
 type ReplTable = M.Map Ident2 Value
-type CollisionTable = NonEmpty (M.Map Ident2 (Ident2,Bool)) -- bool : is this variable defined by the `using' pragma?
+type CollisionTable = M.Map Ident2 (Ident2,Bool) -- bool : is this variable defined by the `using' pragma?
 
 -- Base_Step2_2
 data Upgrade a b = Single a b | Block a [Upgrade a b] deriving(Show,Eq)

@@ -4,7 +4,6 @@ module Camphor.Oper
 (Oper(),wrap,unOp
 )where
 import Camphor.SafePrelude 
-import Data.Char(isSpace)
 newtype Oper = Op String deriving(Ord,Show)
 
 delspace :: String -> String

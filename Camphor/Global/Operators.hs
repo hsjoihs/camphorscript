@@ -1,8 +1,9 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
 module Camphor.Global.Operators
 ((<++>),(<:>),(<$$>),(>=>),(</>),(<++$>),(<++$$>),(<$>)
 )where
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
+import Camphor.SafePrelude
 import Control.Monad((>=>))
 import System.FilePath((</>))
 import Control.Applicative hiding ((<|>),many)

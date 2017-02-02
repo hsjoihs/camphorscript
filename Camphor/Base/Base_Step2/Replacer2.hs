@@ -12,13 +12,11 @@ import Camphor.Base.Base_Step2.Auxilary
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import Camphor.NonEmpty
-import Data.Maybe(isJust,listToMaybe,catMaybes)
 import Text.Parsec  
 import qualified Data.Map as M 
 import Control.Monad.State
 import Control.Monad.Reader
 import Camphor.TupleTrans
-import Debug.Trace -- debug
 
 unwrapAllMay :: [Value] -> Maybe [Ident2]
 unwrapAllMay vs = mapM unwrap vs
@@ -27,27 +25,12 @@ unwrapAllMay vs = mapM unwrap vs
 
 makeNewIdent :: CollisionTable -> Ident2 -> UserState -> SourcePos -> Either ParseError Ident2  
 makeNewIdent clTable ident stat pos = do
- let identEggs = [ new | n <- [1..] :: [Integer], let new = tmpIdent ident n, not (stat `containsAnyIdent` new), new `notElem` (map fst $ ident `lookupAtEverywhere` clTable) ]
+ let identEggs = [ new | n <- [1..] :: [Integer], let new = tmpIdent ident n, not (stat `containsAnyIdent` new), Just new /= lookup2 ]
  maybeToEither (newErrorMessage(Message$"FIXME: code 0011")pos)(listToMaybe identEggs) 
- 
-memberAtTop :: Ident2 -> CollisionTable -> Bool
-memberAtTop a (t:|_) = a `M.member` t 
+ where
+  lookup2 :: Maybe Ident2
+  lookup2 = fmap fst $ M.lookup ident clTable
 
-insertAtTop :: Ident2 -> (Ident2,Bool) -> CollisionTable -> CollisionTable
-insertAtTop i new (t:|ts) = M.insert i new t :| ts
-
-lookupAtTop :: Ident2 -> CollisionTable -> Maybe (Ident2,Bool)
-lookupAtTop a (t:|_) = M.lookup a t
-
-deleteAtTop :: Ident2 -> CollisionTable -> CollisionTable
-deleteAtTop a (t:|ts) = M.delete a t :| ts
-
-lookupAtEverywhere :: Ident2 -> CollisionTable -> [(Ident2,Bool)]
-lookupAtEverywhere a ts = catMaybes $ map(M.lookup a)(toList' ts)
-
-lookupForFst :: Ident2 -> [M.Map Ident2 (Ident2,Bool)] -> Maybe (Ident2,Bool)
-lookupForFst a ts = listToMaybe $ catMaybes $ map(M.lookup a) ts
- 
 type RCMEP = ReaderT (CollisionTable,Maybe TmpStat,()) (Either ParseError)
 type SCMEP = StateT  (CollisionTable,Maybe TmpStat,()) (Either ParseError)
  
@@ -95,21 +78,21 @@ replacer3 stat _ pos (R_Char ident) table  = case M.lookup ident table of
  Nothing -> do
   clTable <- getFst
   using <- getSnd
-  if ident `memberAtTop` clTable 
+  if ident `M.member` clTable 
    then err$newErrorMessage(Message$"dual definition of variable "++showIdent ident)pos 
    else return()
   case using of {
-   Nothing     -> do{newIdent <- lift(makeNewIdent clTable ident stat pos); modifyFst (insertAtTop ident (newIdent,False)); return [Single pos $ Char newIdent]};
-   Just []     -> do{newIdent <- lift(makeNewIdent clTable ident stat pos); modifyFst (insertAtTop ident (newIdent,False)); return [Single pos $ Char newIdent]};
-   Just (u:us) -> do{putSnd(Just us); newIdent <- return u;                 modifyFst (insertAtTop ident (newIdent,True )); return [Single pos $ Comm$"char "++unId u++";"]};
+   Nothing     -> do{newIdent <- lift(makeNewIdent clTable ident stat pos); modifyFst (M.insert ident (newIdent,False)); return [Single pos $ Char newIdent]};
+   Just []     -> do{newIdent <- lift(makeNewIdent clTable ident stat pos); modifyFst (M.insert ident (newIdent,False)); return [Single pos $ Char newIdent]};
+   Just (u:us) -> do{putSnd(Just us); newIdent <- return u;                 modifyFst (M.insert ident (newIdent,True )); return [Single pos $ Comm$"char "++unId u++";"]};
   }
   
 replacer3 _ _ pos (R_Del ident) table  = case M.lookup ident table of 
  Just _  -> err$newErrorMessage(Message$"cannot delete an argument"++showIdent ident)pos 
  Nothing -> do
   clTable <- getFst
-  (newIdent,isUsing) <- lift $ maybeToEither (newErrorMessage(Message$"variable "++showIdent ident++" is not defined in this function")pos) (lookupAtTop ident clTable)
-  modifyFst (deleteAtTop ident)
+  (newIdent,isUsing) <- lift $ maybeToEither (newErrorMessage(Message$"variable "++showIdent ident++" is not defined in this function")pos) (M.lookup ident clTable)
+  modifyFst (M.delete ident)
   return [Single pos $ if isUsing then Comm$"delete " ++ unId newIdent ++ ";" else Del newIdent] --can't delete the one passed by `using' pragma
 
 -- calls --  
@@ -257,17 +240,12 @@ replaceSingles table vlist = do
   
 --- replaces a value with collision table top -> replacement table -> collision table rest  
 replaceSingle :: ReplTable -> CollisionTable -> Value -> Value 
-replaceSingle table (t:|ts) value = (replaceSingleCollisionRest ts . replaceSingleRepl table . replaceSingleCollisionTop t) value
+replaceSingle table t value = (replaceSingleRepl table . replaceSingleCollisionTop t) value
 -- stat `containsAnyIdent`
  where
   replaceSingleCollisionTop :: M.Map Ident2 (Ident2,Bool) -> Value -> Value
-  replaceSingleCollisionTop _    m@(Constant 42) = traceShow (table,"12345",t,"67890",ts) $ m 
   replaceSingleCollisionTop _    m@(Constant _) = m
   replaceSingleCollisionTop cttp v@(Var idn)    = case M.lookup idn cttp of Nothing -> v; Just (val,_) -> Var val
-  
-  replaceSingleCollisionRest :: [M.Map Ident2 (Ident2,Bool)] -> Value -> Value
-  replaceSingleCollisionRest _    m@(Constant _) = m
-  replaceSingleCollisionRest ctbl v@(Var idn)    = case lookupForFst idn ctbl of Nothing -> v; Just (val,_) -> Var val
   
   replaceSingleRepl :: ReplTable -> Value -> Value
   replaceSingleRepl _   m@(Constant _) = m
@@ -276,7 +254,7 @@ replaceSingle table (t:|ts) value = (replaceSingleCollisionRest ts . replaceSing
  
 --- simply replace the parameters using the arguments  
 rpl1_1 :: SourcePos -> Sent2 -> ReplTable -> NonEmpty MacroId -> UserState -> RCMEP [Sent]
-rpl1_1 pos sent table2 newMs stat = ReaderT $ evalStateT (do{modifyFst(M.empty `cons`); rpl1_2 pos sent table2 newMs stat})
+rpl1_1 pos sent table2 newMs stat = ReaderT $ evalStateT (do{putFst M.empty; rpl1_2 pos sent table2 newMs stat})
  -- we outsiders don't need to know what's in the insiders' collision table.
 
 --- simply replace the parameters using the arguments  

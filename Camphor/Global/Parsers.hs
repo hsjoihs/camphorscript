@@ -12,7 +12,7 @@ import Camphor.SafePrelude
 import Camphor.Global.Synonyms
 import Camphor.Global.Operators
 import Text.Parsec hiding(token)
-import Data.Char(isSpace,ord)
+import Data.Char(ord)
 import Camphor.NonEmpty
 
 

@@ -12,7 +12,7 @@
    
    
    
-/* infixl 40 (/) ; infixl 40 (/~) ; */   
+     
 
 
 
@@ -124,37 +124,37 @@ b-=1;/* b=47 */
 
 read(c);
 
- {
+{
 	/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
-	/*char d;*//*char e;*/
+	char c2__TMP_1;char d2__TMP_1;
 	while(b){
 		{
-	while(c){d+=1;e+=1;c-=1;}
+	while(c){c2__TMP_1+=1;d2__TMP_1+=1;c-=1;}
 }
 		   {
-	while(e){c+=1;e-=1;}
+	while(d2__TMP_1){c+=1;d2__TMP_1-=1;}
 }
-		while(d){
+		while(c2__TMP_1){
 			{
-	while(d){d-=1;}
+	while(c2__TMP_1){c2__TMP_1-=1;}
 }
 			c-=1;
 		}
 		b-=1;
 	}
-	/*delete d;*//*delete e;*/
-}
+	delete c2__TMP_1;delete d2__TMP_1;
+}/* using (d,e)*/
 delete b;
-   {
-	/*char e;*/
+{
+	char c2__TMP_1;
 	{
-	while(c){d+=1;e+=1;c-=1;}
+	while(c){d+=1;c2__TMP_1+=1;c-=1;}
 }
 	{
-	while(e){c+=1;e-=1;}
+	while(c2__TMP_1){c+=1;c2__TMP_1-=1;}
 }
-	/*delete e;*/
-}  
+	delete c2__TMP_1;
+}  /* using e*/
 
 while(c){
 	{
@@ -164,26 +164,26 @@ while(c){
 }
 delete c;
 
- {
+{
 	/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
-	/*char f;*//*char g;*/
+	char c2__TMP_1;char d2__TMP_1;
 	while(d){
 		{
-	while(e){f+=1;g+=1;e-=1;}
+	while(e){c2__TMP_1+=1;d2__TMP_1+=1;e-=1;}
 }
 		   {
-	while(g){e+=1;g-=1;}
+	while(d2__TMP_1){e+=1;d2__TMP_1-=1;}
 }
-		while(f){
+		while(c2__TMP_1){
 			{
-	while(f){f-=1;}
+	while(c2__TMP_1){c2__TMP_1-=1;}
 }
 			e-=1;
 		}
 		d-=1;
 	}
-	/*delete f;*//*delete g;*/
-}
+	delete c2__TMP_1;delete d2__TMP_1;
+}/*using (f,g)*/
 delete d;
 
 while(e){

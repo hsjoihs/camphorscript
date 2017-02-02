@@ -7,7 +7,6 @@ import Camphor.SafePrelude
 import Text.Parsec hiding(token)
 import Text.Parsec.Error(newErrorMessage,Message(..))
 import Text.Parsec.Pos(newPos)
-import Data.Char(isSpace)
 import qualified Data.Set as Set
 import Camphor.NonEmpty
 

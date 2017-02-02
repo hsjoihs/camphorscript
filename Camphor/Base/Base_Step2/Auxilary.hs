@@ -22,7 +22,6 @@ import Camphor.Global.Utilities
 import Text.Parsec 
 import Camphor.NonEmpty
 import qualified Data.Map as M
-import Data.Maybe(listToMaybe)
 import Control.Monad.State
 import Control.Monad.Reader
 

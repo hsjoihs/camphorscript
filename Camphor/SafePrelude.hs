@@ -32,9 +32,15 @@ Bool(..),(&&),(||),not,otherwise
 ,Between(..)
 ,join,ap,pure,(<*>),(<$>),guard
 ,showStr,showNum
+,genericLength,genericReplicate
+,catMaybes,fromMaybe,isJust,isNothing,listToMaybe,mapMaybe,maybeToList
+,isSpace
 )where
 import Control.Monad(join,ap,guard)
 import Control.Applicative((<*>),(<$>),pure)
+import Data.List(genericLength,genericReplicate)
+import Data.Maybe(catMaybes,fromMaybe,isJust,isNothing,listToMaybe,mapMaybe,maybeToList)
+import Data.Char(isSpace)
 data Between a b = East a | West b deriving(Show, Eq, Ord)
 showStr :: String -> String
 showStr s = show s

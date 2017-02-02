@@ -207,7 +207,7 @@ replacer mname sent table = do
  lift $ convert2 stat result -- FIXME:: state of convert2 not passed
  
 simplyReplace :: MacroId -> Sent2 -> ReplTable -> ReaderT UserState (Either ParseError) Sents
-simplyReplace mname sent table = ReaderT $ \stat -> evalStateT (simplyReplaceRVC mname sent stat table) (M.empty:|[],getTmp stat,())
+simplyReplace mname sent table = ReaderT $ \stat -> evalStateT (simplyReplaceRVC mname sent stat table) (M.empty,getTmp stat,())
  
 -- simplyReplaceRegardingVariableCollision 
 simplyReplaceRVC :: MacroId -> Sent2 -> UserState -> ReplTable -> StateT (CollisionTable,Maybe TmpStat,()) (Either ParseError) Sents

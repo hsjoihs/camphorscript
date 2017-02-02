@@ -12,7 +12,7 @@ infixr  5 (=~);   infixr  5 (+=~); infixr  5 (-=~);
 infixr  5 (+=!~); infixr  5 (=!~); infixr  5 (-|=); infixr 5 (-|=~);
 infixl 35 (+); infixl 35 (-) ; infixl 35 (+~); infixl 35 (-~) ;
 infixl 40 (*); infixl 40 (%) ; infixl 40 (*~) ; 
-/* infixl 40 (/) ; infixl 40 (/~) ; */   
+infixl 40 (/) ; infixl 40 (/~) ;    
 
 
 
@@ -178,9 +178,9 @@ b -=1;/* b=47 */
 
 read(c);
 
-c -|=~b;/* using (d,e)*/
+/*# MEMORY using d e #*/ c -|=~b ;
 delete b;
-d +=c;  /* using e*/
+/*# MEMORY using e #*/   d +=c ;  
 
 while(c){
 	clear(c);
@@ -188,7 +188,7 @@ while(c){
 }
 delete c;
 
-e -|=~d;/*using (f,g)*/
+/*# MEMORY using f g #*/ e -|=~d ;
 delete d;
 
 while(e){

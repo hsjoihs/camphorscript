@@ -15,7 +15,6 @@ import Camphor.Global.Operators
 import Camphor.Global.Utilities
 import Camphor.Global.Synonyms
 import Text.Parsec hiding(token)
-import Data.Maybe(isJust)
 import qualified Data.Map as M
 
 data Com3_top = DEF | DEL | REA | WRI | COM | NUL deriving(Show)
@@ -27,7 +26,7 @@ data OneOf a b c = Null | Top a | Mid b | Bot c deriving (Show)
 data Tree b c d f = Ns [OneOf d f(b,c,Tree b c d f)] deriving(Show)
 type Node b c d f =     OneOf d f(b,c,Tree b c d f)
 
-type Set3 = Node Com3_bot Ident (Com3_top,String) (Com3_mid,[Char],[Char])
+type Set3 = Node Com3_bot Ident (Com3_top,String) (Com3_mid,String,String)
 
 step3_II :: Maybe MemSize -> FilePath -> Txt -> Either ParseError Txt
 step3_II mem file str = do
@@ -91,9 +90,11 @@ msgIde :: Show a => a -> String -> Message
 msgIde ide left= Message$"identifier "++show ide++left
 
 
-lookup'::Ord k=>k->[M.Map k a]->Maybe a -- lookup towards the outer scope until you find a variable
+lookup' :: Ord k => k -> [M.Map k a] -> Maybe a -- lookup towards the outer scope until you find a variable
 lookup' _ []     = Nothing
-lookup' i (t:ts) = case(M.lookup i t)of Just a->Just a; Nothing-> lookup' i ts
+lookup' i (t:ts) = case(M.lookup i t)of
+ Just a  -> Just a
+ Nothing -> lookup' i ts
 
 convert3' :: Maybe MemSize -> FilePath -> (CurrState,[Set3]) -> Either ParseError (Table3,String) -- variables left undeleted 
 

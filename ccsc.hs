@@ -21,7 +21,6 @@ import qualified Data.Map as M
 import Control.Monad 
 import Camphor.NonEmpty
 import Camphor.Version
-import Data.Maybe
 
 getLibs :: FilePath -> IO FileToTxt 
 getLibs dir = do

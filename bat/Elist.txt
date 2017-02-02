@@ -9,6 +9,6 @@ yIfElseFalse 8
 yIfdefGuard 9
 yIf0If1 10
 yFileDirInclude 11
-xIsNumber_o 12
+xIsNumber_u 12
 xShow 13
 ; CS -> PCS
