@@ -14,6 +14,7 @@ import Camphor.Base_Step2.UserState
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import Camphor.Global.Operators
+import Camphor.NonEmpty
 import Text.Parsec 
 import qualified Data.Map as M
 
@@ -108,11 +109,6 @@ convert2 stat (Single(_,Call1 name valuelist):Block ys:xs) = do -- FIXME: does n
    showCall nm (v,ovs) = nm ++ "(" ++ show' v ++ concat[ o2 ++ show' v2 | (o2,v2) <- ovs ] ++ ")"
    show'(Var x) = x; show'(Constant n) = show n
 
-{-- 
-convert2 stat (Single(pos,Call4 list  valuelist):xs) = undefined
-convert2 stat (Single(pos,Call5 valuelist):xs) = undefined
---}
-
 --- (val [op val])op(val [op val]);
 convert2 stat (Single(pos,Call2 op valuelist1 valuelist2):xs) = do
  result <- newK2 pos op valuelist1 valuelist2 stat
@@ -125,6 +121,18 @@ convert2 stat (Single(pos,Call3 op  valuelist1 valuelist2):xs) = do
  left <- convert2 stat xs
  return(result ++ left)
 
+--- [val op] (val [op val]) ; 
+convert2 stat (Single(pos,Call4 list  valuelist):xs) = do
+ result <- newK4 pos list valuelist stat
+ left <- convert2 stat xs
+ return(result ++ left)
+
+--- val [op val] op val [op val] ;
+convert2 stat (Single(pos,Call5 valuelist):xs) = do
+ result <- newK5 pos valuelist stat
+ left <- convert2 stat xs
+ return(result ++ left)
+ 
 
 {-----------------------------------------------------------
  -                   *******************                   -
@@ -207,17 +215,33 @@ newK2 pos op valuelist1 valuelist2 stat = do
 -- left-parenthesized operator call
 newK3 :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError Txt 
 newK3 pos op valuelist1 valuelist2 stat = do
- opfixity <- opfixity'
- ops <- ops'
+ opfixity <- getOpFixity pos stat op
+ ops      <- getOpsFixities pos stat valuelist2
  mapM_ (`canBeRightOf'` opfixity) ops
- result <- replaceOpMacro pos op valuelist1 valuelist2 stat
+ result   <- replaceOpMacro pos op valuelist1 valuelist2 stat
  return result -- stat is unchanged
  where 
-  ops' :: Either ParseError [Fixity]
-  ops' = mapM (fmap fst . getOpContents2 pos stat) $ toOpList valuelist2
-  opfixity' :: Either ParseError Fixity
-  opfixity' = fmap fst $ getOpContents2 pos stat op  
   canBeRightOf' = canBeRightOf pos
+
+--- Call4 [(Value,Oper)] ValueList
+--- right-parenthesized operator call
+newK4 :: SourcePos -> [(Value,Oper)] -> ValueList -> UserState -> Either ParseError Txt
+newK4 pos [] valuelist stat = newK5 pos valuelist stat -- (val op val); thus is a Call5
+newK4 pos (x:xs) valuelist2 stat = do
+ opfixity <- getOpFixity pos stat op
+ ops      <- getOpsFixities pos stat valuelist1
+ mapM_ (`canBeLeftOf'` opfixity) ops
+ result   <- replaceOpMacro pos op valuelist1 valuelist2 stat
+ return result
+ where
+  (top,mid,op) = shiftPair (x :| xs)
+  valuelist1 :: ValueList
+  valuelist1 = (top,mid)
+  canBeLeftOf' = canBeLeftOf pos
+
+--- no-parenthesized operator call  
+newK5 :: SourcePos -> ValueList -> UserState -> Either ParseError Txt  
+newK5 pos valuelist stat = undefined
 
 --- macro-replacing function for operator
 replaceOpMacro :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError Txt
@@ -321,7 +345,17 @@ canBeRightOf pos f2 f1
 canBeRightOf pos (InfixL _ nm1) (InfixL _ nm2) = __mkmsg pos nm1 nm2
 canBeRightOf pos (InfixL _ nm1) (InfixR _ nm2) = __mixed pos nm1 nm2
 canBeRightOf pos (InfixR _ nm1) (InfixL _ nm2) = __mixed pos nm1 nm2
-canBeRightOf _ (InfixR _ _) (InfixR _ _) = Right()
+canBeRightOf _   (InfixR _ _  ) (InfixR _ _  ) = Right()
+
+canBeLeftOf :: SourcePos -> Fixity -> Fixity -> Either ParseError ()
+canBeLeftOf pos f2 f1
+ | v2 > v1 = Right()
+ | v2 < v1 = __mkmsg pos (getOpName f1) (getOpName f2)
+ where v1 = getFixValue f1; v2 = getFixValue f2;
+canBeLeftOf pos (InfixR _ nm1) (InfixR _ nm2) = __mkmsg pos nm1 nm2
+canBeLeftOf pos (InfixR _ nm1) (InfixL _ nm2) = __mixed pos nm1 nm2
+canBeLeftOf pos (InfixL _ nm1) (InfixR _ nm2) = __mixed pos nm1 nm2
+canBeLeftOf _   (InfixL _ _  ) (InfixL _ _  ) = Right()
 
 __mkmsg :: SourcePos -> Oper -> Oper -> Either ParseError a
 __mkmsg pos nm1 nm2 = Left $ newErrorMessage(Message$"operator "++show nm2++" has smaller fixity than its outer operator "++nm1)pos
@@ -339,14 +373,19 @@ toList2 (v,xs) = v:map snd xs
 toOpList :: ValueList -> [Oper]
 toOpList (_,xs) = map fst xs
 
+getOpFixity :: SourcePos -> UserState -> Oper -> Either ParseError Fixity
+getOpFixity pos stat op = fmap fst $ getOpContents2 pos stat op  
+ 
+getOpsFixities :: SourcePos -> UserState -> ValueList -> Either ParseError [Fixity]
+getOpsFixities pos stat valuelist = mapM (getOpFixity pos stat) $ toOpList valuelist
 
--- type TypeList = (Type, Ident, [(Oper, Type, Ident)])
--- type ValueList = (Value,[(Oper,Value)])   
--- type Sent  = Upgrade (Extra,SimpleSent) = Single (Extra,SimpleSent) | Block [Upgrade (Extra,SimpleSent)]
--- type Extra = SourcePos
 makeReplacerTable :: TypeList -> ValueList -> ReplTable
 makeReplacerTable tlist vlist = M.fromList$zip(toList1 tlist)(toList2 vlist) 
 
 makeReplacerTable2 :: (TypeList,TypeList) -> (ValueList,ValueList) -> ReplTable
 makeReplacerTable2 (t1,t2)(v1,v2) = M.fromList$zip(toList1 t1++toList1 t2)(toList2 v1++toList2 v2)
 
+-- type TypeList = (Type, Ident, [(Oper, Type, Ident)])
+-- type ValueList = (Value,[(Oper,Value)])   
+-- type Sent  = Upgrade (Extra,SimpleSent) = Single (Extra,SimpleSent) | Block [Upgrade (Extra,SimpleSent)]
+-- type Extra = SourcePos

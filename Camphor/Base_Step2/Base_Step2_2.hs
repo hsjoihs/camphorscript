@@ -17,7 +17,6 @@ parser2_2 = do{xs <- many sent; eof; return xs;}
  
 data Upgrade a = Single a | Block [Upgrade a] deriving(Show)
 
---data Extra = X deriving(Show,Eq,Ord,Bounded,Enum)
 type Extra = SourcePos
 type Sent  = Upgrade (Extra,SimpleSent)
 type Sents = [Sent]
@@ -160,7 +159,7 @@ op_call3 = try(do{
 
  
  
----   値【演算子 値】 演算子(値 【演算子 値】);
+---   値【演算子 値】 演算子(値 【演算子 値】); or (値 【演算子 値】)
 op_call4 :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 op_call4 = try(do{
  p <- getPosition; 
