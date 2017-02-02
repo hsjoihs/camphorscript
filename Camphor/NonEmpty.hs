@@ -8,6 +8,7 @@ module Camphor.NonEmpty
 ,minimumBy'
 ,minimumsBy
 ,concat'
+,searchBy
 )where
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 data NonEmpty a = (:|)a [a] deriving(Show)
@@ -17,6 +18,13 @@ infixr 5 `cons`
 infixr 5 `append`
 infixl 5 `snoc`
 infixl 5 `snoc2`
+
+searchBy :: (a -> Maybe b) -> NonEmpty a -> Maybe b
+searchBy f (x :| []     ) = f x
+searchBy f (x :| (x2:xs)) = case f x of
+ Nothing -> searchBy f (x2:|xs)
+ Just b  -> Just b
+
 
 toList :: NonEmpty a -> [a]
 toList (x :| xs) = x:xs

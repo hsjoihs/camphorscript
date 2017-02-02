@@ -15,7 +15,6 @@ import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import Camphor.NonEmpty
 import Text.Parsec 
-import qualified Data.Map as M 
 
 newC :: SourcePos -> Ident -> UserState -> Either ParseError UserState
 newC pos ident stat 
@@ -52,13 +51,10 @@ newF1 pos name typelist sent stat = case getVFContents stat name of
  
 -- Operator definition 
 newF2 :: SourcePos -> Oper -> TypeList -> TypeList -> Sent -> UserState -> Either ParseError UserState
-newF2 pos op typelist1 typelist2 sent stat@(UserState vflist oplist) = case getOpContents stat op of
- Nothing        -> Left $newErrorMessage(Message$"fixity of operator "++show op++" is not defined")pos
- Just(fix,list) -> Right$UserState vflist newOplist 
-  where 
-   newOplist = M.insert op (fix,newlist) oplist
-   newlist = (typelist1,typelist2,sent):list -- FIXME : does not check the double definition
-   
+newF2 pos op typelist1 typelist2 sent stat = case addOpContents stat op (typelist1,typelist2,sent) of
+ Nothing -> Left $newErrorMessage(Message$"fixity of operator "++show op++" is not defined")pos
+ Just newStat -> Right$newStat
+
    
 getCall5Result :: SourcePos -> NonEmptyValue -> UserState -> Either ParseError (Oper,ValueList,ValueList)
 getCall5Result pos nEvaluelist stat = do

@@ -17,10 +17,11 @@ import Camphor.Base_Step2.Replacer2(replacer2)
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import Camphor.Global.Operators
+import Camphor.Partial
 import Camphor.NonEmpty
 import Text.Parsec  
 import Text.Parsec.Pos(newPos)
-
+import qualified Data.Map as M
  
 step2 ::  FilePath -> Txt -> Either ParseError Txt
 step2 file txt = do
@@ -89,9 +90,14 @@ convert2 stat (Single(pos,Func2 op typelist1 typelist2 sent):xs) = do
  return left
  
 convert2 stat (Block ys:xs) = do
- (newStat,result) <- newB stat ys
+ (newStat,result) <- newB (addVFBlock stat) ys -- FIXME: does not check deletion
+ let remainingVars = getTopVFBlock newStat
+ let log = show remainingVars
+ if not$M.null remainingVars then Left$newErrorMessage(Message$"identifiers not deleted"++show remainingVars)pos else do
  left <- convert2 newStat xs
- return$ result ++ left
+ return$ log ++ result ++ left
+ where pos = undefined
+
 
 
 convert2 stat (Single(_,Call1WithBlock name valuelist block):xs) = do -- FIXME: does not replace a function call when it's followed by a block

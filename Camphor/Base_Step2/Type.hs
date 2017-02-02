@@ -1,8 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
 module Camphor.Base_Step2.Type
-(Fixity(..),VFInfo,OpInfo,MacroId(..),VFList,OpList,UserState(..)
-,NonEmptyValue,ReplTable,Ident
+(NonEmptyValue,ReplTable,Ident
 ,Upgrade(..),Sent,Sents,Type(..),Value(..),TypeList,ValueList,Extra,SimpleSent(..)
 ,Tok(..)
 )where
@@ -12,14 +11,9 @@ import Camphor.Global.Synonyms
 import Camphor.NonEmpty
 import Text.Parsec 
 import qualified Data.Map as M 
--- UserState
-data Fixity = InfixL Integer Oper | InfixR Integer Oper deriving(Show,Eq) 
-type VFInfo = Either () [(TypeList, Sent)]
-type OpInfo = (Fixity,[(TypeList,TypeList, Sent)])
-data MacroId = Func Ident (TypeList,Sent) | Operator Oper (TypeList,TypeList,Sent) deriving(Show,Eq)  
-type VFList = M.Map Ident VFInfo
-type OpList = M.Map Oper OpInfo
-data UserState = UserState VFList OpList
+
+
+
  
 -- Auxilary
 type NonEmptyValue = (Value,NonEmpty (Oper,Value))
