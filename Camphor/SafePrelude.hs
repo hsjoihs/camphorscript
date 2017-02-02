@@ -34,19 +34,26 @@ Bool(..),(&&),(||),not,otherwise
 ,IO,putChar,putStr,putStrLn,print,getChar,getLine,getContents,interact
 ,FilePath,readFile,writeFile,appendFile,readIO,readLn
 ,Between(..)
-,join,ap,pure,(<*>),(<$>),guard
+,join,pure,(<*>),(<$>),guard
 ,showStr,showNum
-,genericLength,genericReplicate
+,genericLength,genericReplicate,genericTake,genericDrop
 ,catMaybes,fromMaybe,isJust,isNothing,listToMaybe,mapMaybe,maybeToList
-,isSpace
+,isSpace,isAlpha,isAlphaNum
+,Identity(..),when
+,mappend,mempty,mconcat,Monoid
+,comparing
+,ap,liftM,Applicative,(>=>),(<=<)
 )where
 import Prelude hiding(fst,snd)
 import Camphor.Tuple
-import Control.Monad(join,ap,guard)
-import Control.Applicative((<*>),(<$>),pure)
-import Data.List(genericLength,genericReplicate)
+import Control.Monad(join,guard,when,ap,liftM,(>=>),(<=<))
+import Control.Applicative((<*>),(<$>),pure,Applicative)
+import Data.List(genericLength,genericReplicate,genericTake,genericDrop)
 import Data.Maybe(catMaybes,fromMaybe,isJust,isNothing,listToMaybe,mapMaybe,maybeToList)
-import Data.Char(isSpace)
+import Data.Char(isSpace,isAlpha,isAlphaNum)
+import Data.Functor.Identity(Identity(..))
+import Data.Monoid(mappend,mempty,mconcat,Monoid)
+import Data.Ord(comparing)
 data Between a b = East a | West b deriving(Show, Eq, Ord)
 showStr :: String -> String
 showStr s = show s

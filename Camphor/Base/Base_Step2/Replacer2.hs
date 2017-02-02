@@ -121,12 +121,12 @@ replacer3 stat narr pos (R_Call4 (x:xs) valuelist2) table = toState $ do
  (valuelist1,op) <- lift $ getCall4Left pos (x:|xs) stat
  call2 stat narr pos (op,valuelist1,valuelist2) table
 
-replacer3 _ _ pos (R_Call5 (SepList(Constant _,[]))) _      = return[Single pos $ Scolon]
-replacer3 _ _ pos (R_Call5 (SepList(Var ident ,[]))) table  = toState $ do
+replacer3 _ _ pos (R_Call5 (SepList(Constant _)[])) _      = return[Single pos $ Scolon]
+replacer3 _ _ pos (R_Call5 (SepList(Var ident )[])) table  = toState $ do
  clt <- askFst
  let x = replaceSingle table clt (Var ident)
- return[Single pos $ Call5(SepList(x,[]))]
-replacer3 stat narr pos ((R_Call5 (SepList(x,ov:ovs)))) table = toState $ do
+ return[Single pos $ Call5(return x)]
+replacer3 stat narr pos ((R_Call5 (SepList x (ov:ovs)))) table = toState $ do
  (oper,vlist1,vlist2) <- lift $ getCall5Result pos (x,ov:|ovs) stat
  call2 stat narr pos (oper,vlist1,vlist2) table
  
@@ -151,22 +151,22 @@ replacer3 stat ns pos ((R_Pleq (Var v1) (Var v2))) table = toState $ basis Pleq 
 replacer3 stat ns pos ((R_Mneq (Var v1) (Var v2))) table = toState $ basis Mneq "-=" (stat,ns,pos,v1,v2,table)
 
 --- built-in read() & write() ---
-replacer3 stat ns pos (R_Rd  c@(Constant _)) table = replacer3 stat ns pos ((R_Call1 readI  (SepList (c,[])))) table
-replacer3 stat ns pos (R_Wrt c@(Constant _)) table = replacer3 stat ns pos ((R_Call1 writeI (SepList (c,[])))) table
+replacer3 stat ns pos (R_Rd  c@(Constant _)) table = replacer3 stat ns pos ((R_Call1 readI  $return c )) table
+replacer3 stat ns pos (R_Wrt c@(Constant _)) table = replacer3 stat ns pos ((R_Call1 writeI $return c )) table
 
 replacer3 stat ns pos (R_Rd (Var ident)) table = toState $ do
  clt <- askFst
  let x = replaceSingle table clt (Var ident)
  case x of
   Var v -> return[Single pos $ Rd v] 
-  c     -> call1 stat ns pos (readI,(SepList (c,[]))) table 
+  c     -> call1 stat ns pos (readI,return c) table 
 
 replacer3 stat ns pos (R_Wrt (Var ident)) table = toState $ do
  clt <- askFst
  let x = replaceSingle table clt (Var ident)
  case x of
   Var v -> return[Single pos $ Wrt v] 
-  c     -> call1 stat ns pos (writeI,(SepList (c,[]))) table 
+  c     -> call1 stat ns pos (writeI,return c) table 
  
 {-  -------------------------------------------------------------------------------
    ********************
@@ -197,7 +197,7 @@ basis constr op (stat,ns,pos,v1,v2,table) = do
  let x = replaceSingle table clt (Var v1)
  let k = replaceSingle table clt (Var v2)
  case (x,k) of
-  (Var v,Var y)      -> call2 stat ns pos ((wrap op),(SepList(Var v,[])),(SepList(Var y            ,[]))) table
+  (Var v,Var y)      -> call2 stat ns pos (wrap op,return(Var v),return(Var y)) table
   (Var v,Constant c) -> return[Single pos $ constr v c] 
   _                  -> err$cantbeleft (unId v1) op pos 
   
@@ -268,7 +268,7 @@ rpl1_2 pos (Block  p xs)    table2 newMs stat = do
 
 -- messages --
 cantdefine :: String -> SourcePos -> ParseError
-cantdefine d = newErrorMessage(Message$"cannot define "++d++"inside function/operator definition ")
+cantdefine d = newErrorMessage(Message$"cannot define " ++ d ++ "inside function/operator definition ")
 
 cantbeleft :: String -> String -> SourcePos -> ParseError
 cantbeleft c str = newErrorMessage(Message$showStr c++" is a constant and thus cannot be the left side of operator "++showStr str) 

@@ -8,7 +8,6 @@ module Camphor.Base.Base_Step6
 import Camphor.SafePrelude 
 import Camphor.Global.Synonyms
 import Text.Parsec hiding(token)
-import Control.Applicative hiding ((<|>),many)
 
 step6 :: FilePath -> Txt -> Either s Txt
 step6 _ = Right

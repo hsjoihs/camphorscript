@@ -6,7 +6,6 @@ module Camphor.Base.Base_Step2.Call5Result
 import qualified Camphor.SepList as S
 import Camphor.Base.Base_Step2.Type
 import Camphor.SafePrelude
-import Data.Ord(comparing)
 import Camphor.Base.Base_Step2.Auxilary
 import Camphor.Base.Base_Step2.UserState
 import Camphor.Global.Synonyms
@@ -44,15 +43,15 @@ minimumsBy2 cmp xs e = do
 breakByFirstMinimum :: MCmp Oper -> NonEmptyValue -> Either ParseError(Oper,ValueList,ValueList)
 breakByFirstMinimum cmp (v,list) = do 
  (minOp,left,right) <- bBFM cmp list
- return(minOp,S.SepList(v,left),right)
+ return(minOp,S.SepList v left,right)
 
 bBFM :: MCmp Oper -> NonEmpty(Oper,Value) -> Either ParseError (Oper,[(Oper,Value)],ValueList)
-bBFM _   ((o,v) :| []) = return(o,[],S.SepList(v,[]))
+bBFM _   ((o,v) :| []) = return(o,[],return v)
 bBFM cmp ((o,v) :| (ov2:ovs)) = do
- (minOp',left',right'@(S.SepList(v2,rest))) <- bBFM cmp (ov2:|ovs)
+ (minOp',left',right'@(S.SepList v2 rest)) <- bBFM cmp (ov2:|ovs)
  res <- cmp o minOp'
  case res of
-  LT -> return(o     ,[]         ,S.SepList(v,left' ++ [(minOp',v2)] ++ rest))
+  LT -> return(o     ,[]         ,S.SepList v(left' ++ [(minOp',v2)] ++ rest))
   _  -> return(minOp',(o,v):left',right')
 
   

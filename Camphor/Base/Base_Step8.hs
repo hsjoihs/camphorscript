@@ -10,7 +10,6 @@ module Camphor.Base.Base_Step8
 import Camphor.SafePrelude
 import Camphor.Global.Parsers
 import Text.Parsec hiding(token)
-import Data.Functor.Identity
 
 
 step8 :: Stream s Identity Char => FilePath -> s -> Either ParseError String

@@ -62,7 +62,7 @@ getCall4Left pos (x:|xs) stat = do
  where
   (top,mid,op) = shiftPair (x :| xs)
   valuelist1 :: ValueList
-  valuelist1 = S.SepList(top,mid)
+  valuelist1 = S.SepList top mid
   canBeLeftOf' = canBeLeftOf pos
 
 isValidCall3 :: SourcePos -> Oper -> ValueList -> UserState -> Either ParseError ()
@@ -76,7 +76,7 @@ isValidCall3 pos op valuelist2 stat = do
   
 reverse'' :: (a,NonEmpty(b,a)) -> (a,NonEmpty(b,a))
 reverse'' (a,(b,a2):|xs) = (q,ws `snoc2`(b,a))
- where S.SepList(q,ws) = S.reverse (S.SepList(a2,xs))
+ where S.SepList q ws = S.reverse (S.SepList a2 xs)
 
 getOpContents2 :: SourcePos -> UserState -> Oper -> Either ParseError OpInfo
 getOpContents2 pos s o = case getOpContents s o of
@@ -111,7 +111,7 @@ __mixed :: SourcePos -> Oper -> Oper -> Either ParseError a
 __mixed pos nm1 nm2 = Left $ newErrorMessage(Message$"operator "++showStr (unOp nm1)++" and operator "++showStr (unOp nm2)++" has opposite fixity and thus cannot coexist")pos  
   
 toIdentList :: TypeList -> [Ident2]
-toIdentList (S.SepList((_,t),xs)) = t:[x|(_,(_,x))<-xs]
+toIdentList (S.SepList (_,t) xs) = t:[x|(_,(_,x))<-xs]
  
 getOpFixity :: SourcePos -> UserState -> Oper -> Either ParseError Fixity
 getOpFixity pos stat op = fmap fst $ getOpContents2 pos stat op  

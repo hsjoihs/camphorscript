@@ -20,7 +20,7 @@ data Nul    =  NUL deriving(Show)
 type Chunk  = ABC (ComNum,Integer) Com (Nul,String)
 
 parserND' :: Stream s m Char => ParsecT s u m [Chunk]
-parserND' = do{sents<-many sentences;eof;return sents}
+parserND' = do{sents <- many sentences;eof;return sents}
 
 parserND :: Stream s m Char => ParsecT s u m [Chunk]
 parserND = many sentences

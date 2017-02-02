@@ -10,8 +10,6 @@ module Camphor.Base.Base_Step7
 import Camphor.SafePrelude 
 import Camphor.Global.Synonyms
 import Text.Parsec hiding(token)
-import Data.List(genericTake)
-import Data.Functor.Identity
 import Camphor.ND_parser
 
 

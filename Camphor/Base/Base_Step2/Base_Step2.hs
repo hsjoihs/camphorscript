@@ -21,7 +21,7 @@ import Text.Parsec
 import qualified Data.Map as M
 import Control.Monad.State
 import Control.Monad.Reader
-import Data.Monoid
+
  
 step2 ::  FilePath -> Txt -> Either ParseError Txt
 step2 file txt = do
@@ -70,14 +70,14 @@ complex3 g f = do
  -------------------------------------------------------------------------------------}
 
 convert2_2 :: Sents -> StateT UserState (Either ParseError) Txt
-convert2_2 []                                                     = return "" 
-convert2_2 (Single _    (Comm comm):xs)                           = ("/*" ++ comm ++ "*/")                         <++?> convert2_3 xs 
-convert2_2 (Single _    (Sp   sp  ):xs)                           = sp                                             <++?> convert2_2 xs  -- convert2_2 INTENTIONAL
-convert2_2 (Single _    (Scolon   ):xs)                           = ""                                            <++?> convert2_3 xs 
+convert2_2 []                                    = return "" 
+convert2_2 (Single _    (Comm comm):xs)          = ("/*" ++ comm ++ "*/")                         <++?> convert2_3 xs 
+convert2_2 (Single _    (Sp   sp  ):xs)          = sp                                             <++?> convert2_2 xs  -- convert2_2 INTENTIONAL
+convert2_2 (Single _    (Scolon   ):xs)          = ""                                             <++?> convert2_3 xs 
 convert2_2 (Single _    (Pleq ident integer):xs) = (unId ident ++ "+=" ++ showNum integer ++ ";") <++?> convert2_3 xs 
 convert2_2 (Single _    (Mneq ident integer):xs) = (unId ident ++ "-=" ++ showNum integer ++ ";") <++?> convert2_3 xs 
-convert2_2 (Single _    (Rd   idnt):xs)                     = ("read("  ++ unId idnt ++ ")" ++ ";")          <++?> convert2_3 xs 
-convert2_2 (Single _    (Wrt  idnt):xs)                     = ("write(" ++ unId idnt ++ ")" ++ ";")          <++?> convert2_3 xs 
+convert2_2 (Single _    (Rd   idnt):xs)          = ("read("  ++ unId idnt ++ ")" ++ ";")          <++?> convert2_3 xs 
+convert2_2 (Single _    (Wrt  idnt):xs)          = ("write(" ++ unId idnt ++ ")" ++ ";")          <++?> convert2_3 xs 
 
 convert2_2 (Single pos  (Pragma prgm):xs) = case prgm of
  ("MEMORY":"using":vars) -> do
@@ -95,6 +95,8 @@ convert2_2 (Single pos (Func1 name typelist sent)   :xs) = complex (convert2_3 x
 convert2_2 (Single pos (Func1Nul name typelist)     :xs) = complex (convert2_3 xs) (newF1 pos name typelist Nothing    )    ""
 convert2_2 (Single pos (Func2 op tlist1 tlist2 sent):xs) = complex (convert2_3 xs) (newF2 pos op tlist1 tlist2 (Just sent)) ""
 convert2_2 (Single pos (Func2Nul op tlist1 tlist2)  :xs) = complex (convert2_3 xs) (newF2 pos op tlist1 tlist2 Nothing    ) ""
+convert2_2 (Single pos (Syntax1 name tl arg bl)     :xs) = complex (convert2_3 xs) (newS1 pos name tl arg bl)               ""
+convert2_2 (Single pos (Syntax2 name ttl arg bl)    :xs) = complex (convert2_3 xs) (newS2 pos name ttl arg bl)              ""
  
 convert2_2 (Single pos (Call1 name valuelist)          :xs) = complex2 (convert2_3 xs) (newK1 pos name valuelist) 
 convert2_2 (Single pos (Call2 op valuelist1 valuelist2):xs) = complex2 (convert2_3 xs) (newK2 pos op valuelist1 valuelist2) --- (val [op val])op(val [op val]);
@@ -104,7 +106,7 @@ convert2_2 (Single pos (Call5 valuelist)               :xs) = complex2 (convert2
 convert2_2 (Single _ (Call1WithBlock name valuelist pos2 block):xs) = showCall name valuelist <++?> convert2_3 (Block pos2 block:xs)
  where 
   showCall :: Ident2 -> ValueList -> String
-  showCall nm (SepList(v,ovs)) = unId nm ++ "(" ++ show' v ++ concat[ (unOp o2) ++ show' v2 | (o2,v2) <- ovs ] ++ ")" 
+  showCall nm (SepList v ovs) = unId nm ++ "(" ++ show' v ++ concat[ (unOp o2) ++ show' v2 | (o2,v2) <- ovs ] ++ ")" 
  
 convert2_2 (Block p ys:xs) = complex3 (convert2_3 xs) (newStat3getter p ys)
 {-----------------------------------------------------------
@@ -122,7 +124,12 @@ newStat3getter p ys = do
  deleteTopVFBlock_ (newErrorMessage(Message$"FIXME: code 0004 ")pos)
  return result
  
+newS1 :: SourcePos -> Ident2 -> TypeList -> Ident2 -> Sent -> UserState -> Either ParseError UserState 
+newS1 _ _ _ _ _ stat = Right stat -- fixme 
 
+newS2 :: SourcePos -> Ident2 -> TailTypeList -> Ident2 -> Sent -> UserState -> Either ParseError UserState 
+newS2 _ _ _ _ _ stat = Right stat -- fixme 
+ 
 -- Function call
 newK1 :: SourcePos -> Ident2 -> ValueList -> ReaderT UserState (Either ParseError) Txt
 newK1 pos name valuelist = do
@@ -155,15 +162,15 @@ newK4 pos (x:xs) valuelist2 = do
 
 --- no-parenthesized operator call  
 newK5 :: SourcePos -> ValueList -> ReaderT UserState (Either ParseError) Txt
-newK5 _   (SepList(Constant _,[]))      = return "" -- 123; is a nullary sentence
-newK5 pos (SepList(Var ident ,[]))      = do
+newK5 _   (SepList(Constant _)[])      = return "" -- 123; is a nullary sentence
+newK5 pos (SepList(Var ident )[])      = do
  stat <- ask
  case getVFContents stat ident of
   Nothing        -> err$newErrorMessage(Message$"identifier "++showIdent ident++" is not defined")pos 
   Just(East ())  -> return ""
   Just(West _ )  -> err$newErrorMessage(Message$"cannot use variable "++showIdent ident++" because it is already defined as a function")pos  
 
-newK5 pos (SepList(x,ov:ovs)) = do
+newK5 pos (SepList x(ov:ovs)) = do
  stat <- ask
  (oper,vlist1,vlist2) <- lift $ getCall5Result pos (x,ov:|ovs) stat
  result <- newK2 pos oper vlist1 vlist2

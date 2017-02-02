@@ -5,7 +5,7 @@ module Camphor.Base.Base_Step2.Type
 ,Tok(..)
 ,Type(..),Value(..)
 ,NonEmptyValue,ReplTable,CollisionTable
-,PragmaData,ParserState
+,PragmaData,ParserState,TailTypeList
 ,Upgrade(..),Extra,Sent,Sent2,Sents,TypeList,ValueList,SimpleSent(..),Fixity(..),isVar,TmpStat
 ,Ident2(),toIdent2,unId,SimpleSent2(..),toSimpleSent2,toSent2
 ,bbbb,aaaa,nnnn,readI,writeI,tmpIdent,showIdent,ident_parser'
@@ -18,7 +18,6 @@ import Text.Parsec hiding(token)
 import Camphor.SepList
 import Camphor.NonEmpty
 import qualified Data.Map as M
-import Data.Char 
 
 
 newtype Ident2 = Ident2{unId :: String} deriving(Show,Ord,Eq)
@@ -34,6 +33,7 @@ type Extra = SourcePos
 type Sent  = Upgrade Extra SimpleSent
 type Sents = [Sent]
 type TypeList = SepList Oper (Type,Ident2)
+type TailTypeList = [(Oper,(Type,Ident2))]
 type ValueList = SepList Oper Value
 type Sent2 = Upgrade Extra SimpleSent2
 data SimpleSent =
@@ -45,7 +45,8 @@ data SimpleSent =
  Call1WithBlock  Ident2  ValueList  SourcePos  Sents  |   
  Call1 Ident2 ValueList     | Call2 Oper ValueList ValueList  | 
  Call5 ValueList  | Call3 Oper ValueList ValueList   |  Call4 [(Value,Oper)] ValueList |
- Pleq Ident2 Integer | Mneq Ident2 Integer |   Rd Ident2    |  Wrt Ident2  
+ Pleq Ident2 Integer | Mneq Ident2 Integer |   Rd Ident2    |  Wrt Ident2 | 
+ Syntax1 Ident2 TypeList Ident2 Sent | Syntax2 Ident2 TailTypeList Ident2 Sent 
  deriving(Show,Eq)
  
 data SimpleSent2 = 
@@ -125,6 +126,8 @@ toSimpleSent2 (Comm str)               = R_Comm str
 toSimpleSent2 (Pragma p)               = R_Pragma p 
 toSimpleSent2 (Infl f o)               = R_Infl f o 
 toSimpleSent2 (Infr f o)               = R_Infr f o 
+toSimpleSent2 (Syntax1 _ _ _ _)        = R_Comm "" -- fixme 
+toSimpleSent2 (Syntax2 _ _ _ _)        = R_Comm "" -- fixme 
 toSimpleSent2 (Func1 i t s)            = R_Func1 i t s 
 toSimpleSent2 (Func1Nul i t)           = R_Func1Nul i t 
 toSimpleSent2 (Func2 o t1 t2 s)        = R_Func2 o t1 t2 s 

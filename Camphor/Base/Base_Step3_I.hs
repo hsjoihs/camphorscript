@@ -8,7 +8,6 @@ import Camphor.TupleTrans
 import Camphor.Global.Parsers
 import Camphor.Global.Synonyms
 import Text.Parsec hiding(token,State)
-import Control.Applicative hiding ((<|>),many)
 import Control.Monad.State
 {- 
 	For now, it will delete lines and automatically adds indentation. 

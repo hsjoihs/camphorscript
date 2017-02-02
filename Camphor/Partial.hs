@@ -1,4 +1,8 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
 module Camphor.Partial {-# WARNING "partial functions" #-}
-(undefined
+(undefined,fixme
 )where
+import Prelude(undefined,error)
+fixme :: a
+fixme = error "fixme"

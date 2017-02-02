@@ -37,7 +37,7 @@ getName (Func ident _) = showIdent ident
 getName (Operator oper _ ) = unOp oper
 
 overlaps :: TypeList -> TypeList -> Bool
-overlaps (SepList ((typ,_),xs)) (SepList ((typ2,_),xs2)) 
+overlaps (SepList (typ,_) xs) (SepList (typ2,_) xs2) 
  | typ `clashesWith` typ2 = length xs == length xs2 && all id (zipWith transform xs xs2)
  | otherwise              = False
  where
@@ -74,7 +74,7 @@ instance PrettyPrint Value where
  
 -- (Type, Ident2, [(Oper, Type, Ident2)]) 
 instance PrettyPrint TypeList where
- show' (SepList((typ, ident), xs)) = show' typ ++ " " ++ unId ident ++ " " ++ concatMap (\(o,(t,i)) -> unOp o ++ " " ++ show' t ++ " " ++ unId i ++ " ") xs
+ show' (SepList (typ, ident) xs) = show' typ ++ " " ++ unId ident ++ " " ++ concatMap (\(o,(t,i)) -> unOp o ++ " " ++ show' t ++ " " ++ unId i ++ " ") xs
  
 instance PrettyPrint Type where
  show' CNSTNT_CHAR = "constant char"
@@ -99,15 +99,13 @@ emptyState = UserState deffun defop Nothing
  where
   deffun :: VFList
   deffun = nE(M.fromList[
-   (readI ,West$[( single CHAR_AND bbbb,Just$Single(newPos "__DEFAULT__" 0 0) (Rd  bbbb) )]),
-   (writeI,West$[( single CHAR_AND bbbb,Just$Single(newPos "__DEFAULT__" 0 0) (Wrt bbbb) )])
+   (readI ,West$[(return(CHAR_AND,bbbb),Just$Single(newPos "__DEFAULT__" 0 0) (Rd  bbbb) )]),
+   (writeI,West$[(return(CHAR_AND,bbbb),Just$Single(newPos "__DEFAULT__" 0 0) (Wrt bbbb) )])
    ])
   defop :: OpList
   defop = M.fromList[defau "+="$R_Pleq (Var aaaa) (Var nnnn), defau "-="$R_Mneq (Var aaaa) (Var nnnn)]
   defau :: String -> SimpleSent2 -> (Oper,OpInfo)
-  defau a s = (wrap a,(InfixR 5 (wrap a),[(single CHAR_AND aaaa, single CNSTNT_CHAR nnnn, Just$Single(newPos "__DEFAULT__" 0 0)s)]))
-  single :: Type -> Ident2 -> TypeList
-  single a b = SepList ((a,b),[])
+  defau a s = (wrap a,(InfixR 5 (wrap a),[(return(CHAR_AND,aaaa), return(CNSTNT_CHAR,nnnn), Just$Single(newPos "__DEFAULT__" 0 0)s)]))
 
 -- checks if the current scope has already defined the variable; thus it does not search deeply  
 containsIdent :: UserState -> Ident2 -> Bool
@@ -181,7 +179,7 @@ getOpContents (UserState _ oplist _) oper = M.lookup oper oplist
 
 
 matches :: ValueList -> TypeList -> Bool
-matches (SepList(val,ovs)) (SepList((typ,_),otis))
+matches (SepList val ovs) (SepList (typ,_) otis)
  | length ovs /= length otis    = False -- wrong length
  | not(val `isTypeof` typ)      = False -- wrong type
  | all id $ zipMatch ovs otis   = True
