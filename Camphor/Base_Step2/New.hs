@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall  #-}
 {- Functional macro expansion -}
 module Camphor.Base_Step2.New
@@ -6,7 +7,7 @@ module Camphor.Base_Step2.New
 
 import qualified Camphor.SepList as S
 import Camphor.Base_Step2.Type
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
+import Camphor.SafePrelude
 import Data.Ord(comparing)
 import Camphor.Base_Step2.Auxilary
 import Camphor.Base_Step2.UserState

@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts ,NoImplicitPrelude #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
 {- Desugaring -}
 module Camphor.Base_Step3_II
@@ -7,7 +7,7 @@ module Camphor.Base_Step3_II
 ,convert3
 ) where
 
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
+import Camphor.SafePrelude 
 import Camphor.NonEmpty
 import Camphor.Global.Parsers
 import Camphor.Global.Operators

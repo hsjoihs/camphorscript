@@ -1,0 +1,1 @@
+void func(char& a, char& b){a+=3; b-=3;} char c; char d; func(c,c);

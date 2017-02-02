@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
 module Camphor.Base_Step2.Type
 (Type(..),Value(..),Ident
@@ -6,7 +7,7 @@ module Camphor.Base_Step2.Type
 ,Upgrade(..),Extra,Sent,Sents,TypeList,ValueList,SimpleSent(..)
 )where
 import Camphor.SepList
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
+import Camphor.SafePrelude
 import Camphor.Global.Synonyms
 import Camphor.NonEmpty
 import Text.Parsec 
@@ -37,4 +38,4 @@ data SimpleSent =
  Pleq Value Value | Mneq Value Value | Rd Value | Wrt Value
  deriving(Show,Eq)
 data Type = CNSTNT_CHAR | CONST_CHAR | CHAR_AND deriving(Show,Eq)
-data Value = Var Ident | Constant Integer deriving(Show,Eq)
+data Value = Var Ident | Constant Integer deriving(Show,Eq,Ord)

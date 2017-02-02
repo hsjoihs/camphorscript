@@ -1,8 +1,9 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
 module Camphor.Oper
 (Oper(),wrap,unOp
 )where
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
+import Camphor.SafePrelude 
 import Data.Char(isSpace)
 newtype Oper = Op String deriving(Ord)
 

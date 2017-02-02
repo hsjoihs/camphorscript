@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall  #-}
 {- comment deletion -}
 module Camphor.Step8

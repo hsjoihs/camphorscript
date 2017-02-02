@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude , FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
 {- C macro expansion -}
 module Camphor.Base_Step1
@@ -13,7 +13,7 @@ module Camphor.Base_Step1
 ,token
 ) where
 
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
+import Camphor.SafePrelude
 import Camphor.Global.Parsers
 import Camphor.Global.Utilities
 import Camphor.Global.Operators

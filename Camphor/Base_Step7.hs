@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts, NoImplicitPrelude #-}
 {-# OPTIONS -Wall  #-}
 {- symbolization -}
 module Camphor.Base_Step7
@@ -7,7 +7,7 @@ module Camphor.Base_Step7
 ,convert7
 ,convert7'
 ) where
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
+import Camphor.SafePrelude 
 import Camphor.Global.Synonyms
 import Text.Parsec hiding(token)
 import Control.Applicative hiding ((<|>),many)

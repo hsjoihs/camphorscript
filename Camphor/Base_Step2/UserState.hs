@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts , TypeSynonymInstances , FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts , TypeSynonymInstances , FlexibleInstances, NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
 module Camphor.Base_Step2.UserState
 (Fixity(..),OpInfo,MacroId(..)
@@ -8,17 +8,16 @@ module Camphor.Base_Step2.UserState
 ,isInfixL,isInfixR
 ,show',PrettyPrint
 ,addVFBlock,getTopVFBlock,deleteTopVFBlock
-,overlaps,typelistIdentConflict
+,overlaps,typelistIdentConflict,valuelistIdentConflict
 )where
+import Camphor.SafePrelude
 import Camphor.SepList as Sep
 import Camphor.Base_Step2.Type
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import qualified Data.Map as M
 import Text.Parsec.Pos(newPos)
 import Camphor.NonEmpty as NE
-
 
 data Fixity = InfixL Integer Oper | InfixR Integer Oper deriving(Show,Eq) 
 type VFInfo = Either () [(TypeList, Sent)]
@@ -41,6 +40,9 @@ overlaps (SepList ((typ,_),xs)) (SepList ((typ2,_),xs2))
 
 typelistIdentConflict :: TypeList -> Bool
 typelistIdentConflict = conflict . map snd . Sep.toList
+
+valuelistIdentConflict :: ValueList -> Bool
+valuelistIdentConflict = conflict . Sep.toList
   
 isInfixL :: Fixity -> Bool
 isInfixL (InfixL _ _) = True

@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
 module Camphor.Base_Step2.Auxilary
 (getOpContents2
@@ -11,9 +12,9 @@ module Camphor.Base_Step2.Auxilary
 ,isValidCall3,getCall4Left,getInstanceOfCall1,getInstanceOfCall2
 ,getLastPos
 ) where
+import Camphor.SafePrelude
 import qualified Camphor.SepList as S
 import Camphor.Base_Step2.Type
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Camphor.Base_Step2.UserState
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
@@ -81,7 +82,7 @@ reverse'' (a,(b,a2):|xs) = (q,ws `snoc2`(b,a))
  where S.SepList(q,ws) = S.reverse (S.SepList(a2,xs))
 
 --breakBy' :: Oper -> NonEmptyValue -> (ValueList,ValueList)
--- FIXME: if Oper is not found, the list will be split by the last op. This can cause bugs, so you must be sure that Oper is in NonEmptyValue.
+-- FIXME: if Oper is not found, the list will be split by the last op. This can cause bugs, so you must be sure that Oper `elem` NonEmptyValue.
 breakBy' :: (Eq o) => o -> (v,NonEmpty(o,v)) -> (S.SepList o v,S.SepList o v)
 breakBy' o (v,list) = (S.SepList(v,a),S.SepList(b,c))
  where (a,b,c) = breakBy2 o list

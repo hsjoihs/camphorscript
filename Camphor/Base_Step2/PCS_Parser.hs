@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts , NoImplicitPrelude #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
 module Camphor.Base_Step2.PCS_Parser
 (parser2'
@@ -7,7 +7,7 @@ module Camphor.Base_Step2.PCS_Parser
 
 )where
 import Camphor.Base_Step2.Type
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
+import Camphor.SafePrelude 
 import Camphor.Global.Parsers
 import Text.Parsec hiding(token)
 

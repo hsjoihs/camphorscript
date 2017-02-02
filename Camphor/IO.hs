@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
 module Camphor.IO
 (outputParsed
@@ -9,7 +10,8 @@ module Camphor.IO
 ,getDirectoryContents
 ,getArgs
 )where
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,undefined)
+import Camphor.SafePrelude
+import Prelude(error)
 import Camphor.Global.Synonyms
 import Text.Parsec
 import System.FilePath

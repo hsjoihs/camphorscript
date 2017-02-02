@@ -1,11 +1,11 @@
-﻿{-# LANGUAGE FlexibleContexts #-}
+﻿{-# LANGUAGE FlexibleContexts, NoImplicitPrelude #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
 module Camphor.Base_Step2.Base_Step2_2
 (parser2_2
 )where
 import Camphor.SepList hiding(reverse)
 import Camphor.Base_Step2.Type
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
+import Camphor.SafePrelude
 import Text.Parsec 
 import Control.Applicative hiding ((<|>),many)
 import Camphor.Base_Step2.PCS_Parser2

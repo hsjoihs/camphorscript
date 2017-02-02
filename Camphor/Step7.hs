@@ -1,3 +1,4 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall  #-}
 {- symbolization -}
 module Camphor.Step7

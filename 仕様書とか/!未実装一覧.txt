@@ -1,0 +1,20 @@
+﻿1. void(+=)(constant char N;const char k) = 0; などの「ヌル関数宣言」
+　理由　1+=a;とかの文を積極的に禁止するため
+
+2. char a, b=3, c, d=5;などの「変則変数宣言」
+　理由　楽をするため
+
+3. __start "a.txt"; __end "a.txt";などの「ソース位置宣言」
+　理由　行数がズレる面倒臭さをなくすため
+
+4. #include "other.h" などの「同ディレクトリ#include」
+　理由　あったら便利
+
+5. #define del(a) while(a){a-=1;} delete a などの「C関数マクロ」
+　理由　定型コードを簡略化させたい
+
+6. switch(1){case 1; a+=2; break; ... }などの「定数switch文」
+　理由　#if __VERSION__ > 100 とかの処理や、マクロ内での定数条件分岐があったら便利だから
+
+7. 戻り値を返す関数
+　理由　if()とかwhile(式)とかに使えたら嬉しいから

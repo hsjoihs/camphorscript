@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts ,NoImplicitPrelude #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
 {- symbolization -}
 module Camphor.ND_parser
@@ -10,7 +10,7 @@ module Camphor.ND_parser
 ,Chunk
 )where
 
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
+import Camphor.SafePrelude 
 import Text.Parsec hiding(token)
 import Camphor.Global.Parsers
 data ABC a b c = A a | B b | C c deriving(Show)

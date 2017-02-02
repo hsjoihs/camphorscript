@@ -1,9 +1,10 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
 module Camphor.SepList
 (SepList(..),reverse,toList,toSeparatorList
 ) where
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined,reverse)
-import qualified Data.List as P
+import Camphor.SafePrelude hiding(reverse)
+import qualified Camphor.SafePrelude as P
 
 newtype SepList s a = SepList{ unSep :: (a,[(s,a)]) } deriving(Show,Eq)
 

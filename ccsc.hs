@@ -1,5 +1,7 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
 
+import Camphor.SafePrelude
 import Text.Parsec
 import Camphor.Global.Utilities
 import Camphor.Global.Operators
@@ -16,8 +18,6 @@ import Camphor.IO
 import Camphor.Lib
 import Data.List(isPrefixOf)
 import qualified Data.Map as M
-
-
 
 ioLibs :: IO [FilePath]
 ioLibs = do
@@ -46,20 +46,17 @@ main = do
  args <- getArgs
  dispatch4 args
 
-
 step :: FilePath -> (M.Map FilePath Txt) -> Maybe MemSize -> [Txt -> Either ParseError Txt]   
 step file includer mem= map ($file) [step1 includer,step2,step3_I,step3_II mem,step5,step6,step7,step8]
-
 
 -- starts with xth(1-indexed) and ends with yth(1-indexed)
 fromTo' :: Monad m => Int -> Int -> [a -> m a] -> a -> m a
 fromTo' x y xs
- | x>y       = abort "first number of option -C must not be larger than the second"
  | x<1       = abort("step "++show x++"does not exist")
  | y>8       = abort("step "++show y++"does not exist")
- | otherwise = foldl1 (>=>)(drop(x-1)$take y xs)
-
-
+ | otherwise = case (drop(x-1)$take y xs) of 
+  (t:ts) -> foldl (>=>) t ts
+  _ -> abort "first number of option -C must not be larger than the second"
 
 dispatch4 :: Options -> IO ()
 dispatch4 [] = mapM_ putStrLn info
@@ -86,8 +83,9 @@ dispatch5 ("-E":xs)           (inf        ,outf,_         ,mem) = dispatch5 xs (
 dispatch5 (inf:xs)            (_          ,outf,frmTo     ,mem) = dispatch5 xs (Just inf,outf      ,frmTo     ,mem)
 
 dispatch5 []                  (_          ,_   ,Left _    ,_  ) = return ()
-dispatch5 []                  (Nothing    ,_   ,_         ,_  ) = abort "no input files"
-dispatch5 []                  (Just infile,outf,Right(a,b),mem) = do
+dispatch5 []                  (Nothing    ,_   ,_         ,_  ) = abort "no input file"
+dispatch5 []                  (Just infile,Just outf,Right(a,b),mem) = do
    contents <- getContentsFrom infile
    includer <- getLibs3
-   outputParsed (maybe (replaceExtension infile "bf") id outf) (fromTo' a  b (step infile includer mem) contents)
+   outputParsed outf (fromTo' a  b (step infile includer mem) contents)
+dispatch5 []                  (_          ,Nothing,_,_) = abort "no output file"

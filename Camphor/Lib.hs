@@ -1,8 +1,10 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
 module Camphor.Lib
 (lib_dir
 ,default_lib_extension
 ) where
+import Camphor.SafePrelude
 lib_dir :: FilePath
 lib_dir = "lib"
 

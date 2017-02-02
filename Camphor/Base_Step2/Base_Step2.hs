@@ -1,11 +1,12 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
 {- Functional macro expansion -}
 module Camphor.Base_Step2.Base_Step2
 (step2
 ) where 
 
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
-import Camphor.SepList(SepList(..)) 
+import Camphor.SafePrelude
+import Camphor.SepList as Sep
 import Camphor.Base_Step2.Type
 import Camphor.Base_Step2.UserState
 import Camphor.Base_Step2.New 
@@ -16,7 +17,7 @@ import Camphor.Base_Step2.Replacer2(replacer2)
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import Camphor.Global.Operators
-import Camphor.NonEmpty
+import Camphor.NonEmpty as NE
 import Text.Parsec  
 import Text.Parsec.Pos(newPos)
 import qualified Data.Map as M
@@ -52,18 +53,16 @@ convert2_2 stat (Single(_  ,Rd   (Var idnt)):xs) = ("read("  ++ idnt ++ ")" ++ "
 convert2_2 stat (Single(_  ,Wrt  (Var idnt)):xs) = ("write(" ++ idnt ++ ")" ++ ";") <++$$> convert2_2 stat xs
 convert2_2 _ (Single(_  ,Pleq _ _):_) = Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
 convert2_2 _ (Single(_  ,Mneq _ _):_) = Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
-convert2_2 _ (Single(_  ,Rd  _ ):_   )= Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
-convert2_2 _ (Single(_  ,Wrt  _ ):_ ) = Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
+convert2_2 _ (Single(_  ,Rd   _  ):_) = Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
+convert2_2 _ (Single(_  ,Wrt  _  ):_) = Left $newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
 
 convert2_2 stat (Single(pos,Char iden):xs) = do
  newStat <- newC pos iden stat 
- (newStat2,left) <- convert2_2 newStat xs
- return (newStat2,"char " ++ iden ++ ";" ++ left)
+ ("char " ++ iden ++ ";") <++$$> convert2_2 newStat xs
  
 convert2_2 stat (Single(pos,Del  iden):xs) = do
  newStat <- newD pos iden stat 
- (newStat2,left) <- convert2_2 newStat  xs
- return (newStat2,"delete " ++ iden ++ ";" ++ left)
+ ("delete " ++ iden ++ ";") <++$$> convert2_2 newStat xs
  
 convert2_2 stat (Single(pos,Infl fixity op):xs) = do
  newStat <- newL pos fixity op stat 
@@ -79,8 +78,7 @@ convert2_2 stat (Single(pos,Func1 name typelist sent):xs) = do
  
 convert2_2 stat (Single(pos,Call1 name valuelist):xs) = do
  result <- newK1 pos name valuelist stat
- (newStat2,left) <- convert2_2 stat xs
- return (newStat2,result ++ left)
+ result <++$$> convert2_2 stat xs
  
 convert2_2 stat (Single(pos,Func2 op typelist1 typelist2 sent):xs) = do
  newStat <- newF2 pos op typelist1 typelist2 sent stat
@@ -93,39 +91,33 @@ convert2_2 stat (Block (p,ys):xs) = do
  let pos = getLastPos (Block (p,ys))
  if not$M.null remainingVars then Left$newErrorMessage(Message$"identifiers not deleted")pos else do
  newStat3 <- deleteTopVFBlock newStat $ newErrorMessage(Message$"FIXME: code 0004 ")pos
- (newStat2,left) <- convert2_2 newStat3 xs
- return(newStat2,result ++ left)
+ result <++$$> convert2_2 newStat3 xs
 
-convert2_2 stat (Single(_,Call1WithBlock name valuelist pos2 block):xs) = do -- FIXME: does not replace a function call when it's followed by a block
- (newStat2,left) <- convert2_2 stat (Block (pos2,block):xs)
- return(newStat2,showCall name valuelist ++ left)
-  where 
-   showCall :: Ident -> ValueList -> String
-   showCall nm (SepList(v,ovs)) = nm ++ "(" ++ show' v ++ concat[ (unOp o2) ++ show' v2 | (o2,v2) <- ovs ] ++ ")"
+-- FIXME: does not replace a function call when it's followed by a block
+convert2_2 stat (Single(_,Call1WithBlock name valuelist pos2 block):xs) = showCall name valuelist <++$$> convert2_2 stat (Block (pos2,block):xs)
+ where 
+  showCall :: Ident -> ValueList -> String
+  showCall nm (SepList(v,ovs)) = nm ++ "(" ++ show' v ++ concat[ (unOp o2) ++ show' v2 | (o2,v2) <- ovs ] ++ ")"
   
 --- (val [op val])op(val [op val]);
 convert2_2 stat (Single(pos,Call2 op valuelist1 valuelist2):xs) = do
  result <- newK2 pos op valuelist1 valuelist2 stat
- (newStat2,left) <- convert2_2 stat xs
- return(newStat2,result ++ left)
+ result <++$$> convert2_2 stat xs
 
 --- (val [op val])op val [op val] ; 
 convert2_2 stat (Single(pos,Call3 op valuelist1 valuelist2):xs) = do
  result <- newK3 pos op valuelist1 valuelist2 stat
- (newStat2,left) <- convert2_2 stat xs
- return(newStat2,result ++ left)
+ result <++$$> convert2_2 stat xs
 
 --- [val op] (val [op val]) ; 
 convert2_2 stat (Single(pos,Call4 list valuelist):xs) = do
  result <- newK4 pos list valuelist stat
- (newStat2,left) <- convert2_2 stat xs
- return(newStat2,result ++ left)
+ result <++$$> convert2_2 stat xs
 
 --- val [op val] op val [op val] ;
 convert2_2 stat (Single(pos,Call5 valuelist):xs) = do
  result <- newK5 pos valuelist stat
- (newStat2,left) <- convert2_2 stat xs
- return(newStat2,result ++ left)
+ result <++$$> convert2_2 stat xs
 {-----------------------------------------------------------
  -                   * end of convert2_2 *                 -
  -----------------------------------------------------------}
@@ -157,16 +149,16 @@ newK4 :: SourcePos -> [(Value,Oper)] -> ValueList -> UserState -> Either ParseEr
 newK4 pos [] valuelist stat = newK5 pos valuelist stat -- (val op val); thus is a Call5
 newK4 pos (x:xs) valuelist2 stat = do
  (valuelist1,op) <- getCall4Left pos (x:|xs) stat
- result   <- replaceOpMacro pos op valuelist1 valuelist2 stat
+ result          <- replaceOpMacro pos op valuelist1 valuelist2 stat
  return result
 
 --- no-parenthesized operator call  
 newK5 :: SourcePos -> ValueList -> UserState -> Either ParseError Txt
 newK5 _   (SepList(Constant _,[])) _     = return "" -- 123; is a nullary sentence
 newK5 pos (SepList(Var ident ,[])) stat  = case getVFContents stat ident of
-   Nothing        -> Left $newErrorMessage(Message$"identifier "++show ident++" is not defined")pos 
-   Just(Left ())  -> return ""
-   Just(Right _)  -> Left $newErrorMessage(Message$"cannot use variable "++show ident++" because it is already defined as a function")pos  
+ Nothing        -> Left $newErrorMessage(Message$"identifier "++show ident++" is not defined")pos 
+ Just(Left ())  -> return ""
+ Just(Right _)  -> Left $newErrorMessage(Message$"cannot use variable "++show ident++" because it is already defined as a function")pos  
 
 newK5 pos (SepList(x,ov:ovs)) stat = do
  (oper,vlist1,vlist2) <- getCall5Result pos (x,ov:|ovs) stat
@@ -174,15 +166,19 @@ newK5 pos (SepList(x,ov:ovs)) stat = do
 
 --- macro-replacing function for operator
 replaceOpMacro :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError Txt
-replaceOpMacro pos op valuelist1 valuelist2 stat = do
- instnce <- getInstanceOfCall2 pos op valuelist1 valuelist2 stat
- replacerOfOp (Operator op instnce) instnce valuelist1 valuelist2 stat
+replaceOpMacro pos op valuelist1 valuelist2 stat
+ | conflict (Sep.toList valuelist1 ++ Sep.toList valuelist2) = Left$newErrorMessage(Message$"overlapping arguments of operator "++show op)pos 
+ | otherwise = do
+  instnce <- getInstanceOfCall2 pos op valuelist1 valuelist2 stat
+  replacerOfOp (Operator op instnce) instnce valuelist1 valuelist2 stat
    
 --- macro-replacing function for operator   
 replaceFuncMacro :: SourcePos -> Ident -> ValueList -> UserState -> Either ParseError Txt   
-replaceFuncMacro pos ident valuelist stat = do
- instnce <- getInstanceOfCall1 pos ident valuelist stat
- replacerOfFunc (Func ident instnce) instnce valuelist stat
+replaceFuncMacro pos ident valuelist stat 
+ | valuelistIdentConflict valuelist = Left$newErrorMessage(Message$"overlapping arguments of function "++show ident)pos 
+ | otherwise = do
+  instnce <- getInstanceOfCall1 pos ident valuelist stat
+  replacerOfFunc (Func ident instnce) instnce valuelist stat
 
 replacerOfOp :: MacroId -> (TypeList,TypeList, Sent) -> ValueList -> ValueList -> UserState -> Either ParseError Txt
 replacerOfOp opname (typelist1,typelist2,sent) valuelist1 valuelist2 stat = 
@@ -200,9 +196,8 @@ replacer mname sent stat table = do
 simplyReplace :: MacroId -> Sent -> UserState -> ReplTable -> Either ParseError Sents
 simplyReplace mname (Single(pos2,ssent)) stat table = do
  newSents <- replacer2 stat (nE mname) pos2 ssent table
- return $ map (\k->Single(pos2,k))(toList newSents)
+ return $ map (\k->Single(pos2,k))(NE.toList newSents)
  
 simplyReplace mname (Block (p,xs)) stat table = do
  results <- sequence [ simplyReplace mname ssent stat table | ssent <- xs ]
- let result = concat results
- return [Block (p,result)]
+ return [Block (p,concat results)]

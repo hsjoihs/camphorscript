@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts , NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
 {- comment deletion -}
 module Camphor.Base_Step8
@@ -7,7 +7,7 @@ module Camphor.Base_Step8
 ,parser8
 ,convert8
 ) where
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
+import Camphor.SafePrelude
 import Camphor.Global.Parsers
 import Text.Parsec hiding(token)
 import Control.Applicative hiding ((<|>),many)
