@@ -71,7 +71,7 @@ toString = snd . t
 
 qwer :: String -> (Int,String)
 qwer = (,)0
- 
+
 t :: Err -> (Int,String)
 t(Step2(Type(WrongCall(Notypematch(Functi i)))))       = (1006,"no type-matching instance of function "++showIdent i ++" defined")
 t(Step2(Type(WrongCall(Notypematch(Operat o)))))       = (1007,"no type-matching instance of operator "++showStr(unOp o)++" defined")
@@ -93,8 +93,8 @@ t(Step2(Type(WrongCall(Definedasarg(Functi_2 i)))))    = (1036,"cannot call "++s
 t(Step2(Type(WrongCall(Definedasarg(Synt_2 i)))))      = (1037,"cannot use "++showIdent i++" as a syntax because it is defined as an argument")
 t(Step2(Type(WrongCall(Leftofbuiltin str(Variab c))))) = qwer$ "cannot have "++showIdent c++" at the left side of operator "++showStr str++"because it is a constant"
 t(Step2(Type(WrongCall(Leftofbuiltin str(Consta c))))) = qwer$ "cannot have "++showNum c++" at the left side of operator "++showStr str++"because it is a constant"
-t(Step2(Type(WrongCall(Recursivecall n n2))))          = (1038,"cannot call "++show' n2 ++" recursively inside "++show' n)
-t(Step2(Type(WrongCall(Infixconflict k k2))))          = (1011,"cannot mix " ++ show' k ++ " and " ++ show' k2 ++ " in the same infix expression")
+t(Step2(Type(WrongCall(Recursivecall n n2))))          = (1038,"cannot call "++showMI n2 ++" recursively inside "++showMI n)
+t(Step2(Type(WrongCall(Infixconflict k k2))))          = (1011,"cannot mix " ++ showFix k ++ " and " ++ showFix k2 ++ " in the same infix expression")
 t(Step2(Type(WrongCall(Fixnotdefined_2(Operat_3 o))))) = (1039,"cannot call operator " ++showStr(unOp o)++ " because its fixity is not defined")
 t(Step2(Type(WrongCall(Smaller o2 (Operat_3 o)))))     = (1019,"cannot call operator " ++showStr(unOp o2)++ " because it has smaller fixity than operator " ++showStr(unOp o))
 

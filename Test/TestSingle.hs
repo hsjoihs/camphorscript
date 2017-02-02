@@ -1,8 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
-
 module Test.TestSingle
-(testSingle,info,testSingle'
+(testSingle,info,testSingle',getJudgeFunc,Info(..) 
 )where
 import Camphor.SafePrelude
 import Camphor.IO
@@ -11,13 +10,16 @@ import Camphor.Global.Synonyms
 import Camphor.BF_interpreter
 import Camphor.Show
 
-data Info = String :-> String deriving(Show,Eq,Ord,Read)
--- unInfo :: Info -> (String,String)
--- unInfo(a :-> b) = (a,b)
+data Info = String :-> String | FAIL String deriving(Show,Eq,Ord,Read)
 
 info :: [String]
 info = [
- "Usage: optotest --single <options to be passed to ccsc> <test file>" 
+ "Usage: ",
+ "    optotest --single <options to ccsc> <test file>   tests single file ", 
+ "    optotest --getver                                 gets version from directory name", 
+ "    optotest --make <file name> n                     makes test file from `file name' whose test length is `n' ", 
+ "    optotest                                          test all" 
+ 
  ]
 
 testSingle :: Options -> IO ()
@@ -27,39 +29,44 @@ testSingle _            = mapM_ putStrLn info
 testSingle' :: String -> FilePath -> IO ()
 testSingle' opts tFile = d4 (words opts) tFile
 
-
-d4 :: Options -> FilePath -> IO ()
-d4 opts tFile = do
+getJudgeFunc :: Options -> IO (String -> Maybe String)
+getJudgeFunc opts = do
  (res,b,_) <- dispatch5 opts
  when (b /= 7 && b /= 8) $ abort "not compiled to BF"
  case res of 
   Nothing -> abort "parse error in ccsc"
   Just r -> case pureInterpreter r of 
-   Left e -> outputErr e
-   Right judgeFunc -> d5 judgeFunc tFile
-	
-d5 :: (String -> Maybe String) -> FilePath -> IO ()
-d5 judgeFunc tFile = do
+   Left e -> abort$"parse error at " ++ show e
+   Right judgeFunc -> return judgeFunc
+
+
+d4 :: Options -> FilePath -> IO ()
+d4 opts tFile = do
+ judgeFunc <- getJudgeFunc opts
  is <- filter (not . ignored) . lines <$> getContentsFrom tFile 
- mapM_ (test judgeFunc) is
+ mapM_ (\i -> putStr' "." >> eitherToIO(test judgeFunc i)) is
  putStrLn "all succeeded" 
 
-test :: (String -> Maybe String) -> String -> IO () 
+test :: (String -> Maybe String) -> String -> Either String ()
 test judgeFunc inf = do
- putStr "."
- let res = do{
-  (i :-> o) <- liftErr invalidCase (liftE readMay inf);
-  _     <- liftErr failed$ liftE (\j -> do{o2 <- judgeFunc j; guard(o2 == o); return o} ) i;
-  return ()
-  }
- case res of Left e -> abort e; Right _ -> return ()
-  
+ io <- liftErr invalidCase (liftE readMay inf);
+ case io of
+  i :-> o -> voidM $ liftErr failed $ liftE (\j -> do{o2 <- judgeFunc j; guard(o2 == o); return o}) i;
+  FAIL i  -> maybe (return ()) succeeded $ judgeFunc i ; 
+
+
+eitherToIO :: Either String b -> IO ()
+eitherToIO (Left e) = abort e
+eitherToIO _        = return () 
  
 invalidCase :: String -> String
 invalidCase = ("the syntax of the following test case is invalid: "++)
 
 failed :: String -> String
-failed e = "optotest failed when testing " ++ show e
+failed e = "optotest failed when testing " ++ showStr e
+
+succeeded :: String -> Either String a
+succeeded i = Left$"optotest succeeded when testing " ++ showStr i
    
 liftErr :: (e -> e') -> Either e a -> Either e' a
 liftErr f (Left  e) = Left$f e   

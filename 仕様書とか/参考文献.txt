@@ -9,6 +9,9 @@ brainf*ck interpreter written in Haskell
 http://www7b.biglobe.ne.jp/~robe/cpphtml/html01/cpp01078.html
 ロベールのＣ＋＋教室 - 第７８章 逃げの一手 -
 
+http://d.hatena.ne.jp/language_and_engineering/20081122/1227279791
+Java のスクラップブックを HTML + JScript で作る　（HTAで子プロセスを操作） - 主に言語とシステム開発に関して
+
 
 --開発支援--
 

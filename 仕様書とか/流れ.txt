@@ -10,5 +10,6 @@ CompiledCamphorScript
  ?↓Step6(定数最適化)					{- (in|de)crement optimization -}
 nouDarake
  *↓Step7(記号化)         			{- symbolization -}
+Brianf*ck_spaced
  *↓Step8(空白削除)       			{- comment deletion -}
-Brainf*ck
+Brainf*ck_indented

@@ -3,6 +3,7 @@
 
 import Camphor.SafePrelude
 import Camphor.IO
+import Test.Random
 import Test.TestSingle
 import qualified Data.Map as M 
 
@@ -11,9 +12,13 @@ main :: IO ()
 main = do
  args <- getArgs
  case args of
-  ["--getver"]    -> interact$takeWhile(`elem`('.':['0'..'9'])).dropWhile(`elem`['a'..'z'])
-  ("--single":xs) -> testSingle xs
-  _               -> optopatch
+  ["--getver"]     -> interact$takeWhile(`elem`('.':['0'..'9'])).dropWhile(`elem`['a'..'z'])
+  ("--single":xs)  -> testSingle xs
+  ["--make",fi,n]  -> case readMay n of 
+   Just m -> makeRand (words $ "-C48 -o nul examples/__CCS_for" </> fi) m ("auto_"++fi)
+   Nothing -> abort "num not num"
+  ("--make":_)    -> abort "invalid `--make'"
+  _                -> optopatch
  
 optopatch :: IO () 
 optopatch = do
@@ -26,7 +31,7 @@ optopatch = do
 aux :: M.Map TestId FilePath -> TestId -> FilePath -> IO ()
 aux ss i tf = case M.lookup i ss of
  Nothing -> abort $ "missing test id "++showStr i
- Just f2 -> putStr ("testing "++i++" : ") >>  testSingle' ("-C48 "++f2++" -o nul")  tf
+ Just f2 -> putStr' ("testing "++i++" : ") >>  testSingle' ("-C48 "++f2++" -o nul")  tf
 
 
 process :: [(FilePath,FilePath)] -> M.Map TestId FilePath

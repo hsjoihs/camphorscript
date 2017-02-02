@@ -11,6 +11,7 @@ module Camphor.IO
 ,outputErr
 ,outputWarn
 ,getDirectoryFiles
+,putStr'
 )where
 import Camphor.SafePrelude
 import Prelude(error)
@@ -20,8 +21,11 @@ import Text.Parsec
 import System.FilePath
 import System.Directory(getDirectoryContents,doesFileExist)
 import System.Environment(getArgs)
-import System.IO(hPutStrLn,stderr)
+import System.IO(hPutStrLn,stderr,stdout,hFlush)
 import Camphor.Warn
+
+putStr' :: String -> IO()
+putStr' str = putStr str >> hFlush stdout
 
 getDirectoryFiles :: FilePath -> IO [(FilePath,FilePath)]
 getDirectoryFiles dir = do

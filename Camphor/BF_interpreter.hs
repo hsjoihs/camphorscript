@@ -47,7 +47,7 @@ instance IOLike VIO where
  liftIO' = lift
  
 runBF :: (IOLike io) => [BFComm] -> io () 
-runBF xs = evalStateT vm Stat{notyet = xs, mem = (0,pure 0)}
+runBF xs = evalStateT vm Stat{notyet = xs, mem = (0,initial)}
 
 vm :: (IOLike io) => StateT Stat io ()
 vm = get >>= \stat -> case notyet stat of

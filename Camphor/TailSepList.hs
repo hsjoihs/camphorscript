@@ -12,6 +12,8 @@ newtype TailSepList o v = TSL {unTSL :: [(o,v)]} deriving(Show,Eq,Ord)
 instance Functor (TailSepList o) where
  fmap f (TSL xs) = TSL $ map (second f) xs
  
+
+ 
 instance T.Traversable (TailSepList s) where
  traverse _  (TSL []         ) = pure $ TSL []
  traverse up (TSL ((o,v):ovs)) = cons <$> fmap (\m ->(o,m)) (up v) <*> T.traverse up (TSL ovs)

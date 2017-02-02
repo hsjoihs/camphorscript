@@ -5,16 +5,21 @@ module Camphor.InfList
 ,update
 ,upd
 ,at
+,initial
 )where
 import Camphor.SafePrelude
-import Data.List(genericIndex) -- scary
-newtype InfList a = I (ZipList a) deriving(Functor,Applicative)
+import qualified Data.Map as M
 
-upd :: (a -> a) -> (Integer,InfList a) -> (Integer,InfList a)
+newtype InfList a = I (M.Map Integer a)
+
+upd :: (Num a) => (a -> a) -> (Integer,InfList a) -> (Integer,InfList a)
 upd f (i,xs) = (i,update f i xs)
 
-update :: (a -> a) -> Integer -> InfList a -> InfList a
-update f i (I(ZipList xs)) = let (l,c:r) = genericSplitAt i xs in I(ZipList(l ++ f c:r)) 
+initial :: (Num a) => InfList a
+initial = I M.empty
 
-at :: InfList a -> Integer -> a
-I(ZipList xs) `at` i =  xs `genericIndex` i
+update :: (Num a) => (a -> a) -> Integer -> InfList a -> InfList a
+update f i m@(I xs) = I $ M.insert i (f(m `at` i)) xs
+
+at :: (Num a) => InfList a -> Integer -> a
+I xs `at` i = fromMaybe 0 $ M.lookup i xs 

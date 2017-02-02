@@ -10,7 +10,7 @@ module Camphor.Base.Base_Step2.Auxilary2
 ,getFixValue
 ,matches,matches2
 ,overlaps,overlaps'
-,PrettyPrint,show'
+,showFix,showMI
 )where
 import Camphor.SafePrelude
 import Camphor.SepList as Sep
@@ -18,8 +18,6 @@ import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import Camphor.TailSepList
 import Camphor.Base.Base_Step2.Type
-
-
 
 data MacroId = Func Ident2 VFInstance | Operator Oper OpInstance | Syn Ident2 SyntaxInstance deriving(Show,Eq,Ord)  
 type VFInstance = (TypeList, Maybe Sent) -- Maybe Sent ::: block or `null function'
@@ -70,7 +68,6 @@ matches2 tvl ttl
 zipMatch :: [(Oper,Value)] -> [(Oper,(Type,a))] -> [Bool]
 zipMatch = zipWith (\(op2,val2)(op3,(typ3,_)) -> op2 == op3 && val2 `isTypeof` typ3)
 
-
 isTypeof :: Value -> Type -> Bool
 isTypeof _            CONST_CHAR  = True
 isTypeof (Var      _) CHAR_AND    = True
@@ -94,34 +91,23 @@ overlaps' :: TailTypeList -> TailTypeList -> Bool
 overlaps' (TSL xs) (TSL xs2) = length xs == length xs2 && and (zipWith transform xs xs2)
 
 
+showFix :: Fixity -> String
+showFix (InfixL int op) = showStr(unOp op)++" [infixl "++showNum int++"]"
+showFix (InfixR int op) = showStr(unOp op)++" [infixr "++showNum int++"]"
 
-
-class PrettyPrint a where
- show' :: a -> String
-
-instance PrettyPrint Fixity where
- show' (InfixL int op) = showStr(unOp op)++" [infixl "++showNum int++"]"
- show' (InfixR int op) = showStr(unOp op)++" [infixr "++showNum int++"]"
+showType :: Type -> String
+showType CNSTNT_CHAR = "constant char"
+showType CONST_CHAR = "const char"
+showType CHAR_AND = "char&"
  
-instance PrettyPrint Value where
- show'(Var x) = unId x
- show'(Constant n) = showNum n
- 
--- (Type, Ident2, [(Oper, Type, Ident2)]) 
-instance PrettyPrint TypeList where
- show' (SepList (typ, ident) xs) = show' typ ++ " " ++ unId ident ++ " " ++ concatMap (\(o,(t,i)) -> unOp o ++ " " ++ show' t ++ " " ++ unId i ++ " ") xs
- 
-instance PrettyPrint Type where
- show' CNSTNT_CHAR = "constant char"
- show' CONST_CHAR = "const char"
- show' CHAR_AND = "char&"
- 
-instance PrettyPrint MacroId where
- show' (Func ident (typelist,_)) = "function "++unId ident++"("++show' typelist++"){ .. }"
- show' (Operator oper (typelist1,typelist2,_)) = "operator ("++unOp oper++")("++show' typelist1++";"++show' typelist2++"){ .. }"
- show' (Syn ident (West tl,  _))  = "syntax " ++ unId ident ++ "(" ++ show' tl ++ "){block}{ .. }"
- show' (Syn ident (East ttl, _)) = "syntax " ++ unId ident ++ "(" ++ show' ttl ++ "){block}{ .. }" 
+showTL :: TypeList -> String
+showTL (SepList (typ, ident) xs) = showType typ ++ " " ++ unId ident ++ " " ++ concatMap (\(o,(t,i)) -> unOp o ++ " " ++ showType t ++ " " ++ unId i ++ " ") xs
 
-instance PrettyPrint TailTypeList where
- show' (TSL ttl) = concatMap (\(o,(t,i)) -> unOp o ++ " " ++ show' t ++ " " ++ unId i ++ " ") ttl
 
+
+showMI :: MacroId -> String
+showMI (Func ident (typelist,_)) = "function "++unId ident++"("++showTL typelist++"){ .. }"
+showMI (Operator oper (typelist1,typelist2,_)) = "operator ("++unOp oper++")("++showTL typelist1++";"++showTL typelist2++"){ .. }"
+showMI (Syn ident (West tl,  _))  = "syntax " ++ unId ident ++ "(" ++ showTL tl ++ "){block}{ .. }"
+showMI (Syn ident (East ttl, _)) = "syntax " ++ unId ident ++ "(" ++ showTTL ttl ++ "){block}{ .. }" 
+ where showTTL = concatMap (\(o,(t,i)) -> unOp o ++ " " ++ showType t ++ " " ++ unId i ++ " ") . unTSL

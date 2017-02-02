@@ -17,8 +17,8 @@ import Text.Parsec
 contradiction :: [Fixity] -> Maybe Fixity
 contradiction [ ] = Nothing
 contradiction [_] = Nothing
-contradiction (InfixL _ _:xs) = listToMaybe $ filter isInfixR xs -- InfixR INTENTIONAL
-contradiction (InfixR _ _:xs) = listToMaybe $ filter isInfixL xs -- InfixL INTENTIONAL
+contradiction (InfixL _ _:xs) = listToMaybe $ filter (not . isInfixL) xs
+contradiction (InfixR _ _:xs) = listToMaybe $ filter (not . isInfixR) xs
 
 minimumsBy :: (a -> a -> Ordering) -> NonEmpty a -> NonEmpty a
 minimumsBy cmp_ (x_ :| xs_) = go2 cmp_ xs_ (x_:|[])

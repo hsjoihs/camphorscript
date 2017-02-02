@@ -1,0 +1,48 @@
+﻿<head>
+<script type="text/javascript" src="js/langselect.js"></script>
+<script type="text/javascript" src="js/core.js"></script>
+</head>
+<body onload="init()">
+<form name="c">
+	<table>
+		<tr>
+		<td>
+			<p>変換元</p>
+			<select name="from" onchange="setTo()">
+			<option value="">*変換元選択</option>
+			<option value="">CamphorScript</option>
+			<option value="">PreprocessedCamphorScript</option>
+			<option value="">HalfCompiledCamphorScript</option>
+			<option value="">CompiledCamphorScript</option>
+			<option value="">NouDarake</option>
+			<option value="">Brainf*ck(with spaces)</option>
+			<option value="">Brainf*ck(without spaces)</option>
+			</select>
+		</td>
+		<td>
+		<span style="font-size:60px">→</span>
+		</td>
+		<td>
+			<p>変換先</p>
+			<select name="to">
+			<option value="">*変換先選択</option>
+			<option value=""></option>
+			<option value=""></option>
+			<option value=""></option>
+			<option value=""></option>
+			<option value=""></option>
+			<option value=""></option>
+			</select>
+			</td>
+		</tr>
+	</table>
+</form>
+<form name="a">
+<input type="file" name="path" size="125" onchange="openFile(this.value)"><br>
+<textarea name="inp" cols = 50 rows = 20></textarea>
+<textarea name="out" cols = 50 rows = 20></textarea><br><br>
+<textarea name="err" cols = 100 rows = 5></textarea><br>
+<input type="button" value="open" onclick="openFile(document.a.path.value)" />
+<input type="button" onclick="run()" value="compile" />
+</form>
+</body>
