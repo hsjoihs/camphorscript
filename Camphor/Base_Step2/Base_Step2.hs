@@ -25,7 +25,7 @@ import qualified Data.Map as M
 step2 ::  FilePath -> Txt -> Either ParseError Txt
 step2 file txt = do
  xs <- parse parser2'  (file ++ "-step2"  ) txt
- ys <- parse parser2_2 (file ++ "-step2-2") xs
+ ys <- runParser parser2_2 [] (file ++ "-step2-2") xs
  zs <- convert ys
  return zs
  
@@ -45,6 +45,7 @@ convert2 stat sents = snd <$> convert2_2 stat sents
 convert2_2 :: UserState -> Sents -> Either ParseError (UserState,Txt)
 convert2_2 stat []                         = Right (stat,"") 
 convert2_2 stat (Single _  (Comm comm):xs) = ("/*" ++ comm ++ "*/") <++$$> convert2_2 stat xs
+convert2_2 stat (Single _  (Pragma prgm):xs) = ("/*# " ++ unwords prgm ++ " #*/") <++$$> convert2_2 stat xs
 convert2_2 stat (Single _  (Sp   sp  ):xs) = sp                     <++$$> convert2_2 stat xs
 convert2_2 stat (Single _  (Scolon   ):xs) = ";"                    <++$$> convert2_2 stat xs
 convert2_2 stat (Single _  (Pleq (Var ident) (Constant integer)):xs) = (ident ++ "+=" ++ show integer ++ ";") <++$$> convert2_2 stat xs

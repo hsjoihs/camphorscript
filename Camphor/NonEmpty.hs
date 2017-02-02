@@ -8,9 +8,10 @@ module Camphor.NonEmpty
 ,shiftPair
 ,minimumBy'
 ,minimumsBy
-,concat'
+-- ,concat'
 ,searchBy
 ,nE
+,init'
 )where
 import Camphor.SafePrelude 
 import Camphor.Listlike
@@ -28,9 +29,19 @@ searchBy f (x :| (x2:xs)) = case f x of
  Nothing -> searchBy f (x2:|xs)
  Just b  -> Just b
 
+instance Functor NonEmpty where
+ fmap f (y :| ys) = f y :| map f ys
 
 instance Listlike NonEmpty where
  toList' (x :| xs) = x:xs
+ 
+instance Monad NonEmpty where
+ return = nE
+ m >>= f = concat'(fmap f m)
+ 
+concat' :: NonEmpty(NonEmpty a) -> NonEmpty a
+concat' (xs:|[]) = xs 
+concat' (xs:|(xs2:xss)) = xs `append` (concat' (xs2:|xss))
 
 cons :: a -> NonEmpty a -> NonEmpty a
 {-# INLINE cons #-}
@@ -52,6 +63,10 @@ last' :: NonEmpty a -> a
 last' (x :| [])     = x
 last' (_ :| (y:ys)) = last' (y :| ys)
 
+init' :: NonEmpty a -> [a]
+init' (_ :| [])     = []
+init' (x :| (y:ys)) = x : init'(y:|ys)
+
 shiftPair :: NonEmpty (a,b) -> (a, [(b,a)]      , b  )
 shiftPair ( (a,b) :| []    ) = (a, []           , b  )
 shiftPair ( (a,b) :| (x:xs)) = (a, (b,top) : mid, bot) where (top,mid,bot) = shiftPair(x :| xs) 
@@ -70,9 +85,7 @@ minimumsBy cmp_ (x_ :| xs_) = go2 cmp_ xs_ (x_:|[])
    EQ -> go2 cmp xs (x `cons` acc) -- x == y
    LT -> go2 cmp xs (x :| []) -- x < y
    
-concat' :: NonEmpty(NonEmpty a) -> NonEmpty a
-concat' (xs:|[]) = xs 
-concat' (xs:|(xs2:xss)) = xs `append` (concat' (xs2:|xss))
+
 
 nE :: a -> NonEmpty a
 {-# INLINE nE #-}

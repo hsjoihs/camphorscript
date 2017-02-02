@@ -1,13 +1,15 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
 module Camphor.Global.Utilities
-(makeErr,Message(..),readEith,readMay,escStar,newErrorMessage,remSpace,conflict
+(makeErr,Message(..),readEith,readMay,escStar,newErrorMessage,remSpace,conflict,lastEq
 )where
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
+import Camphor.SafePrelude 
 import Text.Parsec hiding(token)
 import Text.Parsec.Error(newErrorMessage,Message(..))
 import Text.Parsec.Pos(newPos)
 import Data.Char(isSpace)
 import qualified Data.Set as Set
+import Camphor.NonEmpty
 
 makeErr :: Message -> SourceName -> Line -> Column -> Either ParseError b
 makeErr msg pos x y = Left$newErrorMessage msg (newPos pos x y) 
@@ -27,3 +29,7 @@ remSpace = filter(not . isSpace)
 
 conflict :: (Ord a) => [a] -> Bool
 conflict xs = (length . Set.toList . Set.fromList) xs /= length xs
+
+lastEq :: (Eq a) => [a] -> a -> Bool
+lastEq []     _ = False
+lastEq (x:xs) y = last' (x:|xs) == y

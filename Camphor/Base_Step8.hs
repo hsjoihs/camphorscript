@@ -10,7 +10,6 @@ module Camphor.Base_Step8
 import Camphor.SafePrelude
 import Camphor.Global.Parsers
 import Text.Parsec hiding(token)
-import Control.Applicative hiding ((<|>),many)
 import Data.Functor.Identity
 
 

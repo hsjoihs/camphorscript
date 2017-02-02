@@ -17,7 +17,7 @@ parser2' = do{ts<-many tok;eof;return ts;}
 tok :: Stream s m Char => ParsecT s u m (SourcePos,Tok)
 tok = _char <|> _delete  <|> _num <|> _scolon <|>
  _paren <|> _nerap <|> _brace <|> _ecarb <|>
- _comm <|> _op <|> -- _comm first, _op second
+ _pragma <|> _comm <|> _op <|> -- _pragma -> _comm -> _op (IMPORTANT)
  _infixl <|> _infixr <|>
  _void <|> _sp <|> _cnstnt <|> _const <|> _ident
 
@@ -63,11 +63,14 @@ _const   = do{p <- getPosition; try(do{string "const"    ; notFollowedBy alphaNu
 _ident :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
 _ident   = do{p <- getPosition; x <- identifier;return(p,IDENT x)}
 
-_num :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
+_num :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok) 
 _num     = do{p <- getPosition; x <- uint';     return(p,NUM x)}
 
 _comm :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
 _comm    = do{p <- getPosition; x <- blockComm;return(p,COMM x)}
+
+_pragma :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
+_pragma  = do{p <- getPosition; x <- pragmaComm; case x of West c -> return(p,COMM c); East pr -> return(p,PRAGMA pr)}
 
 _sp :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
 _sp      = do{p <- getPosition; x <- many1 space;return(p,SP x)}
@@ -87,6 +90,7 @@ showTok  BRACE    = "token "     ++show "{"
 showTok  ECARB    = "token "     ++show "}"
 showTok  SCOLON   = "token "     ++show ";"
 showTok (COMM s)  = "comment "   ++show ("/*"++s++"*/")
+showTok (PRAGMA s) = "pragma "    ++show ("/*#"++unwords s++"#*/")
 showTok (OP s)    = "operator "  ++show s
 showTok INFIXL    = "token "     ++show "infixl"
 showTok INFIXR    = "token "     ++show "infixr"

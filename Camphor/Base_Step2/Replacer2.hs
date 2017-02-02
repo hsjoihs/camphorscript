@@ -23,9 +23,10 @@ import qualified Data.Map as M
 ----------------------------------------------------------------------------------}   
 replacer2 :: UserState -> NonEmpty MacroId -> SourcePos -> SimpleSent -> ReplTable ->  Either ParseError [SimpleSent]
 
-replacer2 _ _ _ Scolon   _ = return[Scolon]
-replacer2 _ _ _ (Sp x)   _ = return[Sp x]
-replacer2 _ _ _ (Comm x) _ = return[Comm x]
+replacer2 _ _ _ Scolon   _     = return[Scolon]
+replacer2 _ _ _ (Sp x)   _     = return[Sp x]
+replacer2 _ _ _ (Comm x) _     = return[Comm x]
+replacer2 _ _ _ (Pragma x) _   = return[Pragma x]
 replacer2 _ _ pos (Infl _ _) _ = Left$newErrorMessage(Message$"cannot declare fixity inside function/operator definition ")pos  
 replacer2 _ _ pos (Infr _ _) _ = Left$newErrorMessage(Message$"cannot declare fixity inside function/operator definition ")pos  
 

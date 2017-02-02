@@ -1,19 +1,19 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts, NoImplicitPrelude #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
 module Camphor.Global.Parsers
 (alphaBar,alphaNumBar,identifier,identifier'
 ,nbsp,nbsps,nbnls,nbnl
 ,spaces',spaces1',space',newline'
 ,uint,byte,uint'
-,blockComm,lineComm,operator
+,blockComm,lineComm,operator,pragmaComm
 ,strP
 )where
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
+import Camphor.SafePrelude 
 import Camphor.Global.Synonyms
 import Camphor.Global.Operators
 import Text.Parsec hiding(token)
 import Data.Char(isSpace,ord)
-
+import Camphor.NonEmpty
 
 
 -- -- Chapter 3-1  Parsers related to identifier
@@ -97,10 +97,27 @@ _uint2 = try(do{char '\'';
 
 -- -- Chapter 3-5 Parsers parsing symbols
 lineComm :: Stream s m Char => ParsecT s u m String
-lineComm = do{string "//";comm<-many(noneOf "\n");newline;return (comm>>=escStar)}
+lineComm = do
+ string "//"
+ comm <- many(noneOf "\n")
+ newline
+ return (comm>>=escStar)
 
 blockComm :: Stream s m Char => ParsecT s u m String
-blockComm = try(do{string "/*"; comm<-manyTill anyChar(try(string "*/"));return(comm>>=escStar)}) <?> "block comment"
+blockComm = try(do{string "/*"; comm <- manyTill anyChar(try(string "*/"));return(comm>>=escStar)}) <?> "block comment"
+
+pragmaComm :: Stream s m Char => ParsecT s u m (Between PragmaData String)
+pragmaComm = try(
+ do
+  string "/*#"
+  comm <- manyTill anyChar(try(string "*/"))
+  let comm' = comm>>=escStar
+  case comm' of 
+   [] -> return $ West('#':comm')
+   (x:xs)
+    | last' (x:|xs) == '#' -> return $ (East . words . init') (x:|xs)
+    | otherwise            -> return $  West('#':comm')
+ )
 
 operator :: Stream s m Char => ParsecT s u m Oper
 operator = wrap <$> try(oneOf "!%&*+,-:<=>?@^/|~" <:> many(oneOf "!%&/*+,-:<=>?@^|~" <|> space ))
