@@ -25,7 +25,7 @@ import qualified Data.Map as M
 
 {- C macro  -}
 step1 :: (M.Map FilePath Txt) -> FilePath -> Txt -> Either ParseError Txt
-step1 includer file str = parse parser1 (file ++ "--step1") (str ++ "\n") >>= convert1 file includer
+step1 includer file str = parse parser1' (file ++ "--step1") (str ++ "\n") >>= convert1 file includer
 
 -- PARSING
 
@@ -35,6 +35,9 @@ type Set = (Pre7,Ident,String)
 parser1 :: Stream s m Char => ParsecT s u m [Set]
 parser1 = many line
 
+parser1' :: Stream s m Char => ParsecT s u m [Set]
+parser1' = do{sents<-many line;eof;return sents;}
+
 line :: Stream s m Char => ParsecT s u m Set
 line = ifdef <|> ifndef <|> endif <|> else_dir <|> define <|> undef <|> include <|> other
  where
@@ -43,7 +46,23 @@ line = ifdef <|> ifndef <|> endif <|> else_dir <|> define <|> undef <|> include 
   undef    = (do{ try(do{nbnls;char '#';nbnls;string "undef" ;nbsp});nbnls;x<-identifier;nbnls;newline';return(UNDEF ,x,"") })
   endif    = (do{ try(do{nbnls;char '#';nbnls;string "endif" });nbnls;newline';return(ENDIF,"","") })
   else_dir = (do{ try(do{nbnls;char '#';nbnls;string "else" }) ;nbnls;newline';return(ELSE,"","") })
-  other    = (do{ xs<-many(noneOf "\n");newline';return(OTHER,"",xs) })
+
+other :: Stream s m Char => ParsecT s u m Set
+other = do
+ xs <- many(noneOf("\n"))
+ newline
+ return(OTHER,"",xs)
+{- not working
+other = do
+ xs <- manyTill (noneOf "\n") (try (string "/*"))
+ do{newline';return(OTHER,"",xs)} <|> do{
+  string "/*";
+  ys <- manyTill anyChar (try(string "*/")); 
+  string "*/"; 
+  (_,_,ms) <- other;
+  return(OTHER,"",xs++"/*"++filter (/='\n')ys++"*/"++ms)
+  }
+-}
   
   
   
@@ -172,7 +191,7 @@ token = tIdentifier <|> tOperator <|> tChar <|> tString <|> tSpecial <|> tSpace 
   tOperator   = try(oneOf "!%&*+,-:<=>?@^|~" <:> many(oneOf "!%&*+,-:<=>?@^|~" <|> space ))
   tChar       = try(char '\'' <:> noneOf "'" <:> string "'"   )
   tString     = try(char '"'  <:> many(noneOf "\"")<++> string "\"")
-  tSpecial    = strP$oneOf "#$().;{\\}[]"
+  tSpecial    = strP $ oneOf "#$().;{\\}[]"
   tComment    = try(do{string"/*";xs<-manyTill anyChar (try (string "*/"));return$"/*"++(xs>>=esc)++"*/" })
   tComment2   = try(do{string"//";xs<-manyTill anyChar eof;return$"/*"++(xs>>=esc)++"*/"})
   tSpace      = try(many1 space)

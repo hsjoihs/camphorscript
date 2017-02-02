@@ -30,11 +30,14 @@ type Set3 = Node Com3_bot Ident (Com3_top,String) (Com3_mid,[Char],[Char])
 
 step3_II :: Maybe MemSize -> FilePath -> Txt -> Either ParseError Txt
 step3_II mem file str = do
- sets <- parse parser3 (file++"--step3_II") str
+ sets <- parse parser3' (file++"--step3_II") str
  convert3 mem file sets
  
 parser3 :: Stream s m Char => ParsecT s u m [Set3]
 parser3 = many sentences3
+
+parser3' :: Stream s m Char => ParsecT s u m [Set3]
+parser3' = do{sents<-many sentences3;eof;return sents;}
 
 sentences3 :: Stream s m Char => ParsecT s u m Set3
 sentences3 = def <|> del <|> add <|> sub <|> while <|> block <|> read_ <|> write <|> nul <|> emp <|> comm 
