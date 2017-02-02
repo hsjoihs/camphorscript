@@ -100,35 +100,52 @@ convert3' f((n ,s:|st ,ls),(Top(DEL,ide     ):xs)) = case (M.lookup ide s) of
    Just  k                                      -> convert3' f((n, M.delete ide s :| st,remove k ls),xs)
    Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined or is already deleted in this scope")(newPos (f++"--step3'") 0 0)
 
-convert3' f(state         ,(Top(NUL,sp      ):xs)) = (sp++) `lift` convert3' f(state,xs) 
+convert3' f(state         ,(Top(NUL,sp      ):xs)) = (sp++) <$$> convert3' f(state,xs) 
 
 
 convert3' f((n ,st    ,ls),(Mid(ADD,ide,  nm):xs)) = case (lookup' ide (toList st)) of
-   Just  k                                      -> (\x->"mov "++show k++"; inc "++nm++"; "++x) `lift` convert3'  f((n,st,ls),xs)
+   Just  k                                      -> (\x->"mov "++show k++"; inc "++nm++"; "++x) <$$> convert3'  f((n,st,ls),xs)
    Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos (f++"--step3'") 0 0)
    
 convert3' f((n ,st    ,ls),(Mid(SUB,ide,  nm):xs)) = case (lookup' ide (toList st)) of
-   Just  k                                      -> (\x->"mov "++show k++"; dec "++nm++"; "++x) `lift` convert3'  f((n,st,ls),xs)
+   Just  k                                      -> (\x->"mov "++show k++"; dec "++nm++"; "++x) <$$> convert3'  f((n,st,ls),xs)
    Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos (f++"--step3'") 0 0)
 
 convert3' f((n ,st    ,ls),(Top(REA,ide     ):xs)) = case (lookup' ide (toList st)) of
-   Just  k                                      -> (\x->"mov "++show k++"; _input; "++x) `lift` convert3'  f((n,st,ls),xs)
+   Just  k                                      -> (\x->"mov "++show k++"; _input; "++x) <$$> convert3'  f((n,st,ls),xs)
    Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos (f++"--step3'") 0 0)
 
 convert3' f((n ,st    ,ls),(Top(WRI,ide     ):xs)) = case (lookup' ide (toList st)) of
-   Just  k                                      -> (\x->"mov "++show k++"; output; "++x) `lift` convert3'  f((n,st,ls),xs)
+   Just  k                                      -> (\x->"mov "++show k++"; output; "++x) <$$> convert3'  f((n,st,ls),xs)
    Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos (f++"--step3'") 0 0)
 
-convert3' f(state         ,(Null             :xs)) = (' ':) `lift` convert3' f(state,xs)
-convert3' f(state         ,(Top(COM,cm)      :xs)) = (cm++) `lift` convert3' f(state,xs)
+convert3' f(state         ,(Null             :xs)) = (' ':) <$$> convert3' f(state,xs)
+convert3' f(state         ,(Top(COM,cm)      :xs)) = (cm++) <$$> convert3' f(state,xs)
 
 convert3' f((n ,st    ,ls),(Bot(WHI,ide,Ns v):xs)) = case (lookup' ide (toList st)) of
    Just k                                       -> do
     (table1,res1) <- convert3'  f((n+1,M.empty `cons` st,ls),v ) -- inside the loop
     if not(M.null table1) 
-     then let leftList = map fst $ M.toList table1 ; message qs = case qs of [] -> "" ; [q] -> " "++q++"is"; rs -> "s "++show rs++"are" in 
+     then let leftList = map fst $ M.toList table1 in 
      Left $ newErrorMessage (Message$"identifier"++message leftList++" not deleted")(newPos (f++"--step3'") 0 0) 
      else do
     (table2,res2) <- convert3'  f((n  ,st               ,ls),xs) -- left
     return $ (table2,"mov " ++ show k ++ "; loop; " ++ res1 ++ "mov " ++ show k ++ "; pool; " ++ res2)
    Nothing                                      -> Left $newErrorMessage (Message$"identifier "++show ide++"is not defined")(newPos (f++"--step3'") 0 0)
+   
+convert3' f((n ,st    ,ls),(Bot(BLO,_  ,Ns v):xs)) =  do
+    (table1,res1) <- convert3'  f((n+1,M.empty `cons` st,ls),v ) -- inside the loop
+    if not(M.null table1) 
+     then let leftList = map fst $ M.toList table1 in 
+     Left $ newErrorMessage (Message$"identifier"++message leftList++" not deleted")(newPos (f++"--step3'") 0 0) 
+     else do
+    (table2,res2) <- convert3'  f((n  ,st               ,ls),xs) -- left
+    return $ (table2,res1 ++ res2)
+
+message :: [String] -> String
+message qs = case qs of 
+ [] -> "" 
+ [q] -> " "++q++"is"
+ rs -> "s "++show rs++"are" 
+ 
+ 

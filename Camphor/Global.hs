@@ -10,7 +10,7 @@ module Camphor.Global
 ,isJust,isNothing
 ,lib_dir
 ,Ident,Txt
-,lift
+,lift,(<$$>)
 )where
 
 import Control.Monad
@@ -91,8 +91,9 @@ newline' = do{newline;return()} <|> do{string "//";many(noneOf "\n");newline;ret
   
 type Ident=String
 type Txt=String
+  
+lift :: (Functor f, Functor f1) => (a -> b) -> f (f1 a) -> f (f1 b)
+lift = fmap . fmap 
 
-lift :: (Monad m, Functor f) => (a -> b) -> m (f a) -> m (f b)
-lift fnc mfa = do
-  fa <- mfa
-  return(fmap fnc fa)
+(<$$>) :: (Functor f, Functor f1) => (a -> b) -> f (f1 a) -> f (f1 b)
+(<$$>) = lift

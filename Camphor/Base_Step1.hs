@@ -96,28 +96,28 @@ convert1' f _((_    ,depth,n,_    ,_),[]               )
  | otherwise                                            = Left $newErrorMessage (UnExpect "#endif")(newPos (f++"--step1'") n 1) 
  
  
-convert1' f i((table,depth,n,False,o),(IFDEF ,_  ,_):xs) = ('\n':) `lift` convert1' f i((table,depth+1,n+1,False,o    ),xs)
-convert1' f i((table,depth,n,False,o),(IFNDEF,_  ,_):xs) = ('\n':) `lift` convert1' f i((table,depth+1,n+1,False,o    ),xs)
-convert1' f i((table,depth,n,False,o),(UNDEF ,_  ,_):xs) = ('\n':) `lift` convert1' f i((table,depth  ,n+1,False,o    ),xs)
-convert1' f i((table,depth,n,False,o),(INCLU ,_  ,_):xs) = ('\n':) `lift` convert1' f i((table,depth  ,n+1,False,o    ),xs)
--- convert1' f ((table,depth,n,False,o),(LINE  ,_  ,_):xs) = ('\n':) `lift` convert1' f((table,depth  ,n+1,False,o    ),xs) 
+convert1' f i((table,depth,n,False,o),(IFDEF ,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth+1,n+1,False,o    ),xs)
+convert1' f i((table,depth,n,False,o),(IFNDEF,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth+1,n+1,False,o    ),xs)
+convert1' f i((table,depth,n,False,o),(UNDEF ,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,o    ),xs)
+convert1' f i((table,depth,n,False,o),(INCLU ,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,o    ),xs)
+-- convert1' f ((table,depth,n,False,o),(LINE  ,_  ,_):xs) = ('\n':) <$$> convert1' f((table,depth  ,n+1,False,o    ),xs) 
 convert1' f i((table,depth,n,False,o),(ENDIF ,_  ,_):xs)
- | depth - 1 == o                                        = ('\n':) `lift` convert1' f i((table,depth-1,n+1,True ,(-1) ),xs)
- | otherwise                                             = ('\n':) `lift` convert1' f i((table,depth-1,n+1,False,o    ),xs)
-convert1' f i((table,depth,n,False,o),(DEFINE,_  ,_):xs) = ('\n':) `lift` convert1' f i((table,depth  ,n+1,False,o    ),xs)
-convert1' f i((table,depth,n,False,o),(OTHER ,_  ,_):xs) = ('\n':) `lift` convert1' f i((table,depth  ,n+1,False,o    ),xs) 
+ | depth - 1 == o                                        = ('\n':) <$$> convert1' f i((table,depth-1,n+1,True ,(-1) ),xs)
+ | otherwise                                             = ('\n':) <$$> convert1' f i((table,depth-1,n+1,False,o    ),xs)
+convert1' f i((table,depth,n,False,o),(DEFINE,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,o    ),xs)
+convert1' f i((table,depth,n,False,o),(OTHER ,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,o    ),xs) 
  
-{-convert1' _ ((table,depth,_,True ,_),(LINE  ,num,f):xs) = (lin++) `lift` convert1' f((table,depth  ,nm ,True ,(-1) ),xs)
+{-convert1' _ ((table,depth,_,True ,_),(LINE  ,num,f):xs) = (lin++) <$$> convert1' f((table,depth  ,nm ,True ,(-1) ),xs)
  where lin = "#line " ++ num ++ " " ++ show f ++ "\n"; nm=read num::Int  -}
 convert1' f i((table,depth,n,True ,_),(IFDEF ,ide,_):xs)
- | isJust(M.lookup ide table)                            = ('\n':) `lift` convert1' f i((table,depth+1,n+1,True ,(-1) ),xs)
- | otherwise                                             = ('\n':) `lift` convert1' f i((table,depth+1,n+1,False,depth),xs)
+ | isJust(M.lookup ide table)                            = ('\n':) <$$> convert1' f i((table,depth+1,n+1,True ,(-1) ),xs)
+ | otherwise                                             = ('\n':) <$$> convert1' f i((table,depth+1,n+1,False,depth),xs)
 convert1' f i((table,depth,n,True ,_),(IFNDEF,ide,_):xs)
- | isJust(M.lookup ide table)                            = ('\n':) `lift` convert1' f i((table,depth+1,n+1,False,depth),xs)
- | otherwise                                             = ('\n':) `lift` convert1' f i((table,depth+1,n+1,True ,(-1) ),xs)
+ | isJust(M.lookup ide table)                            = ('\n':) <$$> convert1' f i((table,depth+1,n+1,False,depth),xs)
+ | otherwise                                             = ('\n':) <$$> convert1' f i((table,depth+1,n+1,True ,(-1) ),xs)
 convert1' f i((table,depth,n,True ,_),(UNDEF ,ide,_):xs)
  | _tabl==table                                          = Left $newErrorMessage (UnExpect$"C macro "++show ide)(newPos (f++"step1'") n 1) 
- | otherwise                                             = ('\n':) `lift` convert1' f i((_tabl,depth  ,n+1,True ,(-1) ),xs)
+ | otherwise                                             = ('\n':) <$$> convert1' f i((_tabl,depth  ,n+1,True ,(-1) ),xs)
  where _tabl = M.delete ide table
 convert1' f i((table,depth,n,True ,_),(INCLU ,_,fil):xs) = case M.lookup fil i of 
  Nothing  ->                                               Left $newErrorMessage (UnExpect$"library "++show fil)(newPos (f++"step1'") n 1) 
@@ -129,10 +129,10 @@ convert1' f i((table,depth,n,True ,_),(INCLU ,_,fil):xs) = case M.lookup fil i o
   (newtable',result)   <- convert1' f i((newtable,depth  ,n+1,True ,(-1) ),xs)
   return(newtable',"/* start of "++show inclfile++" */\n\n"++text++"\n\n/*  end  of "++show inclfile++" */\n"++result)
  
-convert1' f i((table,depth,n,True ,_),(ENDIF ,_  ,_):xs) = ('\n':) `lift` convert1' f i((table,depth-1,n+1,True ,(-1) ),xs)
+convert1' f i((table,depth,n,True ,_),(ENDIF ,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth-1,n+1,True ,(-1) ),xs)
 convert1' f i((table,depth,n,True ,_),(DEFINE,ide,t):xs)
  | isJust(M.lookup ide table)                            = Left $newErrorMessage (Message$"C macro "++show ide++" is already defined")(newPos (f++"step1'") n 1) 
- | otherwise                                             = ('\n':) `lift` convert1' f i((_tabl,depth  ,n+1,True ,(-1) ),xs)
+ | otherwise                                             = ('\n':) <$$> convert1' f i((_tabl,depth  ,n+1,True ,(-1) ),xs)
  where _tabl = M.insert ide t table
 convert1' f i((table,depth,n,True ,_),(OTHER ,_  ,t):xs) = do
  replaced            <- replaceBy table t

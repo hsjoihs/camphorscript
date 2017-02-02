@@ -19,6 +19,10 @@ for /F "usebackq" %%i in (`dir /A-D /s /b examples\error\Step1_*.txt`) do (
  call :filename %%i -E
 )
 
+for /F "usebackq" %%i in (`dir /A-D /s /b examples\error\Step4_*.txt`) do (
+ call :filename %%i -C44
+)
+
 for /F "usebackq" %%i in (`dir /A-D /s /b examples\error\Step7_*.txt`) do (
  call :filename %%i -C78
 )

@@ -1,0 +1,4 @@
+char b;
+while(b){
+	char a;
+}
