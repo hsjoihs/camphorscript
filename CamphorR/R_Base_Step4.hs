@@ -12,6 +12,9 @@ import Control.Applicative hiding ((<|>),many)
 import Text.Parsec.Error
 import Text.Parsec.Pos
 import Camphor.ND_parser
+import qualified Data.Set as S
+
+-- type Chunk = Either (ComNum,Integer) (Com7,String)
 
 step4_R :: String -> Either ParseError String
 step4_R str= do
@@ -19,4 +22,25 @@ step4_R str= do
  convert4_R parsed
 
 convert4_R :: [Chunk] -> Either ParseError String
-convert4_R = undefined
+convert4_R cs = convert4_R' (0,S.empty) cs
+
+getVarName :: Address -> Ident
+getVarName = ("v_" ++) . show 
+
+type Stat = (Address,S.Set Address)
+
+convert4_R' :: Stat -> [Chunk] -> Either ParseError String
+convert4_R' _      []               = Right ""
+convert4_R' (v,set)(A(INC ,num):cs) = ((getVarName v++"+="++show num++";")++) <$> convert4_R' (v,set) cs
+convert4_R' (v,set)(A(DEC ,num):cs) = ((getVarName v++"-="++show num++";")++) <$> convert4_R' (v,set) cs
+convert4_R' (_,set)(A(MOV ,num):cs) 
+ | num `S.member` set               = convert4_R' (num,set) cs
+ | otherwise                        = (("char "  ++getVarName num++";")++)    <$> convert4_R' (num,S.insert num set) cs
+convert4_R' (v,set)(A(ASR ,num):cs) = (("delete "++getVarName v++";")++)      <$> convert4_R' (v,S.delete num set) cs 
+convert4_R' (v,set)(B LOOP     :cs) = (("while(" ++getVarName v++"){")++)     <$> convert4_R' (v,set) cs
+convert4_R' (v,set)(B POOL     :cs) = ("}"++)                                 <$> convert4_R' (v,set) cs
+convert4_R' (v,set)(B IN       :cs) = (("read("  ++getVarName v++ ");")++)    <$> convert4_R' (v,set) cs
+convert4_R' (v,set)(B OUT      :cs) = (("write(" ++getVarName v++ ");")++)    <$> convert4_R' (v,set) cs
+convert4_R' (v,set)(C(NUL ,sp ):cs) 
+ | all (`elem` " \t\n\r") sp        = (sp++)                                  <$> convert4_R' (v,set) cs
+ | otherwise                        = (("/*" ++sp++ "*/")++)                  <$> convert4_R' (v,set) cs

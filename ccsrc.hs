@@ -19,7 +19,7 @@ info = [
  ]
 
 step :: FilePath -> [String -> Either ParseError String]
-step file=[step8_R,step7_R file,Right,Right]
+step file=[step8_R,step7_R file,Right,Right,step4_R]
 
 fromTo'::Monad m=>Int->Int->[a->m a]->a->m a
 fromTo' x y xs

@@ -38,7 +38,7 @@ parser7_R' f ([]    ,_  ,_  ) (((_ ,POL):_ ):_  ) = Left$newErrorMessage (UnExpe
 parser7_R' f (ad:ads,adr,pos) (((_ ,POL):xs):yss) 
  | ad==adr                                        = (("mov "++show adr++";pool;")++)<$>parser7_R' f (ads,adr,pos) (xs:yss) 
  | otherwise                                      = Left$newErrorMessage (Message "address is different")(newPos (f++"Rstep7'") 0 0)
-parser7_R' f ([]    ,_  ,_  ) []                  = Right ""
+parser7_R' _ ([]    ,_  ,_  ) []                  = Right ""
 parser7_R' f (_     ,_  ,_  ) []                  = Left$newErrorMessage (Expect "]")(newPos (f++"Rstep7'") 0 0)
 
 

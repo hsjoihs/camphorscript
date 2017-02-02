@@ -4,20 +4,25 @@ ccsc     -C48   qScope__CCS.txt         C48test3   qScope__BF_c.txt
 ccsc     -C48   xAtoI__CCS.txt          C48test4   xAtoI__BF_c.txt
 
 ccsc     -C88   xIsNumber__BF.txt       C88test    xIsNumber__BF_c.txt
-ccsc     -C88   xIsNumber__BF_i.txt     C88test2   xIsNumber__BF_c.txt
-ccsc     -C88   xAtoI__BF_i.txt         C88test3   xAtoI__BF_c.txt
-ccsc     -C88   xEcho__BF_i.txt         C88test4   xEcho__BF_c.txt
-ccsc     -C88   xEcho__BF.txt           C88test5   xEcho__BF_c.txt
+ccsc     -C88   xEcho__BF.txt           C88test2   xEcho__BF_c.txt
+ccsc     -C88   xAtoI__BF.txt           C88test3   xAtoI__BF_c.txt
+ccsc     -C88   qScope__BF.txt          C88test4   qScope__BF_c.txt
 
-ccsc     -C78   xIsNumber__ND_rev.txt   C78test    xIsNumber__BF_c.txt
-ccsc     -C78   xIsNumber__ND.txt       C78test2   xIsNumber__BF_c.txt
-ccsc     -C78   xAtoI__ND_rev.txt       C78test3   xAtoI__BF_c.txt
-ccsc     -C78   xAtoI__ND.txt           C78test4   xAtoI__BF_c.txt
-ccsc     -C78   xEcho__ND.txt           C78test5   xEcho__BF_c.txt
-ccsc     -C78   qEscSeq__ND.txt         C78test6   qEscSeq__BF_c.txt
-ccsc     -C78   qScope__ND.txt          C78test7   qScope__BF_c.txt
-ccsc     -C78   xHello__ND_rev.txt      C78test8   xHello__BF_c.txt
-ccsc     -C78   xtoLower__ND_rev.txt    C78test9   xtoLower__BF_c.txt
+ccsc     -C88   xIsNumber__BF_i.txt     C88test_   xIsNumber__BF_c.txt
+ccsc     -C88   xAtoI__BF_i.txt         C88test_2  xAtoI__BF_c.txt
+ccsc     -C88   xEcho__BF_i.txt         C88test_3  xEcho__BF_c.txt
+ccsc     -C88   xHello__BF_i.txt        C88test_4  xHello__BF_c.txt
+
+ccsc     -C78   xAtoI__ND.txt           C78test    xAtoI__BF_c.txt
+ccsc     -C78   xEcho__ND.txt           C78test2   xEcho__BF_c.txt
+ccsc     -C78   qEscSeq__ND.txt         C78test3   qEscSeq__BF_c.txt
+ccsc     -C78   qScope__ND.txt          C78test4   qScope__BF_c.txt
+ccsc     -C78   xIsNumber__ND.txt       C78test5   xIsNumber__BF_c.txt
+
+ccsc     -C78   xIsNumber__ND_rev.txt   C78test_   xIsNumber__BF_c.txt
+ccsc     -C78   xAtoI__ND_rev.txt       C78test_2  xAtoI__BF_c.txt
+ccsc     -C78   xHello__ND_rev.txt      C78test_3  xHello__BF_c.txt
+ccsc     -C78   xtoLower__ND_rev.txt    C78test_4  xtoLower__BF_c.txt
 
 ccsc     -E     yPreProcess__CS.txt     C11test    yPreProcessed.txt
 ccsc     -E     yInclude__CS.txt        C11test2   yIncluded.txt
@@ -32,3 +37,6 @@ ccsrc    -C88   xHello__BF_c.txt        R88test3   xHello__BF_i.txt
 ccsrc    -C88   xtoLower__BF_c.txt      R88test4   xtoLower__BF_i.txt
 
 ccsrc    -C87   xIsNumber__BF_c.txt     R87test    xIsNumber__ND_rev.txt
+ccsrc    -C87   xtoLower__BF_c.txt      R87test2   xtoLower__ND_rev.txt
+ccsrc    -C87   xHello__BF_c.txt        R87test3   xHello__ND_rev.txt
+ccsrc    -C87   xAtoI__BF_c.txt         R87test4   xAtoI__ND_rev.txt

@@ -1,7 +1,14 @@
 ﻿To do
 Step2作成
-R_Step4(NouDarake -> CompiledCamphorScript)の作成
 
+
+
+ver 0.5.3  8:47 2014/04/29 (火)
+R_Step4(NouDarake -> CompiledCamphorScript)を作成したものの、
+グローバル変数をwhile文の中で宣言してしまっている問題あり
+要するに未完成
+テストケースを追加し、またautotestlist.txtを整理整頓
+種別でフォルダ分けしようか考え中
 
 ver 0.5.2  22:12 2014/04/28 (月)
 流れ.txtを改訂
