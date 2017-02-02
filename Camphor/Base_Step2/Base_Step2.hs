@@ -40,10 +40,10 @@ convert xs = convert2 defaultStat xs
  -------------------------------------------------------------------------------------}
 
 convert2 :: UserState -> Sents -> Either ParseError Txt
-convert2 _    []                       = Right "" 
-convert2 stat (Single(_,Comm comm):xs) = ("/*"++comm++"*/") <++$> convert2 stat xs
-convert2 stat (Single(_,Sp   sp  ):xs) = sp                 <++$> convert2 stat xs
-convert2 stat (Single(_,Scolon   ):xs) = ";"                <++$> convert2 stat xs
+convert2 _    []                         = Right "" 
+convert2 stat (Single(_  ,Comm comm):xs) = ("/*"++comm++"*/") <++$> convert2 stat xs
+convert2 stat (Single(_  ,Sp   sp  ):xs) = sp                 <++$> convert2 stat xs
+convert2 stat (Single(_  ,Scolon   ):xs) = ";"                <++$> convert2 stat xs
 convert2 stat (Single(pos,Char iden):xs) = do
  newStat <- newC pos iden stat 
  left <- convert2 newStat  xs
@@ -243,30 +243,32 @@ newK4 pos (x:xs) valuelist2 stat = do
 
 --- no-parenthesized operator call  
 newK5 :: SourcePos -> ValueList -> UserState -> Either ParseError Txt
-newK5 pos valuelist@(x,_) stat = do
- ops <- getOpsFixities pos stat valuelist
- case ops of -- [Fixity]
-  []     -> singleValue x
-  (y:ys) -> newK5' pos valuelist stat (y:|ys)
- where
-  singleValue (Constant _)  = return "" -- 123; is a nullary sentence
-  singleValue (Var ident )  = case getVFContents stat ident of
+newK5 _   (Constant _,[]) _     = return "" -- 123; is a nullary sentence
+newK5 pos (Var ident ,[]) stat  = case getVFContents stat ident of
    Nothing        -> Left $newErrorMessage(Message$"identifier "++show ident++" is not defined")pos 
    Just(Left ())  -> return ""
    Just(Right _)  -> Left $newErrorMessage(Message$"cannot use variable "++show ident++" because it is already defined as a function")pos
+   
+newK5 pos (x,ov:ovs) stat = do
+ (y:|ys) <- getOpsFixities' pos stat (x,ov:|ovs)
+ newK5' pos (x,ov:|ovs) stat (y:|ys)
+ 
 
-newK5' :: SourcePos -> ValueList -> UserState -> NonEmpty Fixity -> Either ParseError Txt
-newK5' pos valuelist stat fixes = do
+newK5' :: SourcePos -> NonEmptyValue -> UserState -> NonEmpty Fixity -> Either ParseError Txt
+newK5' pos nEvaluelist stat fixes = do
  let minOps = minimumsBy (comparing getFixValue) fixes
  case minOps of 
-  k                 :| [] -> undefined
+  k                 :| [] -> newK5_2 pos nEvaluelist (getOpName k) stat
   k@(InfixL int op) :| ks -> case contradiction(k:ks) of
    Nothing -> undefined;
    Just k2 -> Left $newErrorMessage(Message$"cannot mix "++show' k++" and "++show' k2++" in the same infix expression")pos -- message borrowed from GHC
   k@(InfixR int op) :| ks -> undefined;
  undefined
  
-  
+newK5_2 :: SourcePos -> NonEmptyValue -> Oper -> UserState -> Either ParseError Txt
+newK5_2 pos nEvaluelist oper stat = newK2 pos oper vlist1 vlist2 stat
+ where (vlist1,vlist2) = breakBy' oper nEvaluelist 
+
 
 --- macro-replacing function for operator
 replaceOpMacro :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError Txt

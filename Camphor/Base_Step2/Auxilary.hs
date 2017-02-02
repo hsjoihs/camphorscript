@@ -4,7 +4,12 @@ module Camphor.Base_Step2.Auxilary
 (getOpContents2
 ,canBeRightOf
 ,canBeLeftOf
-,toList1,toList2,toOpList,getOpFixity,getOpsFixities,makeReplacerTable,makeReplacerTable2,ReplTable,isConsistent,contradiction
+,toList1,toList2,toOpList
+,getOpFixity,getOpsFixities,getOpsFixities'
+,makeReplacerTable,makeReplacerTable2,ReplTable
+,isConsistent,contradiction
+,NonEmptyValue
+,breakBy'
 ) where
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Camphor.Base_Step2.Base_Step2_2
@@ -12,7 +17,25 @@ import Camphor.Base_Step2.UserState
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import Text.Parsec 
+import Camphor.NonEmpty
 import qualified Data.Map as M
+
+type NonEmptyValue = (Value,NonEmpty (Oper,Value))
+
+--breakBy' :: Oper -> NonEmptyValue -> (ValueList,ValueList)
+-- FIXME: if Oper is not found, the list will be split by the last op. This can cause bugs, so you must be sure that Oper is in NonEmptyValue.
+breakBy' :: (Eq o) => o -> (v,NonEmpty(o,v)) -> ((v,[(o,v)]),(v,[(o,v)]))
+breakBy' o (v,list) = ((v,a),(b,c))
+ where (a,b,c) = breakBy2 o list
+
+breakBy2 :: (Eq o) => o -> NonEmpty(o,v) -> ([(o,v)],v,[(o,v)]) 
+breakBy2 _ ((_ ,v2):|[])  = ([],v2,[]) -- FIXME
+breakBy2 o ((o2,v2):|(ov3:ovs)) 
+ | o == o2    = ([]       ,v2,ov3:ovs)
+ | otherwise  = ((o2,v2):a,b ,c      )
+ where 
+  (a,b,c) = breakBy2 o (ov3:|ovs)
+
 
 type ReplTable = M.Map Ident Value 
 getOpContents2 :: SourcePos -> UserState -> Oper -> Either ParseError OpInfo
@@ -62,6 +85,12 @@ getOpFixity pos stat op = fmap fst $ getOpContents2 pos stat op
  
 getOpsFixities :: SourcePos -> UserState -> ValueList -> Either ParseError [Fixity]
 getOpsFixities pos stat valuelist = mapM (getOpFixity pos stat) $ toOpList valuelist
+
+getOpsFixities' :: SourcePos -> UserState -> NonEmptyValue -> Either ParseError (NonEmpty Fixity)
+getOpsFixities' pos stat (_,(op,_):|ovs) = do
+  fx  <- getOpFixity pos stat op
+  fxs <- mapM (\(o,_) -> getOpFixity pos stat o) ovs
+  return(fx:|fxs)
 
 makeReplacerTable :: TypeList -> ValueList -> ReplTable
 makeReplacerTable tlist vlist = M.fromList$zip(toList1 tlist)(toList2 vlist) 
