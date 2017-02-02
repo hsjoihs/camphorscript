@@ -1,0 +1,11 @@
+#if_0
+
+char if0;if0 += '0'; write(if0);
+
+#endif
+
+#if_1
+
+char if1;if1 += '1'; write(if1);
+
+#endif

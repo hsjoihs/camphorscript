@@ -19,7 +19,7 @@ import Camphor.ND_parser
 
 
 step7 :: Stream s Identity Char => FilePath -> s -> Either ParseError Txt
-step7 file str=convert7 <$> (parse parserND' (file++"--step7") str)  
+step7 file str = convert7 <$> (parse parserND' (file ++ "--step7") str)  
 
 
 convert7 :: [Chunk]->String

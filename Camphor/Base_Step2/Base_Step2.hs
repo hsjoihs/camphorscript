@@ -4,9 +4,7 @@
 module Camphor.Base_Step2.Base_Step2
 (step2
 --,parser2'
-
 ) where
-
 
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Control.Applicative hiding(many,(<|>))
@@ -15,6 +13,7 @@ import Camphor.Base_Step2.Base_Step2_2
 import Camphor.Base_Step2.UserState
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
+import Camphor.Global.Operators
 import Text.Parsec 
 import qualified Data.Map as M
 
@@ -31,17 +30,17 @@ defaultStat = emptyState
 convert :: Sents -> Either ParseError Txt
 convert xs = convert2 defaultStat xs 
 
-{-  ------------------------------------------------------------------------------- 
-   **************************
-   * definition of convert2 *
-   **************************
-----------------------------------------------------------------------------------}
+{------------------------------------------------------------------------------------- 
+ -                              **************************                           -
+ -                              * definition of convert2 *                           -
+ -                              **************************                           -
+ -------------------------------------------------------------------------------------}
 
 convert2 :: UserState -> Sents -> Either ParseError Txt
 convert2 _    []                       = Right "" 
-convert2 stat (Single(_,Comm comm):xs) = (("/*"++comm++"*/")++) <$> convert2 stat xs
-convert2 stat (Single(_,Sp   sp  ):xs) = (sp++)                 <$> convert2 stat xs
-convert2 stat (Single(_,Scolon   ):xs) = (";"++)                <$> convert2 stat xs
+convert2 stat (Single(_,Comm comm):xs) = ("/*"++comm++"*/") <++$> convert2 stat xs
+convert2 stat (Single(_,Sp   sp  ):xs) = sp                 <++$> convert2 stat xs
+convert2 stat (Single(_,Scolon   ):xs) = ";"                <++$> convert2 stat xs
 convert2 stat (Single(pos,Char iden):xs) = do
  newStat <- newC pos iden stat 
  left <- convert2 newStat  xs
@@ -67,6 +66,11 @@ convert2 stat (Single(pos,Func1 name typelist sent):xs) = do
  newStat <- newF1 pos name typelist sent stat 
  left <- convert2 newStat xs
  return left
+ 
+convert2 stat (Single(pos,Call1 name valuelist):Single(_,Scolon):xs) = do
+ result <- newK1 pos name valuelist stat
+ left <- convert2 stat xs
+ return $ result ++ left
  
 
 convert2 stat (Single(pos,Func2 op typelist1 typelist2 sent):xs) = do
@@ -105,8 +109,6 @@ convert2 stat (Single(_,Call1 name valuelist):Block ys:xs) = do -- FIXME: does n
    show'(Var x) = x; show'(Constant n) = show n
 
 {-- 
-convert2 stat (Single(pos,Call1 name valuelist):Single(_,Scolon):xs) = undefined
-
 convert2 stat (Single(pos,Call3 op  valuelist1 valuelist2):xs) = undefined
 convert2 stat (Single(pos,Call4 list  valuelist):xs) = undefined
 convert2 stat (Single(pos,Call5 valuelist):xs) = undefined
@@ -125,11 +127,11 @@ convert2 stat (Single(pos,Call2 op valuelist1 valuelist2):xs) = do
  
 
 
-{-  -------------------------------------------------------------------------------
-   *******************
-   * end of convert2 *
-   *******************
-----------------------------------------------------------------------------------}
+{-----------------------------------------------------------
+ -                   *******************                   -
+ -                   * end of convert2 *                   -
+ -                   *******************                   -
+ -----------------------------------------------------------}
 
 
 
@@ -151,8 +153,18 @@ newL pos fixity op stat = case getOpContents stat op of
   else Left$newErrorMessage(Message$"conflicting fixity definitions of operator "++show op)pos
  Nothing     -> Right$addOpFixity stat (InfixL fixity op)
 
+ 
+ 
 newB :: UserState -> Sents -> Either ParseError (UserState,Txt)
-newB stat ys = undefined
+newB stat ys = do
+ (newStat,res) <-  newB2 stat ys
+ return(newStat,"{" ++ res ++ "}")
+
+newB2 :: UserState -> Sents -> Either ParseError (UserState,Txt)
+newB2 stat ys = do
+ txt <- convert2 stat ys -- FIXME : state is not passed
+ return(stat,txt)
+
 
 newR :: SourcePos -> Fix -> Oper -> UserState -> Either ParseError UserState
 newR pos fixity op stat = case getOpContents stat op of
@@ -179,6 +191,13 @@ newF2 pos op typelist1 typelist2 sent stat@(UserState vflist oplist) = case getO
    newOplist = M.insert op (fix,newlist) oplist
    newlist = (typelist1,typelist2,sent):list -- FIXME : does not check the double definition
 
+-- Function call
+newK1 :: SourcePos -> Ident -> ValueList -> UserState -> Either ParseError Txt
+newK1 pos name valuelist stat = do
+ result <- replaceFuncMacro pos name valuelist stat
+ return result -- stat is unchanged
+   
+   
 -- normalized operator call
 newK2 :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError Txt 
 newK2 pos op valuelist1 valuelist2 stat = do
@@ -200,17 +219,34 @@ replaceOpMacro pos op valuelist1 valuelist2 stat = do
    Nothing       -> Left $newErrorMessage(Message$"operator "++show op++" is not defined")pos 
    Just (_,info) -> Right info
 
+--- macro-replacing function for operator   
+replaceFuncMacro :: SourcePos -> Ident -> ValueList -> UserState -> Either ParseError Txt   
+replaceFuncMacro pos ident valuelist stat = do
+ finfo <- finfo'
+ let matchingFuncInstance = [ a | a@(typelist,_) <- finfo, valuelist `matches` typelist ]
+ case matchingFuncInstance of
+  []        -> Left $newErrorMessage(Message$"no type-matching instance of "++show ident)pos  
+  [instnce] -> replacerOfFunc instnce valuelist stat
+  xs        -> Left $newErrorMessage(Message$show(length xs)++" type-matching instances of "++show ident++" defined")pos   
+ where
+  finfo' = case getVFContents stat ident of -- Either ParseError [(TypeList, Sent)]
+   Nothing          -> Left $newErrorMessage(Message$"function "++show ident++" is not defined")pos 
+   Just(Left())     -> Left $newErrorMessage(Message$"cannot call"++show ident++" because it is defined as a variable")pos
+   Just(Right info) -> Right $ info
 
--- type TypeList = (Type, Ident, [(Oper, Type, Ident)])
--- type ValueList = (Value,[(Oper,Value)])   
--- type Sent  = Upgrade (Extra,SimpleSent) = Single (Extra,SimpleSent) | Block [Upgrade (Extra,SimpleSent)]
--- type Extra = SourcePos
-type ReplTable = M.Map Ident Value
+
 
 replacerOfOp :: (TypeList,TypeList, Sent) -> ValueList -> ValueList -> UserState -> Either ParseError Txt
 replacerOfOp (typelist1,typelist2,sent) valuelist1 valuelist2 stat = 
- replacer sent stat  (makeReplacerTable2 (typelist1,typelist2) (valuelist1,valuelist2))
+ replacer sent stat $ makeReplacerTable2 (typelist1,typelist2) (valuelist1,valuelist2)
 
+replacerOfFunc :: (TypeList, Sent) -> ValueList -> UserState -> Either ParseError Txt
+replacerOfFunc (typelist,sent) valuelist stat =
+ replacer sent stat $ makeReplacerTable typelist valuelist
+
+ 
+
+type ReplTable = M.Map Ident Value 
 
 replacer :: Sent -> UserState -> ReplTable -> Either ParseError Txt
 replacer (Single(pos2,ssent)) stat table = do
@@ -266,9 +302,14 @@ toList1 (_,t,xs) = t:[x|(_,_,x)<-xs]
  
 toList2 :: ValueList -> [Value]
 toList2 (v,xs) = v:map snd xs 
- 
---makeReplacerTable :: TypeList -> ValueList -> M.Map Ident Value
---makeReplacerTable tlist vlist = M.fromList$zip(toList1 tlist)(toList2 vlist) 
 
-makeReplacerTable2 :: (TypeList,TypeList) -> (ValueList,ValueList) -> M.Map Ident Value
+
+-- type TypeList = (Type, Ident, [(Oper, Type, Ident)])
+-- type ValueList = (Value,[(Oper,Value)])   
+-- type Sent  = Upgrade (Extra,SimpleSent) = Single (Extra,SimpleSent) | Block [Upgrade (Extra,SimpleSent)]
+-- type Extra = SourcePos
+makeReplacerTable :: TypeList -> ValueList -> ReplTable
+makeReplacerTable tlist vlist = M.fromList$zip(toList1 tlist)(toList2 vlist) 
+
+makeReplacerTable2 :: (TypeList,TypeList) -> (ValueList,ValueList) -> ReplTable
 makeReplacerTable2 (t1,t2)(v1,v2) = M.fromList$zip(toList1 t1++toList1 t2)(toList2 v1++toList2 v2)

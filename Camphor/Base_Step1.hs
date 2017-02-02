@@ -31,7 +31,7 @@ step1 includer file str = parse parser1' (file ++ "--step1") (str ++ "\n") >>= c
 
 -- PARSING
 
-data Pre7 = IFDEF | IFNDEF | UNDEF | ENDIF | ELSE | DEFINE | INCLU | OTHER deriving (Show)
+data Pre7 = IFDEF | IFNDEF | UNDEF | ENDIF | ELSE | DEFINE | INCLU | OTHER | IF0 | IF1 deriving (Show)
 type Set = (Pre7,Ident,String)
 
 parser1 :: Stream s m Char => ParsecT s u m [Set]
@@ -41,13 +41,15 @@ parser1' :: Stream s m Char => ParsecT s u m [Set]
 parser1' = do{sents<-many line;eof;return sents;}
 
 line :: Stream s m Char => ParsecT s u m Set
-line = ifdef <|> ifndef <|> endif <|> else_dir <|> define <|> undef <|> include <|> other
+line = ifdef <|> ifndef <|> endif <|> else_dir <|> if0 <|> if1 <|> define <|> undef <|> include <|> other
  where
   ifdef    = (do{ try(do{nbnls;char '#';nbnls;string "ifdef" ;nbnl});nbnls;x<-identifier;nbnls;newline';return(IFDEF ,x,"") })
   ifndef   = (do{ try(do{nbnls;char '#';nbnls;string "ifndef";nbnl});nbnls;x<-identifier;nbnls;newline';return(IFNDEF,x,"") })
   undef    = (do{ try(do{nbnls;char '#';nbnls;string "undef" ;nbnl});nbnls;x<-identifier;nbnls;newline';return(UNDEF ,x,"") })
   endif    = (do{ try(do{nbnls;char '#';nbnls;string "endif" });nbnls;newline';return(ENDIF,"","") })
   else_dir = (do{ try(do{nbnls;char '#';nbnls;string "else" }) ;nbnls;newline';return(ELSE,"","") })
+  if0      = (do{ try(do{nbnls;char '#';nbnls;string "if_0" }) ;nbnls;newline';return(IF0,"","") })
+  if1      = (do{ try(do{nbnls;char '#';nbnls;string "if_1" }) ;nbnls;newline';return(IF1,"","") })
 
 other :: Stream s m Char => ParsecT s u m Set
 other = do
@@ -112,6 +114,8 @@ convert1' f _((_    ,depth,n,_    ,_),[]               )
  
  
 convert1' f i((table,depth,n,False,o),(IFDEF ,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth+1,n+1,False,o    ),xs)
+convert1' f i((table,depth,n,False,o),(IF0   ,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth+1,n+1,False,o    ),xs)
+convert1' f i((table,depth,n,False,o),(IF1   ,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth+1,n+1,False,o    ),xs)
 convert1' f i((table,depth,n,False,o),(IFNDEF,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth+1,n+1,False,o    ),xs)
 convert1' f i((table,depth,n,False,o),(UNDEF ,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,o    ),xs)
 convert1' f i((table,depth,n,False,o),(INCLU ,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,o    ),xs)
@@ -132,6 +136,8 @@ convert1' f i((table,depth,n,True ,_),(IFDEF ,ide,_):xs)
 convert1' f i((table,depth,n,True ,_),(IFNDEF,ide,_):xs)
  | isJust(M.lookup ide table)                            = ('\n':) <$$> convert1' f i((table,depth+1,n+1,False,depth),xs)
  | otherwise                                             = ('\n':) <$$> convert1' f i((table,depth+1,n+1,True ,(-1) ),xs)
+convert1' f i((table,depth,n,True ,_),(IF0   ,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth+1,n+1,False,depth),xs)
+convert1' f i((table,depth,n,True ,_),(IF1   ,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth+1,n+1,True ,(-1) ),xs)
 convert1' f i((table,depth,n,True ,_),(UNDEF ,ide,_):xs)
  | _tabl==table                                          = makeErr(Message$"C macro "++show ide++" is not defined")(f++"step1'") n 1
  | otherwise                                             = ('\n':) <$$> convert1' f i((_tabl,depth  ,n+1,True ,(-1) ),xs)
