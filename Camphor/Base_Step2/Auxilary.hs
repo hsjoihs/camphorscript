@@ -10,6 +10,7 @@ module Camphor.Base_Step2.Auxilary
 ,isConsistent,contradiction
 ,NonEmptyValue
 ,breakBy',reverse',reverse''
+,isValidCall3,getCall4Left
 ) where
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Camphor.Base_Step2.Base_Step2_2
@@ -22,6 +23,26 @@ import qualified Data.Map as M
 
 type NonEmptyValue = (Value,NonEmpty (Oper,Value))
 
+
+getCall4Left :: SourcePos -> NonEmpty (Value, Oper) -> UserState -> Either ParseError (ValueList, Oper)
+getCall4Left pos (x:|xs) stat = do  
+ opfixity <- getOpFixity pos stat op
+ ops      <- getOpsFixities pos stat valuelist1
+ mapM_ (`canBeLeftOf'` opfixity) ops
+ return(valuelist1,op)
+ where
+  (top,mid,op) = shiftPair (x :| xs)
+  valuelist1 :: ValueList
+  valuelist1 = (top,mid)
+  canBeLeftOf' = canBeLeftOf pos
+
+isValidCall3 :: SourcePos -> Oper -> ValueList -> UserState -> Either ParseError ()
+isValidCall3 pos op valuelist2 stat = do
+ opfixity <- getOpFixity pos stat op
+ ops      <- getOpsFixities pos stat valuelist2
+ mapM_ (`canBeRightOf'` opfixity) ops
+ where 
+  canBeRightOf' = canBeRightOf pos
 
 reverse' :: (a,[(b,a)]) -> (a,[(b,a)])
 reverse' k = (e,reverse rev)

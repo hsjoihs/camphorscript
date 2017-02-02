@@ -10,7 +10,7 @@ import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,s
 import Data.Ord(comparing)
 import Camphor.Partial
 import Camphor.Base_Step2.Base_Step2_2
-import Camphor.Base_Step2.New
+import Camphor.Base_Step2.New 
 import Camphor.Base_Step2.Auxilary
 import Camphor.Base_Step2.PCS_Parser(parser2')
 import Camphor.Base_Step2.UserState
@@ -169,29 +169,20 @@ newK2 pos op valuelist1 valuelist2 stat = do
 -- left-parenthesized operator call
 newK3 :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError Txt 
 newK3 pos op valuelist1 valuelist2 stat = do
- opfixity <- getOpFixity pos stat op
- ops      <- getOpsFixities pos stat valuelist2
- mapM_ (`canBeRightOf'` opfixity) ops
+ isValidCall3 pos op valuelist2 stat
  result   <- replaceOpMacro pos op valuelist1 valuelist2 stat
  return result -- stat is unchanged
- where 
-  canBeRightOf' = canBeRightOf pos
 
+  
 --- Call4 [(Value,Oper)] ValueList
 --- right-parenthesized operator call
 newK4 :: SourcePos -> [(Value,Oper)] -> ValueList -> UserState -> Either ParseError Txt
 newK4 pos [] valuelist stat = newK5 pos valuelist stat -- (val op val); thus is a Call5
 newK4 pos (x:xs) valuelist2 stat = do
- opfixity <- getOpFixity pos stat op
- ops      <- getOpsFixities pos stat valuelist1
- mapM_ (`canBeLeftOf'` opfixity) ops
+ (valuelist1,op) <- getCall4Left pos (x:|xs) stat
  result   <- replaceOpMacro pos op valuelist1 valuelist2 stat
  return result
- where
-  (top,mid,op) = shiftPair (x :| xs)
-  valuelist1 :: ValueList
-  valuelist1 = (top,mid)
-  canBeLeftOf' = canBeLeftOf pos
+
 
 --- no-parenthesized operator call  
 newK5 :: SourcePos -> ValueList -> UserState -> Either ParseError Txt
@@ -266,7 +257,7 @@ replacerOfFunc funcname (typelist,sent) valuelist stat =
 
 replacer :: MacroId -> Sent -> UserState -> ReplTable -> Either ParseError Txt
 replacer mname (Single(pos2,ssent)) stat table = do
- newSents <- replacer2 (mname:|[]) pos2 ssent table
+ newSents <- replacer2 stat (mname:|[]) pos2 ssent table
  case newSents of newSSent:|[] -> convert2 stat [Single(pos2,newSSent)] ; (x:|xs) -> convert2 stat [Block$map(\k->Single(pos2,k))(x:xs)]
 replacer mname (Block xs) stat table = do
  result <- sequence [replacer mname ssent stat table | ssent <- xs]
@@ -277,54 +268,67 @@ replacer mname (Block xs) stat table = do
    * definition of replacer2 *
    ***************************
 ----------------------------------------------------------------------------------}   
-replacer2 :: NonEmpty MacroId -> SourcePos -> SimpleSent -> M.Map Ident Value ->  Either ParseError (NonEmpty SimpleSent)
+replacer2 :: UserState -> NonEmpty MacroId -> SourcePos -> SimpleSent -> M.Map Ident Value ->  Either ParseError (NonEmpty SimpleSent)
 
-replacer2 _ _ Scolon   _ = return(Scolon:|[])
-replacer2 _ _ (Sp x)   _ = return (Sp x:|[])
-replacer2 _ _ (Comm x) _ = return(Comm x:|[])
-replacer2 _ pos (Infl _ _) _ = Left$newErrorMessage(Message$"cannot declare fixity inside function/operator definition ")pos  
-replacer2 _ pos (Infr _ _) _ = Left$newErrorMessage(Message$"cannot declare fixity inside function/operator definition ")pos  
+replacer2 _ _ _ Scolon   _ = return(Scolon:|[])
+replacer2 _ _ _ (Sp x)   _ = return(Sp x:|[])
+replacer2 _ _ _ (Comm x) _ = return(Comm x:|[])
+replacer2 _ _ pos (Infl _ _) _ = Left$newErrorMessage(Message$"cannot declare fixity inside function/operator definition ")pos  
+replacer2 _ _ pos (Infr _ _) _ = Left$newErrorMessage(Message$"cannot declare fixity inside function/operator definition ")pos  
 
-replacer2 _ pos (Char ident) table = case M.lookup ident table of
+replacer2 _ _ pos (Char ident) table = case M.lookup ident table of
  Nothing -> return(Char ident:|[])
  Just _  -> Left$newErrorMessage(Message$"cannot redefine an argument "++show ident)pos 
  
-replacer2 _ pos (Del ident) table = case M.lookup ident table of
+replacer2 _ _ pos (Del ident) table = case M.lookup ident table of
  Nothing -> return(Del ident:|[])
  Just _  -> Left$newErrorMessage(Message$"cannot delete an argument"++show ident)pos 
 
-replacer2 _ pos (Func1 ident _ _) _ = 
+replacer2 _ _ pos (Func1 ident _ _) _ = 
  Left$newErrorMessage(Message$"cannot define function "++show ident++"inside function/operator definition ")pos
  
-replacer2 _ pos (Func2 oper _ _ _) _ = 
+replacer2 _ _ pos (Func2 oper _ _ _) _ = 
  Left$newErrorMessage(Message$"cannot define operator "++show oper ++"inside function/operator definition ")pos 
   
-replacer2 (n:|ns) pos (Call1 ident valuelist) table 
+replacer2 _ (n:|ns) pos (Call1 ident valuelist) table 
  | isJust$ M.lookup ident table = Left$newErrorMessage(Message$"cannot call an argument "++show ident)pos 
  | otherwise = do
   let matchingInstance = [ a | a@(Func name (typelist,_)) <- (n:ns), name == ident , valuelist `matches` typelist]
   case matchingInstance of
-   []     -> undefined -- but has to be a Block(undefined)
+   []    -> rpl1 (n:|ns) pos ident valuelist table
    (x:_) -> Left$newErrorMessage(Message$"cannot recursively call "++show' x++" inside "++show' n)pos
  
-replacer2 (n:|ns) pos (Call2 oper valuelist1 valuelist2) table = do
+replacer2 _ (n:|ns) pos (Call2 oper valuelist1 valuelist2) table = do
  let matchingInstance = [ a | a@(Operator o (typelist1,typelist2,_)) <- (n:ns), o == oper, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ]
  case matchingInstance of
-   [] -> undefined
+   []    -> rpl2 (n:|ns) pos oper (valuelist1,valuelist2) table
    (x:_) -> Left$newErrorMessage(Message$"cannot recursively call "++show' x++" inside "++show' n)pos
-   
-replacer2 (n:|ns) pos (Call3 oper valuelist1 valuelist2) table = do
- let matchingInstance = [ a | a@(Operator o (typelist1,typelist2,_)) <- (n:ns), o == oper, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ]
- case matchingInstance of
-   [] -> undefined
-   (x:_) -> Left$newErrorMessage(Message$"cannot recursively call "++show' x++" inside "++show' n)pos
-   
-replacer2 narr pos (Call4 []  valuelist              ) table = undefined
-replacer2 narr pos (Call4 (x:xs)  valuelist          ) table = undefined
-replacer2 narr pos (Call5 valuelist                  ) table = undefined
+  
+replacer2 stat narr pos (Call3 op valuelist1 valuelist2) table = do
+ isValidCall3 pos op valuelist2 stat
+ replacer2 stat narr pos (Call2 op valuelist1 valuelist2) table
+
+replacer2 stat narr pos (Call4 []     valuelist          ) table = replacer2 stat narr pos (Call5 valuelist) table
+
+replacer2 stat narr pos (Call4 (x:xs) valuelist2         ) table = do
+ (valuelist1,op) <- getCall4Left pos (x:|xs) stat
+ replacer2 stat narr pos (Call2 op valuelist1 valuelist2) table
+
+replacer2 _ _ _ (Call5 (Constant _,[])) _ = return(Scolon:|[])
+replacer2 _ _ _ (Call5 (Var ident,[])) table = case M.lookup ident table of
+ Nothing -> return (Call5 (Var ident,[]):|[])
+ Just x  -> return (Call5 (x        ,[]):|[])
+ 
+replacer2 stat narr pos (Call5 (x,ov:ovs)) table = undefined
 
 {-  -------------------------------------------------------------------------------
    ********************
    * end of replacer2 *
    ********************
 ----------------------------------------------------------------------------------}
+
+rpl1 :: NonEmpty MacroId -> SourcePos -> Ident -> ValueList -> M.Map Ident Value -> Either ParseError (NonEmpty SimpleSent)
+rpl1 (n:|ns) pos ident valuelist table = undefined
+
+rpl2 :: NonEmpty MacroId -> SourcePos -> Oper -> (ValueList,ValueList) -> M.Map Ident Value -> Either ParseError (NonEmpty SimpleSent)
+rpl2 (n:|ns) pos oper valuelist table = undefined
