@@ -13,8 +13,8 @@ import Camphor.Base.Base_Step2.Def
 import Camphor.Base.Base_Step2.Call
 import Camphor.Base.Base_Step2.Auxilary
 import Camphor.Base.Base_Step2.ErrList
-import Camphor.Base.Base_Step2.Base_Step2_2(parser2_2)
-import Camphor.Base.Base_Step2.PCS_Parser(parser2')
+import Camphor.Base.Base_Step2.Parser.Base_Step2_2(parser2_2)
+import Camphor.Base.Base_Step2.Lexer.PCS_Parser(parser2')
 import Text.Parsec
 import Camphor.Transformer
 import Camphor.Warn 

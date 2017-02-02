@@ -1,0 +1,34 @@
+﻿
+現状
+
+lex → parse → replace
+
+問題:分かりにくい
+
+
+
+
+新案
+
+PCS  ---lexer-->  PLCS  ---parser-->  PPCS  ---verifier-->  PVCS  ---replacer-->  HCCS
+
+verifierでやること
+・参照解決(存在チェック、循環排除、依存性チェック)
+・変数名分離
+・脱糖
+
+やりたいこと
+・モジュール機構
+・関数宣言の順番不問化(cf. DAG)
+・依存性などのチェック
+・構造体
+・char&とconstant char
+・定数switch文
+・戻り値を返す関数
+・縮小体
+・代数データ型
+・配列
+・構造体配列
+・変数名分離
+・関数型
+・ラムダ式

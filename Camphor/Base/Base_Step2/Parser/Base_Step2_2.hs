@@ -1,6 +1,6 @@
 ﻿{-# LANGUAGE FlexibleContexts, NoImplicitPrelude #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
-module Camphor.Base.Base_Step2.Base_Step2_2
+module Camphor.Base.Base_Step2.Parser.Base_Step2_2
 (parser2_2
 )where
 import Camphor.SafePrelude
@@ -8,7 +8,8 @@ import Camphor.SepList hiding(reverse)
 import Camphor.Oper
 import Camphor.TailSepList
 import Camphor.Base.Base_Step2.Type
-import Camphor.Base.Base_Step2.PCS_Parser2
+import Camphor.Base.Base_Step2.Parser.PCS_Parser2
+
 import Text.Parsec 
 import Text.Parsec.Pos(initialPos) 
 

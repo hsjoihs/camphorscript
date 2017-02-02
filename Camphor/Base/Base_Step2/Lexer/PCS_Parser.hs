@@ -1,14 +1,24 @@
 {-# LANGUAGE FlexibleContexts , NoImplicitPrelude #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
-module Camphor.Base.Base_Step2.PCS_Parser
+module Camphor.Base.Base_Step2.Lexer.PCS_Parser
 (parser2'
 ,showTok
+,Tok(..)
 )where
 import Camphor.SafePrelude 
 import Camphor.Global.Parsers
-import Text.Parsec hiding(token)
-import Camphor.Base.Base_Step2.Type
 import Camphor.Global.Synonyms
+import Text.Parsec hiding(token)
+import Camphor.Base.Base_Step2.Base.Ident2
+
+-- PCS_Parser
+data Tok = 
+ CHAR   | DELETE | IDENT Ident2  |   NUM Integer   |  
+ PAREN  | NERAP  | BRACE | ECARB | SCOLON | CNSTNT |
+ COMM String     |    OP Oper    | INFIXL | INFIXR |
+ SYNTAX | VOID   | CONST |   SP String    | BLOCK  |
+ PRAGMA PragmaData         deriving(Show,Eq)
+
 
 parser2' :: Stream s m Char => ParsecT s u m [(SourcePos,Tok)]
 parser2' = concat <$> many tok <* eof

@@ -1,0 +1,60 @@
+﻿char a;
+char& b = a; // 参照
+a += 42;
+write(b); // '*'
+
+constant char t = 5; //定数。これは+=とか関係ない
+constant char t; // エラー
+
+enum bool <- char // 「enum」じゃなくてもいいかも
+{
+	default false = 0, // 変数宣言時のデフォルト値。1つの型に1つだけ存在するデータ。
+	        true = 1;
+	/* 
+	 *    コンストラクタ宣言
+	 *    constructor(c, B) と書くと、関数内ではchar& c, constant bool B　として使える。
+	 *    constructor(char& c, constant bool B)と書いてもいいが、どうせ定番なので型名は省略できる。
+	 *    
+	 *    使い方
+	 *    bool flag; 
+	 *   ==> char flag_DERIVING_bool; constructor(flag_DERIVING_bool,false);
+	 *   ==> char flag_DERIVING_bool; flag_DERIVING_bool += 0;
+	 *	
+	 *    使い方2
+	 *    bool flag = true; 
+	 *   ==> char flag_DERIVING_bool; constructor(flag_DERIVING_bool,true);
+	 *   ==> char flag_DERIVING_bool; flag_DERIVING_bool += 1;
+	 */
+	constructor(c, B) 
+	{
+		c += B; // constant bool は constant char にキャストできる
+	}
+}
+
+void (=)(bool& a; constant bool B)
+{
+	char& c = reinterpret_cast<char&>(a); // C++ styleである。
+	clear(c); c += B;
+}
+
+/*
+ * casting
+ * 
+ * |-------------------------------------------------------------------------------------|
+ * | r-val \ param | char&  const char  constant char | bool&  const bool  constant bool |
+ * |-------------------------------------------------------------------------------------|
+ * | char&         | Yes    Yes         No            | Cast   Cast        No            |
+ * | const char    | No     Yes         No            | No     Cast        No            |
+ * | constant char | No     Yes         Yes           | No     Cast        Cast          |
+ * |-------------------------------------------------------------------------------------|
+ * | bool&         | Cast   Cast        No            | Yes    Yes         No            |
+ * | const bool    | No     Cast        No            | No     Yes         No            |
+ * | constant bool | No     Yes         Yes           | No     Yes         No            |
+ * |-------------------------------------------------------------------------------------|
+ */
+
+
+
+
+
+

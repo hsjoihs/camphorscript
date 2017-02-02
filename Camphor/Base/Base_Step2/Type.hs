@@ -1,8 +1,7 @@
 {-# LANGUAGE FlexibleContexts, NoImplicitPrelude #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
 module Camphor.Base.Base_Step2.Type
-(Tok(..)
-,Type(..),Value(..)
+(Type(..),Value(..)
 ,NonEmptyValue,ReplTable,CollisionTable
 ,PragmaData,ParserState,TailTypeList,TailValueList
 ,Upgrade(..),Extra,Sent,Sent2,Sents,TypeList,ValueList,SimpleSent(..),Fixity(..),isVar,TmpStat
@@ -15,9 +14,9 @@ import Text.Parsec hiding(token)
 import Camphor.SepList
 import Camphor.TailSepList
 import Camphor.NonEmpty
+import Camphor.Base.Base_Step2.Base.Ident2
 import qualified Data.Map as M
 
-newtype Ident2 = Ident2{unId :: String} deriving(Show,Ord,Eq)
 
 -- Auxilary
 type NonEmptyValue = (Value,NonEmpty (Oper,Value))
@@ -70,13 +69,7 @@ type ParserState = [SourcePos]
 data Fixity = InfixL Integer Oper | InfixR Integer Oper deriving(Show,Eq,Ord) 
 type TmpStat = [Ident2]
 
--- PCS_Parser
-data Tok = 
- CHAR   | DELETE | IDENT Ident2  |   NUM Integer   |  
- PAREN  | NERAP  | BRACE | ECARB | SCOLON | CNSTNT |
- COMM String     |    OP Oper    | INFIXL | INFIXR |
- SYNTAX | VOID   | CONST |   SP String    | BLOCK  |
- PRAGMA PragmaData         deriving(Show,Eq)
+
 
 {----------------------------------
  |          end of types          |
@@ -85,31 +78,6 @@ data Tok =
 isVar :: Value -> Bool
 isVar (Var _) = True; isVar _ = False
  
-
-
- 
-bbbb, aaaa, nnnn, readI, writeI :: Ident2
-bbbb = Ident2 "bbbb"
-aaaa = Ident2 "aaaa"
-nnnn = Ident2 "NNNN"
-readI = Ident2 "read"
-writeI = Ident2 "write"
-
-tmpIdent :: Ident2 -> Integer -> Ident2
-tmpIdent ident n = Ident2(unId ident ++ "__TMP_" ++ showNum n)
-
-
-reservedList :: [String]
-reservedList = ["char","delete","infixl","infixr","void","constant","const","syntax", "block" ]
-
-toIdent2 :: String -> Either String Ident2
-toIdent2 "" = Left ""
-toIdent2 i@(x:xs) = maybeToEither i $ do
- guard (isAlpha x || x == '_')
- guard $ null[ a | a <- xs, not (isAlphaNum a), a /= '_']
- guard $ i `notElem` reservedList
- return(Ident2 i)
-
 toSent2 :: Sent -> Sent2
 toSent2 (Single a b) = Single a (toSimpleSent2 b)
 toSent2 (Block a xs) = Block a (map toSent2 xs)
@@ -141,6 +109,3 @@ toSimpleSent2 (Pleq v i)         = R_Pleq (Var v) (Constant i)
 toSimpleSent2 (Mneq v i)         = R_Mneq (Var v) (Constant i)
 toSimpleSent2 (Rd v)             = R_Rd (Var v)
 toSimpleSent2 (Wrt v)            = R_Wrt (Var v)
-
-showIdent :: Ident2 -> String
-showIdent = showStr . unId
