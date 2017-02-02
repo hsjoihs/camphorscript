@@ -1,0 +1,4 @@
+xIsNumber 1
+xAtoI 2
+xEcho 3
+xHello 4

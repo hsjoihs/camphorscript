@@ -1,5 +1,6 @@
 ﻿CamphorScript
  *↓Step1(C的マクロ展開)     			{- C macro expansion -}
+PreprocessedCamphorScript
   ↓Step2(関数的マクロ展開)  			{- Functional macro expansion -}
   ↓Step3-I(糖衣構文プリプロセス)			{- Desugaring -}
 CompiledCamphorScript

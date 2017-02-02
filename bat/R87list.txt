@@ -1,0 +1,4 @@
+xIsNumber 1
+xtoLower 2
+xHello 3
+xAtoI 4

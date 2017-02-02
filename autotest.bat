@@ -13,9 +13,16 @@ call bat\setlogname testresult
 type nul > %LOG% 
 if exist %FAIL% del %FAIL%
 
-for /F "usebackq delims=" %%i in (`type bat\autotestlist.txt`) do (
-call :compile %%i 
-)
+for /F "usebackq delims=" %%i in (`type bat\C48list.txt`)  do ( call :tester ccsc  -C48 CCS      BF_c   C48test  %%i )
+for /F "usebackq delims=" %%i in (`type bat\C88list1.txt`) do ( call :tester ccsc  -C88 BF       BF_c   C88test  %%i )
+for /F "usebackq delims=" %%i in (`type bat\C88list2.txt`) do ( call :tester ccsc  -C88 BF_i     BF_c   C88test_ %%i )
+for /F "usebackq delims=" %%i in (`type bat\C78list1.txt`) do ( call :tester ccsc  -C78 ND       BF_c   C78test  %%i )
+for /F "usebackq delims=" %%i in (`type bat\C78list2.txt`) do ( call :tester ccsc  -C78 ND_rev   BF_c   C78test_ %%i )
+for /F "usebackq delims=" %%i in (`type bat\Elist.txt`)    do ( call :tester ccsc  -E   CS       PCS    C11test  %%i )
+for /F "usebackq delims=" %%i in (`type bat\R88list.txt`)  do ( call :tester ccsrc -C88 BF_c     BF_i   R88test  %%i )
+for /F "usebackq delims=" %%i in (`type bat\R87list.txt`)  do ( call :tester ccsrc -C87 BF_c     ND_rev R88test  %%i )
+
+
 
 echo %LOG2%: > bat\testresult.tmp
 type %LOG% >>  bat\testresult.tmp
@@ -64,4 +71,17 @@ echo FAILURE
 echo FAILURE: %2 >> %LOG%
 type nul > %FAIL%
 ) 
+exit /b
+rem ccsc -C48 CCS BF_c C48test %%i
+:tester 
+setlocal
+set compiler=%1
+set option=%2
+set frm=%3
+set to=%4
+set tmp=%5
+set name=%6
+set num=%7
+call :compile %compiler% %option% __%frm%\%name%__%frm%.txt %tmp% __%to%\%name%__%to%.txt
+endlocal
 exit /b

@@ -1,0 +1,4 @@
+xIsNumber 1
+qEscSeq 2
+qScope 3
+xAtoI 4
