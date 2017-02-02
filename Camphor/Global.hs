@@ -9,7 +9,7 @@ module Camphor.Global
 ,uint,byte,uint'
 ,isJust,isNothing
 ,lib_dir
-,Ident,Txt,MemSize
+,Ident,Txt,MemSize,Address
 ,lift,(<$$>)
 ,readEith,readMay
 )where
@@ -73,19 +73,15 @@ strP = fmap (:[])
 uint :: Stream s m Char => ParsecT s u m String
 uint = many1 digit <?> "unsigned integer"
 
-uint' :: Stream s m Char => ParsecT s u m Integer
-uint' = do{xs <- many1 (
- do{char '0';return 0}<|>
- do{char '1';return 1}<|>
- do{char '2';return 2}<|>
- do{char '3';return 3}<|>
- do{char '4';return 4}<|>
- do{char '5';return 5}<|>
- do{char '6';return 6}<|>
- do{char '7';return 7}<|>
- do{char '8';return 8}<|>
+digit' :: (Stream s m Char,Num a) => ParsecT s u m a
+digit' =
+ do{char '0';return 0} <|> do{char '1';return 1} <|> do{char '2';return 2} <|>
+ do{char '3';return 3} <|> do{char '4';return 4} <|> do{char '5';return 5} <|>
+ do{char '6';return 6} <|> do{char '7';return 7} <|> do{char '8';return 8} <|>
  do{char '9';return 9}
- );
+
+uint' :: Stream s m Char => ParsecT s u m Integer
+uint' = do{xs <- many1 digit';
  return(foldl(\a b -> 10*a+b)0 xs)
  }<|> try(do{
   char '\'';
@@ -122,6 +118,7 @@ newline' = do{newline;return()} <|> do{string "//";many(noneOf "\n");newline;ret
 type Ident=String
 type Txt=String
 type MemSize=Integer
+type Address=Integer
   
 lift :: (Functor f, Functor f1) => (a -> b) -> f (f1 a) -> f (f1 b)
 lift = fmap . fmap 

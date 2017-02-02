@@ -16,14 +16,12 @@ import System.FilePath
 import System.Directory(getDirectoryContents)
 import System.Environment(getArgs)
 
-type Options=[String]
+type Options = [String]
 
 
-outputParsed :: FilePath->Either ParseError Txt->IO()
-outputParsed path (Right x)=writeFile path x
-outputParsed _    (Left  e)=putStrLn$"parse error at "++show e
-
-
+outputParsed :: FilePath -> Either ParseError Txt -> IO()
+outputParsed path (Right x) = writeFile path x
+outputParsed _    (Left  e) = putStrLn $ "parse error at " ++ show e
 
 getContentsFrom :: FilePath -> IO Txt
 getContentsFrom file = do

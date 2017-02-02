@@ -5,7 +5,7 @@ module CamphorR.R_Base_Step8
 ,convert8_R
 )where
 
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,(!!),read)
+import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 step8_R :: String -> Either a String
 step8_R  = Right . convert8_R . parser8_R
 

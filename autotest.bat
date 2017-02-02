@@ -39,6 +39,8 @@ call :compile ccsc     -E     yPreProcess__CS.txt     C11test    yPreProcessed.t
 call :compile ccsc     -E     yInclude__CS.txt        C11test2   yIncluded.txt
 call :compile ccsc     -E     yDualInclude__CS.txt    C11test3   yDualIncluded.txt
 call :compile ccsc     -E     yRepInclude__CS.txt     C11test4   yRepIncluded.txt
+call :compile ccsc     -E     yIfElseTrue__CS.txt     C11test5   yIfElseTrued.txt
+call :compile ccsc     -E     yIfElseFalse__CS.txt    C11test6   yIfElseFalsed.txt
 
 call :compile ccsrc    -C88   xIsNumber__BF_c.txt     R88test    xIsNumber__BF_i.txt
 call :compile ccsrc    -C88   xEcho__BF_c.txt         R88test2   xEcho__BF_i.txt

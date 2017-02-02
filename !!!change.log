@@ -1,6 +1,15 @@
 ﻿To do
 エラーテスト充実化
 Step2作成
+R_Step4(NouDarake -> CompiledCamphorScript)の作成
+
+ver 0.4.16  0:48 2014/04/26 (土)
+RStep7でerrorを使っていた問題を修復
+Base_Step1にて#elseに対応
+但し多分#if(def|ndef)が無くてもエラーを吐かない
+#ifはないので#elifは無く、また#elifdefとかを作る気も今のところない。できそうだけど本家にないから
+よって#elseと#ifdefの二行で書いてもらうことになる
+あとkilljunkでテストログを殺さないことにした
 
 ver 0.4.15 17:10 2014/04/25 (金)
 Integerを返すuint'を作成

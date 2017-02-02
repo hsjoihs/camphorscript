@@ -20,33 +20,31 @@ import Text.Parsec hiding(token)
 import Text.Parsec.Error
 import Text.Parsec.Pos
 import Control.Applicative hiding ((<|>),many)
-import Control.Monad(join)
 
 import qualified Data.Map as M
 
 {- C macro  -}
 step1 :: (M.Map FilePath Txt) -> FilePath -> Txt -> Either ParseError Txt
-step1 includer file str = join (convert1 file includer <$> parse parser1 (file ++ "--step1") (str ++ "\n"))
+step1 includer file str = parse parser1 (file ++ "--step1") (str ++ "\n") >>= convert1 file includer
 
 -- PARSING
 
-data Pre7 = IFDEF | IFNDEF | UNDEF | ENDIF | DEFINE | INCLU {-| LINE -}| OTHER deriving (Show)
+data Pre7 = IFDEF | IFNDEF | UNDEF | ENDIF | ELSE | DEFINE | INCLU | OTHER deriving (Show)
 type Set = (Pre7,Ident,String)
 
 parser1 :: Stream s m Char => ParsecT s u m [Set]
 parser1 = many line
 
 line :: Stream s m Char => ParsecT s u m Set
-line = ifdef <|> ifndef <|> endif <|> define <|> undef <|> include {-<|> line_dir-} <|> other
+line = ifdef <|> ifndef <|> endif <|> else_dir <|> define <|> undef <|> include <|> other
  where
   ifdef    = (do{ try(do{nbnls;char '#';nbnls;string "ifdef" ;nbsp});nbnls;x<-identifier;nbnls;newline';return(IFDEF ,x,"") })
   ifndef   = (do{ try(do{nbnls;char '#';nbnls;string "ifndef";nbsp});nbnls;x<-identifier;nbnls;newline';return(IFNDEF,x,"") })
   undef    = (do{ try(do{nbnls;char '#';nbnls;string "undef" ;nbsp});nbnls;x<-identifier;nbnls;newline';return(UNDEF ,x,"") })
   endif    = (do{ try(do{nbnls;char '#';nbnls;string "endif" });nbnls;newline';return(ENDIF,"","") })
+  else_dir = (do{ try(do{nbnls;char '#';nbnls;string "else" }) ;nbnls;newline';return(ELSE,"","") })
   other    = (do{ xs<-many(noneOf "\n");newline';return(OTHER,"",xs) })
-  {-line_dir = (do{ try(do{nbnls;char '#';nbnls;string "line"  ;nbsp});nbnls;n<-uint;  
-   file' <- option "" (do{nbsp; nbnls; char '"'; file <- many(noneOf "\""); char '"'; return file});
-   return(LINE,n,file')})-}
+  
   
   
 {-functional not yet-}
@@ -100,15 +98,17 @@ convert1' f i((table,depth,n,False,o),(IFDEF ,_  ,_):xs) = ('\n':) <$$> convert1
 convert1' f i((table,depth,n,False,o),(IFNDEF,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth+1,n+1,False,o    ),xs)
 convert1' f i((table,depth,n,False,o),(UNDEF ,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,o    ),xs)
 convert1' f i((table,depth,n,False,o),(INCLU ,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,o    ),xs)
--- convert1' f ((table,depth,n,False,o),(LINE  ,_  ,_):xs) = ('\n':) <$$> convert1' f((table,depth  ,n+1,False,o    ),xs) 
-convert1' f i((table,depth,n,False,o),(ENDIF ,_  ,_):xs)
- | depth - 1 == o                                        = ('\n':) <$$> convert1' f i((table,depth-1,n+1,True ,(-1) ),xs)
- | otherwise                                             = ('\n':) <$$> convert1' f i((table,depth-1,n+1,False,o    ),xs)
 convert1' f i((table,depth,n,False,o),(DEFINE,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,o    ),xs)
-convert1' f i((table,depth,n,False,o),(OTHER ,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,o    ),xs) 
+convert1' f i((table,depth,n,False,o),(OTHER ,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,o    ),xs)
+convert1' f i((table,depth,n,False,o),(ENDIF ,_  ,_):xs)
+ | depth - 1 == o  {-reached a block that you entered -} = ('\n':) <$$> convert1' f i((table,depth-1,n+1,True ,(-1) ),xs)
+ | otherwise                                             = ('\n':) <$$> convert1' f i((table,depth-1,n+1,False,o    ),xs)
+convert1' f i((table,depth,n,False,o),(ELSE ,_  ,_):xs)
+ | depth - 1 == o  {-reached a block that you entered -} = ('\n':) <$$> convert1' f i((table,depth  ,n+1,True ,(-1) ),xs)
+ | otherwise                                             = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,depth),xs)
  
-{-convert1' _ ((table,depth,_,True ,_),(LINE  ,num,f):xs) = (lin++) <$$> convert1' f((table,depth  ,nm ,True ,(-1) ),xs)
- where lin = "#line " ++ num ++ " " ++ show f ++ "\n"; nm=read num::Int  -}
+-- non-skipping
+
 convert1' f i((table,depth,n,True ,_),(IFDEF ,ide,_):xs)
  | isJust(M.lookup ide table)                            = ('\n':) <$$> convert1' f i((table,depth+1,n+1,True ,(-1) ),xs)
  | otherwise                                             = ('\n':) <$$> convert1' f i((table,depth+1,n+1,False,depth),xs)
@@ -129,7 +129,8 @@ convert1' f i((table,depth,n,True ,_),(INCLU ,_,fil):xs) = case M.lookup fil i o
   (newtable',result)   <- convert1' f i((newtable,depth  ,n+1,True ,(-1) ),xs)
   return(newtable',"/* start of "++show inclfile++" */\n\n"++text++"\n\n/*  end  of "++show inclfile++" */\n"++result)
  
-convert1' f i((table,depth,n,True ,_),(ENDIF ,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth-1,n+1,True ,(-1) ),xs)
+convert1' f i((table,depth,n,True ,_),(ENDIF ,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth-1,n+1,True ,(-1)   ),xs)
+convert1' f i((table,depth,n,True ,_),(ELSE  ,_  ,_):xs) = ('\n':) <$$> convert1' f i((table,depth  ,n+1,False,depth-1),xs)
 convert1' f i((table,depth,n,True ,_),(DEFINE,ide,t):xs)
  | isJust(M.lookup ide table)                            = Left $newErrorMessage (Message$"C macro "++show ide++" is already defined")(newPos (f++"step1'") n 1) 
  | otherwise                                             = ('\n':) <$$> convert1' f i((_tabl,depth  ,n+1,True ,(-1) ),xs)
@@ -154,7 +155,7 @@ replaceBy table str = do
 replaceTokenBy :: Table -> String -> Either ParseError String -- maybe is harder to read than case of; thus rewrite
 replaceTokenBy table x = case M.lookup x table of 
  Nothing -> Right x -- if not macro, no replacement
- Just t  -> replaceBy (M.delete x table) t -- recursion (macro does not expand itself, to ensure that it terminates)
+ Just t  -> replaceBy (M.delete x table) t -- recursion (macro does not expand itself, which ensures that conversion terminates)
 
 
 

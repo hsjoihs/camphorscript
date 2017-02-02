@@ -1,0 +1,8 @@
+
+
+
+#ifdef ABC
+	char abc;
+#else
+	char def;
+#endif

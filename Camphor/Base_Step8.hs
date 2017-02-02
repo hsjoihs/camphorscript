@@ -21,6 +21,5 @@ parser8 :: Stream s m Char => ParsecT s u m [String]
 parser8 = many char'
  where char' = strP (oneOf "+-<>[],.") <|> (noneOf "+-<>[],." >> return "")
  
-
 convert8 :: [String] -> String
 convert8 = concat

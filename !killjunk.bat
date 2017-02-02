@@ -8,7 +8,7 @@ exit
 
 :start 
 echo.
-for /F "usebackq" %%i in (`dir /s /b *.hi *.o te*.log`) do ( 
+for /F "usebackq" %%i in (`dir /s /b *.hi *.o `) do ( 
 echo deleted %%i 
 del %%i  )
 exit /b
