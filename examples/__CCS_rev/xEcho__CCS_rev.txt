@@ -1,0 +1,6 @@
+char v_0;char v_1;
+v_0+=1;
+while(v_0){
+	write(v_1);
+	read(v_1);
+}

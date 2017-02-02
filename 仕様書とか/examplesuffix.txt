@@ -5,6 +5,8 @@ BF_i	indented brainf*ck created by ccsrc -C88
 CS	CamphorScript
 PCS     PreprocessedCamphorScript
 CCS	CompiledCamphorScript
+CCS_rev	CompiledCamphorScript created by ccsrc -C84
+
 
 ND	NouDarake
 ND_rev	NouDarake created by ccsrc -C87

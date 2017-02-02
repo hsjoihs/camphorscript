@@ -13,14 +13,16 @@ call bat\setlogname testresult
 type nul > %LOG% 
 if exist %FAIL% del %FAIL%
 
-for /F "usebackq eol=; delims=" %%i in (`type bat\C48list.txt`)  do ( call :tester ccsc  -C48 CCS      BF_c   C48test  %%i )
-for /F "usebackq eol=; delims=" %%i in (`type bat\C88list1.txt`) do ( call :tester ccsc  -C88 BF       BF_c   C88test  %%i )
-for /F "usebackq eol=; delims=" %%i in (`type bat\C88list2.txt`) do ( call :tester ccsc  -C88 BF_i     BF_c   C88test_ %%i )
-for /F "usebackq eol=; delims=" %%i in (`type bat\C78list1.txt`) do ( call :tester ccsc  -C78 ND       BF_c   C78test  %%i )
-for /F "usebackq eol=; delims=" %%i in (`type bat\C78list2.txt`) do ( call :tester ccsc  -C78 ND_rev   BF_c   C78test_ %%i )
-for /F "usebackq eol=; delims=" %%i in (`type bat\Elist.txt`)    do ( call :tester ccsc  -E   CS       PCS    C11test  %%i )
-for /F "usebackq eol=; delims=" %%i in (`type bat\R88list.txt`)  do ( call :tester ccsrc -C88 BF_c     BF_i   R88test  %%i )
-for /F "usebackq eol=; delims=" %%i in (`type bat\R87list.txt`)  do ( call :tester ccsrc -C87 BF_c     ND_rev R88test  %%i )
+for /F "usebackq eol=; delims=" %%i in (`type bat\C48list.txt`)  do ( call :tester ccsc  -C48 CCS      BF_c    C48test  %%i )
+for /F "usebackq eol=; delims=" %%i in (`type bat\C48list2.txt`) do ( call :tester ccsc  -C48 CCS_rev  BF_c    C48test_ %%i )
+for /F "usebackq eol=; delims=" %%i in (`type bat\C88list1.txt`) do ( call :tester ccsc  -C88 BF       BF_c    C88test  %%i )
+for /F "usebackq eol=; delims=" %%i in (`type bat\C88list2.txt`) do ( call :tester ccsc  -C88 BF_i     BF_c    C88test_ %%i )
+for /F "usebackq eol=; delims=" %%i in (`type bat\C78list1.txt`) do ( call :tester ccsc  -C78 ND       BF_c    C78test  %%i )
+for /F "usebackq eol=; delims=" %%i in (`type bat\C78list2.txt`) do ( call :tester ccsc  -C78 ND_rev   BF_c    C78test_ %%i )
+for /F "usebackq eol=; delims=" %%i in (`type bat\Elist.txt`)    do ( call :tester ccsc  -E   CS       PCS     C11test  %%i )
+for /F "usebackq eol=; delims=" %%i in (`type bat\R88list.txt`)  do ( call :tester ccsrc -C88 BF_c     BF_i    R88test  %%i )
+for /F "usebackq eol=; delims=" %%i in (`type bat\R87list.txt`)  do ( call :tester ccsrc -C87 BF_c     ND_rev  R87test  %%i )
+for /F "usebackq eol=; delims=" %%i in (`type bat\R84list.txt`)  do ( call :tester ccsrc -C84 BF_c     CCS_rev R84test  %%i )
 
 
 

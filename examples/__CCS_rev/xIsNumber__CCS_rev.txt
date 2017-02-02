@@ -1,0 +1,75 @@
+char v_0;char v_1;char v_2;char v_3;char v_4;char v_5;char v_6;
+v_0+=6;
+while(v_0){
+	v_1+=8;
+	v_0-=1;
+}
+v_1-=1;
+read(v_2);
+while(v_1){
+	while(v_2){
+		v_3+=1;
+		v_4+=1;
+		v_2-=1;
+	}
+	while(v_4){
+		v_2+=1;
+		v_4-=1;
+	}
+	while(v_3){
+		while(v_3){
+			v_3-=1;
+		}
+		v_2-=1;
+	}
+	v_1-=1;
+}
+while(v_2){
+	v_3+=1;
+	v_4+=1;
+	v_2-=1;
+}
+while(v_4){
+	v_2+=1;
+	v_4-=1;
+}
+while(v_2){
+	while(v_2){
+		v_2-=1;
+	}
+	v_4+=11;
+}
+while(v_3){
+	while(v_4){
+		v_5+=1;
+		v_6+=1;
+		v_4-=1;
+	}
+	while(v_6){
+		v_4+=1;
+		v_6-=1;
+	}
+	while(v_5){
+		while(v_5){
+			v_5-=1;
+		}
+		v_4-=1;
+	}
+	v_3-=1;
+}
+while(v_4){
+	while(v_4){
+		v_4-=1;
+	}
+	v_5+=10;
+	while(v_5){
+		v_6+=11;
+		v_5-=1;
+	}
+	write(v_6);
+	v_6+=7;write(v_6);
+	v_6-=8;write(v_6);
+	v_6-=11;write(v_6);
+	v_6+=3;write(v_6);
+	v_6+=13;write(v_6);
+}

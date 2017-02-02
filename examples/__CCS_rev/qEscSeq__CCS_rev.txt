@@ -1,0 +1,5 @@
+char v_0;char v_1;char v_2;char v_3;
+v_0+=10;write(v_0);
+v_1+=9;write(v_1);
+v_2+=92;write(v_2);
+v_3+=39;write(v_3);

@@ -22,7 +22,7 @@ step4_R str= do
  convert4_R parsed
 
 convert4_R :: [Chunk] -> Either ParseError String
-convert4_R cs = convert4_R' (0,S.empty) cs
+convert4_R cs = ((header cs++"\n")++) <$> convert4_R' (0,S.empty) cs
 
 getVarName :: Address -> Ident
 getVarName = ("v_" ++) . show 
@@ -33,10 +33,8 @@ convert4_R' :: Stat -> [Chunk] -> Either ParseError String
 convert4_R' _      []               = Right ""
 convert4_R' (v,set)(A(INC ,num):cs) = ((getVarName v++"+="++show num++";")++) <$> convert4_R' (v,set) cs
 convert4_R' (v,set)(A(DEC ,num):cs) = ((getVarName v++"-="++show num++";")++) <$> convert4_R' (v,set) cs
-convert4_R' (_,set)(A(MOV ,num):cs) 
- | num `S.member` set               = convert4_R' (num,set) cs
- | otherwise                        = (("char "  ++getVarName num++";")++)    <$> convert4_R' (num,S.insert num set) cs
-convert4_R' (v,set)(A(ASR ,num):cs) = (("delete "++getVarName v++";")++)      <$> convert4_R' (v,S.delete num set) cs 
+convert4_R' (_,set)(A(MOV ,num):cs) =                                             convert4_R' (num,set) cs
+convert4_R' (v,set)(A(ASR ,_  ):cs) =                                             convert4_R' (v,set) cs 
 convert4_R' (v,set)(B LOOP     :cs) = (("while(" ++getVarName v++"){")++)     <$> convert4_R' (v,set) cs
 convert4_R' (v,set)(B POOL     :cs) = ("}"++)                                 <$> convert4_R' (v,set) cs
 convert4_R' (v,set)(B IN       :cs) = (("read("  ++getVarName v++ ");")++)    <$> convert4_R' (v,set) cs
@@ -44,3 +42,6 @@ convert4_R' (v,set)(B OUT      :cs) = (("write(" ++getVarName v++ ");")++)    <$
 convert4_R' (v,set)(C(NUL ,sp ):cs) 
  | all (`elem` " \t\n\r") sp        = (sp++)                                  <$> convert4_R' (v,set) cs
  | otherwise                        = (("/*" ++sp++ "*/")++)                  <$> convert4_R' (v,set) cs
+ 
+header :: [Chunk] -> String
+header cs = (\x -> "char "++getVarName x++";") =<< (S.toList . S.fromList) (0:[ num | A(MOV,num) <- cs])
