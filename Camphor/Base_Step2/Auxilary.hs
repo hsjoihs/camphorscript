@@ -115,10 +115,10 @@ canBeLeftOf pos (InfixL _ nm1) (InfixR _ nm2) = __mixed pos nm1 nm2
 canBeLeftOf _   (InfixL _ _  ) (InfixL _ _  ) = Right()
 
 __mkmsg :: SourcePos -> Oper -> Oper -> Either ParseError a
-__mkmsg pos nm1 nm2 = Left $ newErrorMessage(Message$"operator "++show nm2++" has smaller fixity than its outer operator "++nm1)pos
+__mkmsg pos nm1 nm2 = Left $ newErrorMessage(Message$"operator "++show (unOp nm2)++" has smaller fixity than its outer operator "++show (unOp nm1))pos
  
 __mixed :: SourcePos -> Oper -> Oper -> Either ParseError a
-__mixed pos nm1 nm2 = Left $ newErrorMessage(Message$"operator "++show nm1++" and operator "++show nm2++" has opposite fixity and thus cannot coexist")pos  
+__mixed pos nm1 nm2 = Left $ newErrorMessage(Message$"operator "++show (unOp nm1)++" and operator "++show (unOp nm2)++" has opposite fixity and thus cannot coexist")pos  
   
 toIdentList :: TypeList -> [Ident]
 toIdentList (S.SepList((_,t),xs)) = t:[x|(_,(_,x))<-xs]

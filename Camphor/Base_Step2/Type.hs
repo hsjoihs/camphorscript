@@ -20,7 +20,7 @@ data MacroId = Func Ident (TypeList,Sent) | Operator Oper (TypeList,TypeList,Sen
 type VFList = M.Map Ident VFInfo
 type OpList = M.Map Oper OpInfo
 data UserState = UserState VFList OpList
-
+ 
 -- Auxilary
 type NonEmptyValue = (Value,NonEmpty (Oper,Value))
 type ReplTable = M.Map Ident Value

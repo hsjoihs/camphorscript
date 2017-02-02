@@ -6,6 +6,6 @@
 
 
 
-char if1;if1 += '1'; write(if1);
+char if1;if1 +='1'; write(if1);
 
 

@@ -102,7 +102,8 @@ convert2 stat (Single(_,Call1 name valuelist):Block ys:xs) = do -- FIXME: does n
  left <- convert2 stat (Block ys:xs)
  return$ showCall name valuelist ++ left
   where 
-   showCall nm (SepList(v,ovs)) = nm ++ "(" ++ show' v ++ concat[ o2 ++ show' v2 | (o2,v2) <- ovs ] ++ ")"
+   showCall :: Ident -> ValueList -> String
+   showCall nm (SepList(v,ovs)) = nm ++ "(" ++ show' v ++ concat[ (unOp o2) ++ show' v2 | (o2,v2) <- ovs ] ++ ")"
   
 --- (val [op val])op(val [op val]);
 convert2 stat (Single(pos,Call2 op valuelist1 valuelist2):xs) = do

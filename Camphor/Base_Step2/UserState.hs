@@ -11,7 +11,6 @@ import Camphor.SepList
 import Camphor.Base_Step2.Type
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Camphor.Global.Synonyms
-import Camphor.Global.Utilities
 import qualified Data.Map as M
 
 isInfixL :: Fixity -> Bool
@@ -34,7 +33,7 @@ instance PrettyPrint Value where
  
 -- (Type, Ident, [(Oper, Type, Ident)]) 
 instance PrettyPrint TypeList where
- show' (SepList((typ, ident), xs)) = show' typ ++ " " ++ ident ++ " " ++ concatMap (\(o,(t,i)) -> o ++ " " ++ show' t ++ " " ++ i ++ " ") xs
+ show' (SepList((typ, ident), xs)) = show' typ ++ " " ++ ident ++ " " ++ concatMap (\(o,(t,i)) -> unOp o ++ " " ++ show' t ++ " " ++ i ++ " ") xs
  
 instance PrettyPrint Type where
  show' CNSTNT_CHAR = "constant char"
@@ -43,7 +42,7 @@ instance PrettyPrint Type where
  
 instance PrettyPrint MacroId where
  show' (Func ident (typelist,_)) = "function "++ident++"("++show' typelist++"){ .. }"
- show' (Operator oper (typelist1,typelist2,_)) = "operator ("++oper++")("++show' typelist1++";"++show' typelist2++"){ .. }"
+ show' (Operator oper (typelist1,typelist2,_)) = "operator ("++unOp oper++")("++show' typelist1++";"++show' typelist2++"){ .. }"
 
 
 
@@ -89,7 +88,7 @@ matches (SepList(val,ovs)) (SepList((typ,_),otis))
  | otherwise                    = False
  where 
   zipMatch :: [(Oper,Value)] -> [(Oper,(Type,a))] -> [Bool]
-  zipMatch = zipWith (\(op2,val2)(op3,(typ3,_)) -> remSpace op2 == remSpace op3 && val2 `isTypeof` typ3)
+  zipMatch = zipWith (\(op2,val2)(op3,(typ3,_)) -> op2 == op3 && val2 `isTypeof` typ3)
 
 isTypeof :: Value -> Type -> Bool
 isTypeof _            CONST_CHAR  = True

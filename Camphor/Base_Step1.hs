@@ -197,7 +197,7 @@ token = tIdentifier <|> tComment <|> tComment2 <|> tOperator <|> -- Comm first, 
  where
   tIdentifier = identifier
   tNumeral    = try(many1 digit)
-  tOperator   = operator
+  tOperator   = unOp <$> operator
   tChar       = try(char '\'' <:> noneOf "'" <:> string "'"   )
   tString     = try(char '"'  <:> many(noneOf "\"") <++> string "\"")
   tSpecial    = strP $ oneOf "#$().;{\\}[]"

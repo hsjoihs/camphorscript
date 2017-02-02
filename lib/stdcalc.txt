@@ -25,7 +25,7 @@ void (+=)(char& a;char& b){
 	delete c;
 }
 
-void (-=|~)(char& a;char& b){
+void (-|=~)(char& a;char& b){
 	/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
 	char c;char d;
 	while(b)

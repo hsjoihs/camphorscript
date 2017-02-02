@@ -15,7 +15,6 @@ import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,s
 import Text.Parsec 
 import Camphor.Base_Step2.PCS_Parser
 import Data.Functor.Identity
-import Camphor.Global.Utilities
 import Camphor.Global.Synonyms
 
 _nl :: Stream s Identity (SourcePos, Tok) => Parsec s u String
@@ -106,5 +105,5 @@ parseWhen = token showTok2 posFromTok
 _and :: Stream s Identity (SourcePos, Tok) => Parsec s u () 
 _and = parseWhen qqq
  where
-  qqq(_,OP o) = if remSpace o == "&" then Just () else Nothing
+  qqq(_,OP o) = if unOp o == "&" then Just () else Nothing
   qqq(_,_   ) = Nothing
