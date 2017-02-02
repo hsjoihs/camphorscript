@@ -1,0 +1,1 @@
+infixl 5 (++); void(++)(char& a; char& a){ a += 3; } char b; char c; b++c;

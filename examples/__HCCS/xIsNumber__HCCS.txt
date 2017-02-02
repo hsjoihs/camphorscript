@@ -156,12 +156,12 @@ delete b;
 	delete c;
 }  /* using e*/
 
-while(c){{
+while(c){
 	{
 	while(c){c-=1;}
 }
 	e+=11;
-}}
+}
 delete c;
 
 {
@@ -186,7 +186,7 @@ delete c;
 }/*using (f,g)*/
 delete d;
 
-while(e){{
+while(e){
 	{
 	while(e){e-=1;}
 }
@@ -201,4 +201,4 @@ while(e){{
 	g-=11;write(g);
 	g+=3;write(g);
 	g+=13;write(g);
-}}
+}

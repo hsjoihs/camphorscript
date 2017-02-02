@@ -21,6 +21,7 @@ import Text.Parsec
 import Camphor.NonEmpty
 import qualified Data.Map as M
 
+
 getLastPos :: Sent -> SourcePos
 getLastPos (Single(pos,_)) = pos
 getLastPos (Block (p,[])) = p

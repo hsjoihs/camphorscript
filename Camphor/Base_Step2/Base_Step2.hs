@@ -110,13 +110,13 @@ convert2_2 stat (Single(pos,Call2 op valuelist1 valuelist2):xs) = do
  return(newStat2,result ++ left)
 
 --- (val [op val])op val [op val] ; 
-convert2_2 stat (Single(pos,Call3 op  valuelist1 valuelist2):xs) = do
+convert2_2 stat (Single(pos,Call3 op valuelist1 valuelist2):xs) = do
  result <- newK3 pos op valuelist1 valuelist2 stat
  (newStat2,left) <- convert2_2 stat xs
  return(newStat2,result ++ left)
 
 --- [val op] (val [op val]) ; 
-convert2_2 stat (Single(pos,Call4 list  valuelist):xs) = do
+convert2_2 stat (Single(pos,Call4 list valuelist):xs) = do
  result <- newK4 pos list valuelist stat
  (newStat2,left) <- convert2_2 stat xs
  return(newStat2,result ++ left)
@@ -127,7 +127,7 @@ convert2_2 stat (Single(pos,Call5 valuelist):xs) = do
  (newStat2,left) <- convert2_2 stat xs
  return(newStat2,result ++ left)
 {-----------------------------------------------------------
- -                   * end of convert2_2 *                   -
+ -                   * end of convert2_2 *                 -
  -----------------------------------------------------------}
  
 
@@ -200,9 +200,7 @@ replacer mname sent stat table = do
 simplyReplace :: MacroId -> Sent -> UserState -> ReplTable -> Either ParseError Sents
 simplyReplace mname (Single(pos2,ssent)) stat table = do
  newSents <- replacer2 stat (nE mname) pos2 ssent table
- case newSents of 
-  x:|[] -> return $ [Single(pos2,x)]
-  x:|xs -> return $ map (\k->Single(pos2,k))(x:xs)  
+ return $ map (\k->Single(pos2,k))(toList newSents)
  
 simplyReplace mname (Block (p,xs)) stat table = do
  results <- sequence [ simplyReplace mname ssent stat table | ssent <- xs ]

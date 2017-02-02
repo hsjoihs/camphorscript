@@ -41,18 +41,22 @@ newR pos fixity op stat = case getOpContents stat op of
 
 -- Function definition
 newF1 :: SourcePos -> Ident -> TypeList -> Sent -> UserState -> Either ParseError UserState
-newF1 pos name typelist sent stat = case getVFContents stat name of
- Just(Left ())  -> Left $newErrorMessage(Message$"cannot define function "++show name++" because it is already defined as a variable")pos
- Nothing        -> Right$addIdent stat name (Right[(typelist,sent)])
- Just(Right xs) 
-  | any id [ typelist `overlaps` tlist | (tlist,_) <- xs ] -> Left $ newErrorMessage(Message$"type-overlapping definition of function"++show name)pos
-  | otherwise                                              -> return $ addIdent stat name (Right$(typelist,sent):xs)
+newF1 pos name typelist sent stat
+ | typelistIdentConflict typelist = Left $ newErrorMessage(Message$"overlapping parameters of function "++show name)pos
+ | otherwise = case getVFContents stat name of
+  Just(Left ())  -> Left $newErrorMessage(Message$"cannot define function "++show name++" because it is already defined as a variable")pos
+  Nothing        -> Right$addIdent stat name (Right[(typelist,sent)])
+  Just(Right xs) 
+   | any (\(tlist,_) -> typelist `overlaps` tlist) xs   -> Left $ newErrorMessage(Message$"type-overlapping definition of function"++show name)pos
+   | otherwise                                          -> return $ addIdent stat name (Right$(typelist,sent):xs)
  
 -- Operator definition 
 newF2 :: SourcePos -> Oper -> TypeList -> TypeList -> Sent -> UserState -> Either ParseError UserState
 newF2 pos op typelist1 typelist2 sent stat = 
  addOpContents stat op (typelist1,typelist2,sent) $ 
-  (newErrorMessage(Message$"fixity of operator "++show op++" is not defined")pos,newErrorMessage(Message$"type-overlapping definition of operator "++show op)pos)
+  (newErrorMessage(Message$"fixity of operator "++show op++" is not defined")pos,
+  newErrorMessage(Message$"type-overlapping definition of operator "++show op)pos,
+  newErrorMessage(Message$"overlapping parameters of operator "++show op)pos)
    
 getCall5Result :: SourcePos -> NonEmptyValue -> UserState -> Either ParseError (Oper,ValueList,ValueList)
 getCall5Result pos nEvaluelist stat = do

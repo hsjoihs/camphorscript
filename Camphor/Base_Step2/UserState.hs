@@ -8,15 +8,17 @@ module Camphor.Base_Step2.UserState
 ,isInfixL,isInfixR
 ,show',PrettyPrint
 ,addVFBlock,getTopVFBlock,deleteTopVFBlock
-,overlaps
+,overlaps,typelistIdentConflict
 )where
-import Camphor.SepList
+import Camphor.SepList as Sep
 import Camphor.Base_Step2.Type
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Camphor.Global.Synonyms
+import Camphor.Global.Utilities
 import qualified Data.Map as M
 import Text.Parsec.Pos(newPos)
 import Camphor.NonEmpty as NE
+
 
 data Fixity = InfixL Integer Oper | InfixR Integer Oper deriving(Show,Eq) 
 type VFInfo = Either () [(TypeList, Sent)]
@@ -37,6 +39,9 @@ overlaps (SepList ((typ,_),xs)) (SepList ((typ2,_),xs2))
   CHAR_AND    `clashesWith` CNSTNT_CHAR   = False 
   _           `clashesWith` _             = True
 
+typelistIdentConflict :: TypeList -> Bool
+typelistIdentConflict = conflict . map snd . Sep.toList
+  
 isInfixL :: Fixity -> Bool
 isInfixL (InfixL _ _) = True
 isInfixL (InfixR _ _) = False
@@ -103,7 +108,6 @@ addVFBlock (UserState vflist oplist) = UserState (M.empty `cons` vflist) oplist
 getTopVFBlock :: UserState -> M.Map Ident VFInfo
 getTopVFBlock (UserState (vf:|_) _) = vf
 
-
 deleteTopVFBlock :: UserState -> e -> Either e UserState
 deleteTopVFBlock (UserState (_:|[]) _) e = Left e
 deleteTopVFBlock (UserState (_:|(vf2:vfs)) oplist) _ = Right$(UserState (vf2:|vfs) oplist)
@@ -125,17 +129,19 @@ addOpFixity :: UserState -> Fixity -> UserState
 addOpFixity (UserState vflist oplist) fixity = 
  UserState vflist (M.insert (getOpName fixity) (fixity,[]) oplist)
  
-addOpContents :: UserState -> Oper -> (TypeList,TypeList,Sent) -> (e,e) -> Either e UserState
-addOpContents stat@(UserState vflist oplist) op (typelist1,typelist2,sent) (notfound,doubledefine) = case getOpContents stat op of
+addOpContents :: UserState -> Oper -> (TypeList,TypeList,Sent) -> (e,e,e) -> Either e UserState
+addOpContents stat@(UserState vflist oplist) op (typelist1,typelist2,sent) (notfound,doubledefine,doubleparam) = case getOpContents stat op of
  Nothing -> Left notfound
- Just(fix,list) -> do
-  newlist <- newlist' doubledefine
-  return $ UserState vflist (M.insert op (fix,newlist) oplist)
-  where 
-   newlist' :: e -> Either e [(TypeList,TypeList,Sent)]
-   newlist' e 
-    | any id [ typelist1 `overlaps` tlist1 && typelist2 `overlaps` tlist2 | (tlist1,tlist2,_) <- list ] = Left e
-    | otherwise = Right $ (typelist1,typelist2,sent):list
+ Just(fix,list)
+  | conflict $ map snd $ Sep.toList typelist1 ++ Sep.toList typelist2 -> Left doubleparam
+  | otherwise -> do
+   newlist <- newlist' doubledefine
+   return $ UserState vflist (M.insert op (fix,newlist) oplist)
+   where 
+    newlist' :: e -> Either e [(TypeList,TypeList,Sent)]
+    newlist' e  
+     | any id [ typelist1 `overlaps` tlist1 && typelist2 `overlaps` tlist2 | (tlist1,tlist2,_) <- list ] = Left e
+     | otherwise = Right $ (typelist1,typelist2,sent):list
 
  
 containsOp :: UserState -> Oper -> Bool

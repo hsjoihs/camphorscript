@@ -2,7 +2,7 @@
  *↓Step1(C的マクロ展開)     			{- C macro expansion -}
 PreprocessedCamphorScript
   ↓Step2(関数的マクロ展開)  			{- Functional macro expansion -}
-HalfwayCompiledCamphorScript
+Half-CompiledCamphorScript
   ↓Step3-I(糖衣構文プリプロセス)			{- Desugaring -}
 CompiledCamphorScript
  *↓Step3-II(逐語訳&ブロック削除)		{- translation -}
