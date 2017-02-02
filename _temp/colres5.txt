@@ -1,0 +1,14 @@
+  
+
+
+char a; char b; char c;
+{
+	char c__TMP_1;
+	write(a); b+=42; write(c__TMP_1);
+	delete c__TMP_1;
+}
+{
+	char c__TMP_1;
+	write(b); c__TMP_1+=42; write(c__TMP_1);
+	delete c__TMP_1;
+}

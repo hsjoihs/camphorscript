@@ -25,7 +25,7 @@ import Data.Monoid
  
 step2 ::  FilePath -> Txt -> Either ParseError Txt
 step2 file txt = do
- xs <- parse parser2'  (file ++ "-step2"  ) txt
+ xs <- parse parser2'  (file ++ "-step2") txt
  ys <- runParser parser2_2 [] (file ++ "-step2-2") xs
  zs <- convert ys
  return zs
@@ -159,9 +159,9 @@ newK5 _   (SepList(Constant _,[]))      = return "" -- 123; is a nullary sentenc
 newK5 pos (SepList(Var ident ,[]))      = do
  stat <- ask
  case getVFContents stat ident of
-  Nothing        -> err$newErrorMessage(Message$"identifier "++showStr(unId ident)++" is not defined")pos 
+  Nothing        -> err$newErrorMessage(Message$"identifier "++showIdent ident++" is not defined")pos 
   Just(East ())  -> return ""
-  Just(West _ )  -> err$newErrorMessage(Message$"cannot use variable "++showStr(unId ident)++" because it is already defined as a function")pos  
+  Just(West _ )  -> err$newErrorMessage(Message$"cannot use variable "++showIdent ident++" because it is already defined as a function")pos  
 
 newK5 pos (SepList(x,ov:ovs)) = do
  stat <- ask
@@ -182,7 +182,7 @@ replaceOpMacro pos op valuelist1 valuelist2
 --- macro-replacing function for operator   
 replaceFuncMacro :: SourcePos -> Ident2 -> ValueList -> ReaderT UserState (Either ParseError) Txt   
 replaceFuncMacro pos ident valuelist  
- | valuelistIdentConflict valuelist = err$newErrorMessage(Message$"overlapping arguments of function "++showStr(unId ident))pos 
+ | valuelistIdentConflict valuelist = err$newErrorMessage(Message$"overlapping arguments of function "++showIdent ident)pos 
  | otherwise = do
   stat <- ask
   instnce <- lift $ getInstanceOfCall1 pos ident valuelist stat
@@ -207,14 +207,13 @@ replacer mname sent table = do
  lift $ convert2 stat result -- FIXME:: state of convert2 not passed
  
 simplyReplace :: MacroId -> Sent2 -> ReplTable -> ReaderT UserState (Either ParseError) Sents
-simplyReplace mname sent table = ReaderT $ \stat -> evalStateT (simplyReplaceRVC mname sent stat table) (M.empty,getTmp stat)
+simplyReplace mname sent table = ReaderT $ \stat -> evalStateT (simplyReplaceRVC mname sent stat table) (M.empty:|[],getTmp stat,())
  
 -- simplyReplaceRegardingVariableCollision 
-simplyReplaceRVC :: MacroId -> Sent2 -> UserState -> ReplTable -> StateT (CollisionTable,Maybe TmpStat) (Either ParseError) Sents
+simplyReplaceRVC :: MacroId -> Sent2 -> UserState -> ReplTable -> StateT (CollisionTable,Maybe TmpStat,()) (Either ParseError) Sents
 simplyReplaceRVC mname (Single pos2 ssent) stat table = do
  newSents <- replacer3 (clearTmp stat) (nE mname) pos2 ssent table
- let result = toSents pos2 newSents
- return result
+ return newSents
  
 simplyReplaceRVC mname (Block p xs) stat table = do
  results <- forM xs (\ssent -> simplyReplaceRVC mname ssent stat table) 

@@ -33,7 +33,7 @@ data UserState = UserState VFList OpList (Maybe TmpStat) deriving(Show)
 type VFInfo = Between () [VFInstance]
 
 getName :: MacroId -> String
-getName (Func ident _) = showStr(unId ident)
+getName (Func ident _) = showIdent ident
 getName (Operator oper _ ) = unOp oper
 
 overlaps :: TypeList -> TypeList -> Bool

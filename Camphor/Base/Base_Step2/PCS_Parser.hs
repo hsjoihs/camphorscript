@@ -80,7 +80,7 @@ _op      = do{p <- getPosition; x <- operator;return(p,OP x)}
 showTok :: Tok -> String
 showTok  CHAR     = "token "     ++showStr "char"
 showTok  DELETE   = "token "     ++showStr "delete"
-showTok (IDENT i) = "identifier "++showStr(unId i)
+showTok (IDENT i) = "identifier "++showIdent i
 showTok (NUM n)   = "number "    ++showNum n
 showTok  PAREN    = "token "     ++showStr "("
 showTok  NERAP    = "token "     ++showStr ")"

@@ -1,0 +1,58 @@
+#include <stdcalc>
+infixr 5 (+<-~); infixr 5 (+<--~); infixr 5 (<-~); infixl 40 (/); infixr 5 (-|=);
+void (-|=) (char& a; const char N)
+{
+	char b; b+=N;
+	a -|=~ b;
+	delete b;
+}
+
+void (+=)(char&a,char&b;char&c){
+	char d; 
+	d += c;
+	(a,b) +=~ d;
+	delete d;
+}
+
+void (+<-~) (char& quot, char& rem; char& a / const char N)
+{
+	char orig; char new_; char not_; char tmp; char tmp2;
+	while(a)
+	{
+		/*# MEMORY using tmp #*/ orig += a;  //copy the current `a` to `orig`
+		/*# MEMORY using tmp #*/ a -|= N;  // subtract `N` from `a`
+		/*# MEMORY using tmp #*/(tmp2,new_) += a; // make two copies of `a`
+		not_ += ! ~tmp2;  // `not = !a`
+		
+		while(new_){clear(new_); quot+=1;} // `if(a){quot+=1;}`
+		while(not_){not_-=1; rem+= orig;} // `else{rem += orig;}
+		clear(orig);
+	}
+	delete orig; delete new_; delete not_; delete tmp; delete tmp2;
+}
+
+void sprint(char& x1, char& x2, char& x3 +<-~ char& a)
+{
+	char k;
+	(k,x3)+ <- ~a/10;
+	(x1,x2)+ <- ~k/10;
+	delete k;
+}
+
+void (+<--~) (char& quot, char& rem; char& a / const char N)
+{
+	char orig; char a3; char not_; char tmp; char a2;
+	while(a)
+	{
+		(tmp,orig) +=~ a; a +=~ tmp;
+		a -|= N;
+		(a2,a3) += a;
+		
+		not_ += 1;
+		while(a2){clear(a2); quot+=1;}
+		while(a3){clear(a3); clear(not_);}		
+		while(not_){not_-=1; rem+= orig;} 
+		clear(orig);
+	}
+	delete orig; delete a3; delete not_; delete tmp; delete a2;
+}

@@ -128,16 +128,16 @@ read(c);
 	/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
 	/*char d;*//*char e;*/
 	while(b){
-		
+		{
 	while(c){d+=1;e+=1;c-=1;}
-
-		   
+}
+		   {
 	while(e){c+=1;e-=1;}
-
+}
 		while(d){
-			
+			{
 	while(d){d-=1;}
-
+}
 			c-=1;
 		}
 		b-=1;
@@ -147,12 +147,12 @@ read(c);
 delete b;
    {
 	/*char e;*/
-	
+	{
 	while(c){d+=1;e+=1;c-=1;}
-
-	
+}
+	{
 	while(e){c+=1;e-=1;}
-
+}
 	/*delete e;*/
 }  
 
@@ -168,16 +168,16 @@ delete c;
 	/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
 	/*char f;*//*char g;*/
 	while(d){
-		
+		{
 	while(e){f+=1;g+=1;e-=1;}
-
-		   
+}
+		   {
 	while(g){e+=1;g-=1;}
-
+}
 		while(f){
-			
+			{
 	while(f){f-=1;}
-
+}
 			e-=1;
 		}
 		d-=1;

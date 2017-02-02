@@ -1,0 +1,27 @@
+  
+	
+
+
+char q; char r; char a;
+a+=35;
+{
+	/*func begins*/
+	char b__TMP_1; b__TMP_1+=10;
+	
+    /*func2 begins*/
+	char d2__TMP_1;
+	
+	while(b__TMP_1){
+    /*func3 begins*/
+	while(a){b__TMP_1+=1;a-=1;}
+	/*func3 ends*/
+ b__TMP_1-=1;}
+	
+	while(d2__TMP_1){d2__TMP_1-=1;}
+	delete d2__TMP_1;
+	/*func2 ends*/
+
+	while(b__TMP_1){b__TMP_1-=1;}
+	delete b__TMP_1;
+	/*func ends*/
+}

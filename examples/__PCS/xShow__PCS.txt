@@ -1,0 +1,296 @@
+/*# LINE start "lib\\stdcalc.txt" #*/
+
+
+
+/*# LINE start "lib\\fixdecl.txt" #*/
+
+
+
+infixl  0 (,);
+infixr  5 (=);    infixr  5 (+=);  infixr  5 (-=); 
+infixr  5 (=~);   infixr  5 (+=~); infixr  5 (-=~);
+infixr  5 (+=!~); infixr  5 (=!~); infixr  5 (-|=); infixr 5 (-|=~);
+infixl 35 (+); infixl 35 (-) ; infixl 35 (+~); infixl 35 (-~) ;
+infixl 40 (*); infixl 40 (%) ; infixl 40 (*~) ; 
+/* infixl 40 (/) ; infixl 40 (/~) ; */   
+
+
+
+/*# LINE end   "lib\\fixdecl.txt" #*/
+
+
+/* a=0; */
+void clear(char&a) {
+	while(a){a-=1;}
+}
+
+void (=)(char&a;constant char N){
+	clear(a);a+=N;
+}
+
+
+/*# LINE start "lib\\eq_til.txt" #*/
+
+
+
+/*# LINE start "lib\\fixdecl.txt" #*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*# LINE end   "lib\\fixdecl.txt" #*/
+void (+=~)(char&a;char&z){
+	while(z){a+=1;z-=1;}
+}	/* a+= ~z */
+
+void (+=~)(char&a,char&b;char&z){
+	while(z){a+=1;b+=1;z-=1;}
+}	/* (a,b)+= ~z*/
+
+void (+=~)(char&a;char&z *constant char N){
+	while(z){a+=N;z-=1;}
+}	/* a+= ~z_star_N */
+
+
+void (-=~)(char&a;char&z){
+	while(z){a-=1;z-=1;}
+}	/* a-= ~z */
+
+void (-=~)(char&a,char&b;char&z){
+	while(z){a-=1;b-=1;z-=1;}
+}	/* (a,b)-= ~z*/
+
+void (-=~)(char&a;char&z *constant char N){
+	while(z){a-=N;z-=1;}
+}	/* a-= ~z_star_N */
+
+
+void (=~)(char&a;char&z){
+	clear(a);
+	a+=~z;
+}	/* a= ~z */
+
+void (=~)(char&a,char&b;char&z){
+	clear(a);clear(b);
+	(a,b)+=~z;
+}	/* (a,b)= ~z*/
+
+void (=~)(char&a;char&z *constant char N){
+	clear(a);
+	a+=~z*N;
+}	/* a= ~z_star_N */
+
+
+
+/*# LINE end   "lib\\eq_til.txt" #*/
+
+/*# LINE start "lib\\eq_bang_til.txt" #*/
+
+
+
+/*# LINE start "lib\\fixdecl.txt" #*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*# LINE end   "lib\\fixdecl.txt" #*/
+void (+=!~)(char&a;char&z){
+	a+=1;
+	while(z){clear(z);a-=1;}
+}	/* a+= !~z*/
+
+void (+=!~)(char&a,char&b;char&z){
+	a+=1; b+=1;
+	while(z){clear(z);a-=1;b-=1;}
+}	/* (a,b)+= !~z*/
+
+void (=!~)(char&a;char&z){
+	clear(a); a+=!~z;
+}	/* a= !~z*/
+
+void (=!~)(char&a,char&b;char&z){
+	clear(a); clear(b); (a,b)+=!~z;
+}	/* (a,b)= !~z*/
+
+
+
+/*# LINE end   "lib\\eq_bang_til.txt" #*/
+
+
+void (+=)(char&a;char&b){
+	char c2;
+	(a,c2)+=~b;
+	b+=~c2;
+	delete c2;
+}
+
+void (+=)(char&a;constant char N *~char&z){
+	while(z){a+=N;z-=1;}
+}	/* a+= ~z_star_N */
+
+void (-|=~)(char&a;char&b){
+	/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
+	char c2;char d2;
+	while(b)
+	{
+		(c2,d2)+=~a;
+		   a +=~d2;
+		while(c2){
+			clear(c2);
+			a-=1;
+		}
+		b-=1;
+	}
+	delete c2;delete d2;
+}
+
+
+
+
+
+
+
+
+/*# LINE end   "lib\\stdcalc.txt" #*/
+/*# LINE start "lib\\div.txt" #*/
+
+/*# LINE start "lib\\stdcalc.txt" #*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*# LINE end   "lib\\stdcalc.txt" #*/
+infixr 5 (+<-~); infixr 5 (+<--~); infixr 5 (<-~); infixl 40 (/); infixr 5 (-|=);
+void (-|=) (char&a; const char N)
+{
+	char b; b+=N;
+	a -|=~b;
+	delete b;
+}
+
+void (+=)(char&a,char&b;char&c){
+	char d; 
+	d +=c;
+	(a,b) +=~d;
+	delete d;
+}
+
+void (+<-~) (char&quot,char&rem; char&a /const char N)
+{
+	char orig; char new_; char not_; char tmp; char tmp2;
+	while(a)
+	{
+		/*# MEMORY using tmp #*/ orig +=a;  /*copy the current `a` to `orig`*/
+		/*# MEMORY using tmp #*/ a -|=N;  /* subtract `N` from `a`*/
+		/*# MEMORY using tmp #*/(tmp2,new_) +=a; /* make two copies of `a`*/
+		not_ +=!~tmp2;  /* `not = !a`*/
+		
+		while(new_){clear(new_); quot+=1;} /* `if(a){quot+=1;}`*/
+		while(not_){not_-=1; rem+=orig;} /* `else{rem += orig;}*/
+		clear(orig);
+	}
+	delete orig; delete new_; delete not_; delete tmp; delete tmp2;
+}
+
+void sprint(char&x1,char&x2,char&x3 +<-~char&a)
+{
+	char k;
+	(k,x3)+<-~a/10;
+	(x1,x2)+<-~k/10;
+	delete k;
+}
+
+void (+<--~) (char&quot,char&rem; char&a /const char N)
+{
+	char orig; char a3; char not_; char tmp; char a2;
+	while(a)
+	{
+		(tmp,orig) +=~a; a +=~tmp;
+		a -|=N;
+		(a2,a3) +=a;
+		
+		not_ +=1;
+		while(a2){clear(a2); quot+=1;}
+		while(a3){clear(a3); clear(not_);}		
+		while(not_){not_-=1; rem+=orig;} 
+		clear(orig);
+	}
+	delete orig; delete a3; delete not_; delete tmp; delete a2;
+}
+
+
+/*# LINE end   "lib\\div.txt" #*/
+char a;char b; char c; char d;
+read(a);
+b +=48; c +=48; d +=48;
+sprint(b,c,d +<-~a);
+write(b);write(c);write(d);

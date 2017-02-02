@@ -8,7 +8,7 @@ module Camphor.Base.Base_Step2.Type
 ,PragmaData,ParserState
 ,Upgrade(..),Extra,Sent,Sent2,Sents,TypeList,ValueList,SimpleSent(..),Fixity(..),isVar,TmpStat
 ,Ident2(),toIdent2,unId,SimpleSent2(..),toSimpleSent2,toSent2
-,bbbb,aaaa,nnnn,readI,writeI,tmpIdent
+,bbbb,aaaa,nnnn,readI,writeI,tmpIdent,showIdent
 )where
 import Camphor.Global.Synonyms
 import Camphor.SafePrelude 
@@ -21,39 +21,12 @@ import qualified Data.Map as M
 import Data.Char 
 
 
-ident_parser :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
-ident_parser   = do
- p <- getPosition
- x <- identifier
- return(p,IDENT(Ident2 x))
-
-bbbb, aaaa, nnnn, readI, writeI :: Ident2
-bbbb = Ident2 "bbbb"
-aaaa = Ident2 "aaaa"
-nnnn = Ident2 "NNNN"
-readI = Ident2 "read"
-writeI = Ident2 "write"
-
-tmpIdent :: Ident2 -> Integer -> Ident2
-tmpIdent ident n = Ident2(unId ident ++ "__TMP_" ++ showNum n)
-
-
-newtype Ident2 = Ident2{ unId :: String} deriving(Show,Ord,Eq)
-
-
-toIdent2 :: String -> Either String Ident2
-toIdent2 "" = Left ""
-toIdent2 i@(x:xs) = maybeToEither i $ do
- guard $ (isAlpha x || x == '_')
- guard $ null[ a | a <- xs, not (isAlphaNum a), a /= '_']
- guard $ i `notElem` ["char","delete","infixl","infixr","void","constant","const" ]
- return(Ident2 i)
-
+newtype Ident2 = Ident2{unId :: String} deriving(Show,Ord,Eq)
 
 -- Auxilary
 type NonEmptyValue = (Value,NonEmpty (Oper,Value))
 type ReplTable = M.Map Ident2 Value
-type CollisionTable = M.Map Ident2 (Ident2,Bool) -- bool : is this variable defined by the `using' pragma?
+type CollisionTable = NonEmpty (M.Map Ident2 (Ident2,Bool)) -- bool : is this variable defined by the `using' pragma?
 
 -- Base_Step2_2
 data Upgrade a b = Single a b | Block a [Upgrade a b] deriving(Show,Eq)
@@ -63,11 +36,6 @@ type Sents = [Sent]
 type TypeList = SepList Oper (Type,Ident2)
 type ValueList = SepList Oper Value
 type Sent2 = Upgrade Extra SimpleSent2
-
-toSent2 :: Sent -> Sent2
-toSent2 (Single a b) = Single a (toSimpleSent2 b)
-toSent2 (Block a xs) = Block a (map toSent2 xs)
-
 data SimpleSent =
  Scolon | Char Ident2 |   Del Ident2   |   Sp String   | Comm String |
  Pragma PragmaData   | Infl Fix Oper | Infr Fix Oper | 
@@ -91,6 +59,57 @@ data SimpleSent2 =
  R_Call5 ValueList  | R_Call3 Oper ValueList ValueList   |  R_Call4 [(Value,Oper)] ValueList |
  R_Pleq Value Value | R_Mneq Value Value |   R_Rd Value    |  R_Wrt Value  
  deriving(Show,Eq)
+
+data Type = CNSTNT_CHAR | CONST_CHAR | CHAR_AND deriving(Show,Eq)
+data Value = Var Ident2 | Constant Integer deriving(Show,Eq,Ord)
+type ParserState = [SourcePos]
+
+-- UserState
+data Fixity = InfixL Integer Oper | InfixR Integer Oper deriving(Show,Eq) 
+type TmpStat = [Ident2]
+
+-- PCS_Parser
+data Tok = 
+ CHAR  | DELETE | IDENT Ident2  |   NUM Integer   |  
+ PAREN | NERAP  | BRACE | ECARB | SCOLON | CNSTNT |
+ COMM String    |    OP Oper    | INFIXL | INFIXR |
+ VOID  | CONST  |   SP String   | PRAGMA PragmaData         deriving(Show,Eq)
+
+{----------------------------------
+ |          end of types          |
+ ----------------------------------}
+
+isVar :: Value -> Bool
+isVar (Var _) = True; isVar _ = False
+ 
+ident_parser :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
+ident_parser   = do
+ p <- getPosition
+ x <- identifier
+ return(p,IDENT(Ident2 x))
+
+bbbb, aaaa, nnnn, readI, writeI :: Ident2
+bbbb = Ident2 "bbbb"
+aaaa = Ident2 "aaaa"
+nnnn = Ident2 "NNNN"
+readI = Ident2 "read"
+writeI = Ident2 "write"
+
+tmpIdent :: Ident2 -> Integer -> Ident2
+tmpIdent ident n = Ident2(unId ident ++ "__TMP_" ++ showNum n)
+
+
+toIdent2 :: String -> Either String Ident2
+toIdent2 "" = Left ""
+toIdent2 i@(x:xs) = maybeToEither i $ do
+ guard $ (isAlpha x || x == '_')
+ guard $ null[ a | a <- xs, not (isAlphaNum a), a /= '_']
+ guard $ i `notElem` ["char","delete","infixl","infixr","void","constant","const" ]
+ return(Ident2 i)
+
+toSent2 :: Sent -> Sent2
+toSent2 (Single a b) = Single a (toSimpleSent2 b)
+toSent2 (Block a xs) = Block a (map toSent2 xs)
 
 toSimpleSent2 :: SimpleSent -> SimpleSent2
 toSimpleSent2 Scolon                   = R_Scolon
@@ -116,25 +135,5 @@ toSimpleSent2 (Mneq v i)               = R_Mneq (Var v) (Constant i)
 toSimpleSent2 (Rd v)                   = R_Rd (Var v)
 toSimpleSent2 (Wrt v)                  = R_Wrt (Var v)
 
-
-data Type = CNSTNT_CHAR | CONST_CHAR | CHAR_AND deriving(Show,Eq)
-data Value = Var Ident2 | Constant Integer deriving(Show,Eq,Ord)
-type ParserState = [SourcePos]
-
--- UserState
-data Fixity = InfixL Integer Oper | InfixR Integer Oper deriving(Show,Eq) 
-type TmpStat = [Ident2]
-
-isVar :: Value -> Bool
-isVar (Var _) = True; isVar _ = False
-
-{----------------------------------
- |        end of Type.hs          |
- ----------------------------------}
-
--- PCS_Parser
-data Tok = 
- CHAR  | DELETE | IDENT Ident2  |   NUM Integer   |  
- PAREN | NERAP  | BRACE | ECARB | SCOLON | CNSTNT |
- COMM String    |    OP Oper    | INFIXL | INFIXR |
- VOID  | CONST  |   SP String   | PRAGMA PragmaData         deriving(Show,Eq)
+showIdent :: Ident2 -> String
+showIdent = showStr . unId

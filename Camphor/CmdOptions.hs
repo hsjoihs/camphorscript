@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
 module Camphor.CmdOptions
-(Stat(..),optionParse,info
+(Stat(..),optionParse,info,Overwriter(..)
 )where
 import Camphor.SafePrelude
 import Camphor.Global.Utilities
@@ -22,9 +22,10 @@ info = [
  "-m num          limit the number of memory used in the compiled Brainf*ck",
  "con             use stdin or stdout instead of infile or outfile",
  "-D<macro>       define an empty 'macro'",
- "-D<macro>=<val> define a 'macro' with 'val' as its value"
+ "-D<macro>=<val> define a 'macro' with 'val' as its value",
+ "--version       displays the version of the compiler"
  ]
-
+data Overwriter = Version deriving(Show,Eq,Ord)
 data Stat = S {
  inputFile   :: Maybe FilePath, 
  outputFile  :: Maybe FilePath,
@@ -65,7 +66,7 @@ optionParse ("-E"                   :xs) stat =  optionParse xs stat{fromTo = (1
 optionParse ("-nostdinc"            :xs) stat =  optionParse xs stat{noStdInc = True}
 optionParse ("-nostdlib"            :xs) stat =  optionParse xs stat{noStdLib = True}
 optionParse (o@('-':_)              :_ ) _    =  
- Left $ "unknown option " ++ showStr o ++ ": use " ++ showStr("./" ++ o) ++ "to compile a file named " ++ showStr o 
+ Left $ "unknown option " ++ showStr o ++ ": use " ++ showStr("./" ++ o) ++ " to compile a file named " ++ showStr o 
 optionParse (inf                    :xs) stat =  optionParse xs stat{inputFile = Just inf}
 optionParse []           (S Nothing    _           _     _   _  _  _  _  _) = Left "no input file"
 optionParse []           (S _          Nothing     _     _   _  _  _  _  _) = Left "no output file"

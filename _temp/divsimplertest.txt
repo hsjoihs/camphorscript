@@ -1,0 +1,7 @@
+#include <stdcalc>
+#include "div"
+char q; char r; char a;
+a += 35;
+q += '0'; r += '0';
+(q,r)+ <-- ~ a / 10;
+write(q); write(r);

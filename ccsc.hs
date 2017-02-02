@@ -19,7 +19,9 @@ import Camphor.CmdOptions
 import Data.List(isPrefixOf)
 import qualified Data.Map as M
 import Control.Monad 
-
+import Camphor.NonEmpty
+import Camphor.Version
+import Data.Maybe
 
 getLibs :: FilePath -> IO FileToTxt 
 getLibs dir = do
@@ -38,17 +40,25 @@ main :: IO()
 main = do
  args <- getArgs
  dispatch4 args
+
+toDoubleOption :: String -> Maybe Overwriter
+toDoubleOption "--version" = Just Version
+toDoubleOption _           = Nothing
  
 dispatch4 :: Options -> IO ()
 dispatch4 [] = mapM_ putStrLn info
-dispatch4 xs = case optionParse xs (S Nothing Nothing (4,8) Nothing [] [] False False M.empty) of
- Left e -> abort e
- Right (infile,outf,(a,b),mem,fds,lds,ni,nl,t) -> do
-  let file_dir = fst $ splitFileName infile
-  contents  <- getContentsFrom infile
-  includer  <- getManyLibs (if nl then lds else  lib_dir:lds)
-  includer2 <- getManyLibs (if ni then fds else file_dir:fds)
-  outputParsed outf (fromTo' a b (step infile mem (includer,includer2,t)) contents) 
+dispatch4 xs = case catMaybes $ map toDoubleOption xs of
+ (o:os) -> do -- double option overwrites everything
+  case last' (o:|os) of
+   Version -> putStrLn $ "CHAtsFtD CamphorScript Compiler, version "++version_num
+ []     -> case optionParse xs (S Nothing Nothing (4,8) Nothing [] [] False False M.empty) of
+  Left e -> abort e
+  Right (infile,outf,(a,b),mem,fds,lds,ni,nl,t) -> do
+   let file_dir = fst $ splitFileName infile
+   contents  <- getContentsFrom infile
+   includer  <- getManyLibs (if nl then lds else  lib_dir:lds)
+   includer2 <- getManyLibs (if ni then fds else file_dir:fds)
+   outputParsed outf (fromTo' a b (step infile mem (includer,includer2,t)) contents) 
 
 step :: FilePath -> Maybe MemSize -> Includers -> [Txt -> Either ParseError Txt]   
 step file mem includers  = map ($file) [step1 includers,step2,step3_I,step3_II mem,step5,step6,step7,step8]

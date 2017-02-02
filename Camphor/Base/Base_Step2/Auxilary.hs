@@ -48,14 +48,14 @@ getInstanceOfCall1 pos ident valuelist stat = do
  finfo <- finfo' -- checks if `ident' is a function; if so, look for all the instances.
  let matchingFuncInstance = [ a | a@(typelist,_) <- finfo, valuelist `matches` typelist ]
  case matchingFuncInstance of
-  []        -> Left $newErrorMessage(Message$"no type-matching instance of "++showStr(unId ident)++" defined")pos  
+  []        -> Left $newErrorMessage(Message$"no type-matching instance of "++showIdent ident++" defined")pos  
   [instnce] -> return instnce
-  xs        -> Left $newErrorMessage(Message$showNum(length xs)++" type-matching instances of "++showStr(unId ident)++" defined")pos   
+  xs        -> Left $newErrorMessage(Message$showNum(length xs)++" type-matching instances of "++showIdent ident++" defined")pos   
  where
   finfo' :: Either ParseError [VFInstance]
   finfo' = case getVFContents stat ident of 
-   Nothing          -> Left $newErrorMessage(Message$"function "++showStr(unId ident)++" is not defined")pos 
-   Just(East())     -> Left $newErrorMessage(Message$"cannot call "++showStr(unId ident)++" because it is defined as a variable")pos
+   Nothing          -> Left $newErrorMessage(Message$"function "++showIdent ident++" is not defined")pos 
+   Just(East())     -> Left $newErrorMessage(Message$"cannot call "++showIdent ident++" because it is defined as a variable")pos
    Just(West info) -> Right $ info 
 
 getCall4Left :: SourcePos -> NonEmpty (Value, Oper) -> UserState -> Either ParseError (ValueList, Oper)

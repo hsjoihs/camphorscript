@@ -1,0 +1,356 @@
+/*# LINE start "lib\\stdcalc.txt" #*/
+
+
+
+/*# LINE start "lib\\fixdecl.txt" #*/
+
+
+
+
+       
+    
+   
+   
+   
+/* infixl 40 (/) ; infixl 40 (/~) ; */   
+
+
+
+/*# LINE end "lib\\fixdecl.txt" #*/
+
+
+/* a=0; */
+
+
+
+
+
+/*# LINE start "lib\\eq_til.txt" #*/
+
+
+
+/*# LINE start "lib\\fixdecl.txt" #*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*# LINE end "lib\\fixdecl.txt" #*/
+	/* a+= ~z */
+
+	/* (a,b)+= ~z*/
+
+	/* a+= ~z_star_N */
+
+
+	/* a-= ~z */
+
+	/* (a,b)-= ~z*/
+
+	/* a-= ~z_star_N */
+
+
+	/* a= ~z */
+
+	/* (a,b)= ~z*/
+
+	/* a= ~z_star_N */
+
+
+
+/*# LINE end "lib\\eq_til.txt" #*/
+
+/*# LINE start "lib\\eq_bang_til.txt" #*/
+
+
+
+/*# LINE start "lib\\fixdecl.txt" #*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*# LINE end "lib\\fixdecl.txt" #*/
+	/* a+= !~z*/
+
+	/* (a,b)+= !~z*/
+
+	/* a= !~z*/
+
+	/* (a,b)= !~z*/
+
+
+
+/*# LINE end "lib\\eq_bang_til.txt" #*/
+
+
+
+
+	/* a+= ~z_star_N */
+
+
+
+
+
+
+
+
+
+
+/*# LINE end "lib\\stdcalc.txt" #*/
+/*# LINE start "lib\\div.txt" #*/
+
+/*# LINE start "lib\\stdcalc.txt" #*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*# LINE end "lib\\stdcalc.txt" #*/
+    
+
+
+
+
+
+
+
+
+
+
+
+/*# LINE end "lib\\div.txt" #*/
+char a;char b; char c; char d;
+read(a);
+b+=48; c+=48; d+=48;
+{
+	char k__TMP_1;
+	{
+	char orig__TMP_1; char new___TMP_1; char not___TMP_1; char tmp__TMP_1; char tmp2__TMP_1;
+	while(a){
+		 {
+	char c2__TMP_1;
+	{
+	while(a){orig__TMP_1+=1;c2__TMP_1+=1;a-=1;}
+}
+	{
+	while(c2__TMP_1){a+=1;c2__TMP_1-=1;}
+}
+	delete c2__TMP_1;
+}  /*copy the current `a` to `orig`*/
+		 {
+	char b__TMP_1; b__TMP_1+=10;
+	{
+	/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
+	char c2__TMP_1;char d2__TMP_1;
+	while(b__TMP_1){
+		{
+	while(a){c2__TMP_1+=1;d2__TMP_1+=1;a-=1;}
+}
+		   {
+	while(d2__TMP_1){a+=1;d2__TMP_1-=1;}
+}
+		while(c2__TMP_1){
+			{
+	while(c2__TMP_1){c2__TMP_1-=1;}
+}
+			a-=1;
+		}
+		b__TMP_1-=1;
+	}
+	delete c2__TMP_1;delete d2__TMP_1;
+}
+	delete b__TMP_1;
+}  /* subtract `N` from `a`*/
+		{
+	char d__TMP_1; 
+	{
+	char c2__TMP_1;
+	{
+	while(a){d__TMP_1+=1;c2__TMP_1+=1;a-=1;}
+}
+	{
+	while(c2__TMP_1){a+=1;c2__TMP_1-=1;}
+}
+	delete c2__TMP_1;
+}
+	{
+	while(d__TMP_1){tmp2__TMP_1+=1;new___TMP_1+=1;d__TMP_1-=1;}
+}
+	delete d__TMP_1;
+} /* make two copies of `a`*/
+		{
+	not___TMP_1+=1;
+	while(tmp2__TMP_1){{
+	while(tmp2__TMP_1){tmp2__TMP_1-=1;}
+}not___TMP_1-=1;}
+}  /* `not = !a`*/
+		
+		while(new___TMP_1){{
+	while(new___TMP_1){new___TMP_1-=1;}
+} k__TMP_1+=1;} /* `if(a){quot+=1;}`*/
+		while(not___TMP_1){not___TMP_1-=1; {
+	char c2__TMP_1;
+	{
+	while(orig__TMP_1){d+=1;c2__TMP_1+=1;orig__TMP_1-=1;}
+}
+	{
+	while(c2__TMP_1){orig__TMP_1+=1;c2__TMP_1-=1;}
+}
+	delete c2__TMP_1;
+}} /* `else{rem += orig;}*/
+		{
+	while(orig__TMP_1){orig__TMP_1-=1;}
+}
+	}
+	delete orig__TMP_1; delete new___TMP_1; delete not___TMP_1; delete tmp__TMP_1; delete tmp2__TMP_1;
+}
+	{
+	char orig__TMP_1; char new___TMP_1; char not___TMP_1; char tmp__TMP_1; char tmp2__TMP_1;
+	while(k__TMP_1){
+		 {
+	char c2__TMP_1;
+	{
+	while(k__TMP_1){orig__TMP_1+=1;c2__TMP_1+=1;k__TMP_1-=1;}
+}
+	{
+	while(c2__TMP_1){k__TMP_1+=1;c2__TMP_1-=1;}
+}
+	delete c2__TMP_1;
+}  /*copy the current `a` to `orig`*/
+		 {
+	char b__TMP_1; b__TMP_1+=10;
+	{
+	/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
+	char c2__TMP_1;char d2__TMP_1;
+	while(b__TMP_1){
+		{
+	while(k__TMP_1){c2__TMP_1+=1;d2__TMP_1+=1;k__TMP_1-=1;}
+}
+		   {
+	while(d2__TMP_1){k__TMP_1+=1;d2__TMP_1-=1;}
+}
+		while(c2__TMP_1){
+			{
+	while(c2__TMP_1){c2__TMP_1-=1;}
+}
+			k__TMP_1-=1;
+		}
+		b__TMP_1-=1;
+	}
+	delete c2__TMP_1;delete d2__TMP_1;
+}
+	delete b__TMP_1;
+}  /* subtract `N` from `a`*/
+		{
+	char d__TMP_1; 
+	{
+	char c2__TMP_1;
+	{
+	while(k__TMP_1){d__TMP_1+=1;c2__TMP_1+=1;k__TMP_1-=1;}
+}
+	{
+	while(c2__TMP_1){k__TMP_1+=1;c2__TMP_1-=1;}
+}
+	delete c2__TMP_1;
+}
+	{
+	while(d__TMP_1){tmp2__TMP_1+=1;new___TMP_1+=1;d__TMP_1-=1;}
+}
+	delete d__TMP_1;
+} /* make two copies of `a`*/
+		{
+	not___TMP_1+=1;
+	while(tmp2__TMP_1){{
+	while(tmp2__TMP_1){tmp2__TMP_1-=1;}
+}not___TMP_1-=1;}
+}  /* `not = !a`*/
+		
+		while(new___TMP_1){{
+	while(new___TMP_1){new___TMP_1-=1;}
+} b+=1;} /* `if(a){quot+=1;}`*/
+		while(not___TMP_1){not___TMP_1-=1; {
+	char c2__TMP_1;
+	{
+	while(orig__TMP_1){c+=1;c2__TMP_1+=1;orig__TMP_1-=1;}
+}
+	{
+	while(c2__TMP_1){orig__TMP_1+=1;c2__TMP_1-=1;}
+}
+	delete c2__TMP_1;
+}} /* `else{rem += orig;}*/
+		{
+	while(orig__TMP_1){orig__TMP_1-=1;}
+}
+	}
+	delete orig__TMP_1; delete new___TMP_1; delete not___TMP_1; delete tmp__TMP_1; delete tmp2__TMP_1;
+}
+	delete k__TMP_1;
+}
+write(b);write(c);write(d);

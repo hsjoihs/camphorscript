@@ -1,5 +1,5 @@
 #include <stdcalc>
-#include "div"
+#include <div>
 char a;char b; char c; char d;
 read(a);
 b += 48; c += 48; d += 48;

@@ -1,0 +1,26 @@
+infixr  5 (+=~); infixr  5 (-|=); 
+void func3(char& b,char& z){
+    /*func3 begins*/
+	while(z){b+=1;z-=1;}
+	/*func3 ends*/
+}	
+void func2(char& a,char& tt){
+    /*func2 begins*/
+	char d2;
+	while(tt){func3(d2,a); tt-=1;}
+	while(d2){d2-=1;}
+	delete d2;
+	/*func2 ends*/
+}
+void func(char& a,constant char N)
+{
+	/*func begins*/
+	char b; b+=N;
+	func2(a,b);
+	while(b){b-=1;}
+	delete b;
+	/*func ends*/
+}
+char q; char r; char a;
+a += 35;
+func(a,10);

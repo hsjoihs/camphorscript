@@ -18,13 +18,13 @@ import Text.Parsec
 
 newC :: SourcePos -> Ident2 -> UserState -> Either ParseError UserState
 newC pos ident stat 
- | stat `containsIdent` ident = Left $newErrorMessage(Message$"identifier "++showStr(unId ident)++" is already defined")pos
+ | stat `containsIdent` ident = Left $newErrorMessage(Message$"identifier "++showIdent ident++" is already defined")pos
  | otherwise                  = Right$addIdent stat ident (East())
  
 newD :: SourcePos -> Ident2 -> UserState -> Either ParseError UserState
 newD pos ident stat 
  | stat `containsIdent` ident = Right$removeIdent stat ident -- functions can also be deleted
- | otherwise                  = Left $newErrorMessage(Message$"identifier "++showStr(unId ident)++" is not defined")pos
+ | otherwise                  = Left $newErrorMessage(Message$"identifier "++showIdent ident++" is not defined")pos
 
 newL :: SourcePos -> Fix -> Oper -> UserState -> Either ParseError UserState
 newL pos fixity op stat = case getOpContents stat op of
@@ -43,12 +43,12 @@ newR pos fixity op stat = case getOpContents stat op of
 -- Function definition
 newF1 :: SourcePos -> Ident2 -> TypeList -> Maybe Sent -> UserState -> Either ParseError UserState
 newF1 pos name typelist sent stat
- | typelistIdentConflict typelist = Left $ newErrorMessage(Message$"overlapping parameters of function "++showStr(unId name))pos
+ | typelistIdentConflict typelist = Left $ newErrorMessage(Message$"overlapping parameters of function "++showIdent name)pos
  | otherwise = case getVFContents stat name of
-  Just(East ())  -> Left $newErrorMessage(Message$"cannot define function " ++ showStr(unId name) ++ " because it is already defined as a variable")pos
+  Just(East ())  -> Left $newErrorMessage(Message$"cannot define function " ++ showIdent name ++ " because it is already defined as a variable")pos
   Nothing        -> Right$addIdent stat name (West[(typelist,sent)])
   Just(West xs) 
-   | any (\(tlist,_) -> typelist `overlaps` tlist) xs   -> Left $ newErrorMessage(Message$"type-overlapping definition of function"++showStr(unId name))pos
+   | any (\(tlist,_) -> typelist `overlaps` tlist) xs   -> Left $ newErrorMessage(Message$"type-overlapping definition of function"++showIdent name)pos
    | otherwise                                          -> return $ addIdent stat name (West$(typelist,sent):xs)
  
 
