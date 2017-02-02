@@ -7,8 +7,8 @@ import Camphor.SafePrelude
 import Camphor.SepList(SepList(..)) 
 import Camphor.Base.Base_Step2.Type
 import Camphor.Base.Base_Step2.UserState
-import Camphor.Base.Base_Step2.New 
 import Camphor.Base.Base_Step2.Auxilary
+import Camphor.Base.Base_Step2.Call5Result
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import Camphor.NonEmpty
@@ -65,12 +65,14 @@ replacer3 _ _ pos (R_Pragma x) table = toState $ case x of
 	 -} 
  
 -- errors --
-replacer3 _ _ pos (R_Infl _ _         ) _  = err$newErrorMessage(Message "cannot declare fixity inside function/operator definition ")pos  
-replacer3 _ _ pos (R_Infr _ _         ) _  = err$newErrorMessage(Message "cannot declare fixity inside function/operator definition ")pos  
-replacer3 _ _ pos (R_Func1 ident _ _  ) _  = err$cantdefine("function " ++ showIdent ident)pos
-replacer3 _ _ pos (R_Func1Nul ident _ ) _  = err$cantdefine("function " ++ showIdent ident)pos 
-replacer3 _ _ pos (R_Func2 oper _ _ _ ) _  = err$cantdefine("operator " ++ showStr(unOp oper ))pos 
-replacer3 _ _ pos (R_Func2Nul oper _ _) _  = err$cantdefine("operator " ++ showStr(unOp oper ))pos 
+replacer3 _ _ pos (R_Infl _ _          ) _  = err$newErrorMessage(Message "cannot declare fixity inside function/operator definition ")pos  
+replacer3 _ _ pos (R_Infr _ _          ) _  = err$newErrorMessage(Message "cannot declare fixity inside function/operator definition ")pos  
+replacer3 _ _ pos (R_Func1 ident _ _   ) _  = err$cantdefine("function " ++ showIdent ident)pos
+replacer3 _ _ pos (R_Func1Nul ident _  ) _  = err$cantdefine("function " ++ showIdent ident)pos 
+replacer3 _ _ pos (R_Func2 oper _ _ _  ) _  = err$cantdefine("operator " ++ showStr(unOp oper ))pos 
+replacer3 _ _ pos (R_Func2Nul oper _ _ ) _  = err$cantdefine("operator " ++ showStr(unOp oper ))pos 
+replacer3 _ _ pos (R_Syntax1 name _ _ _) _  = err$cantdefine("syntax "   ++ showIdent name)pos 
+replacer3 _ _ pos (R_Syntax2 name _ _ _) _  = err$cantdefine("syntax "   ++ showIdent name)pos 
  
 -- char & delete -- 
 replacer3 stat _ pos (R_Char ident) table  = case M.lookup ident table of
@@ -97,21 +99,7 @@ replacer3 _ _ pos (R_Del ident) table  = case M.lookup ident table of
 
 -- calls --  
 replacer3 stat narr pos (R_Call1 ident valuelist) table = toState $ call1 stat narr pos (ident,valuelist) table
-replacer3 stat narr pos (R_Call1WithBlock ident valuelist pos2 block) table = toState $ do  -- ident is not replaced
- newValuelist <- replaceSingles table valuelist
- newblock <- fromState $ makeNewBlock2(Block pos2 block)
- return [Single pos $ Call1WithBlock ident newValuelist pos2 newblock]
- where
-  makeNewBlock2 :: Sent -> SCMEP Sents
-  makeNewBlock2 (Single _ ssent) = do
-   res <- replacer3 stat narr pos (toSimpleSent2 ssent) table
-   return res
-  makeNewBlock2 (Block  _ xs) = do
-   replaced <- forM xs makeNewBlock2 
-   return $ concat replaced
-
 replacer3 stat narr pos (R_Call2 oper valuelist1 valuelist2) table = toState $ call2 stat narr pos (oper,valuelist1,valuelist2) table
-
 replacer3 stat narr pos (R_Call3 op valuelist1 valuelist2) table = toState $ do
  lift $ isValidCall3 pos op valuelist2 stat
  call2 stat narr pos (op,valuelist1,valuelist2) table
@@ -167,7 +155,35 @@ replacer3 stat ns pos (R_Wrt (Var ident)) table = toState $ do
  case x of
   Var v -> return[Single pos $ Wrt v] 
   c     -> call1 stat ns pos (writeI,return c) table 
- 
+
+--- Syntax Calls ---
+replacer3 stat narr pos (R_SynCall1 ident valuelist pos2 block) table = toState $ do  -- FIXME: syntax is not replaced
+ newValuelist <- replaceSingles table valuelist
+ newblock <- fromState $ makeNewBlock2(Block pos2 block)
+ return [Single pos $ SynCall1 ident newValuelist pos2 newblock] 
+ where
+  makeNewBlock2 :: Sent -> SCMEP Sents
+  makeNewBlock2 (Single _ ssent) = do
+   res <- replacer3 stat narr pos (toSimpleSent2 ssent) table
+   return res
+  makeNewBlock2 (Block  _ xs) = do
+   replaced <- forM xs makeNewBlock2 
+   return $ concat replaced
+   
+replacer3 stat narr pos (R_SynCall2 ident tvaluelist pos2 block) table = toState $ do  -- FIXME: syntax is not replaced
+ newTValuelist <- replaceSingles2 table tvaluelist
+ newblock <- fromState $ makeNewBlock2(Block pos2 block)
+ return [Single pos $ SynCall2 ident newTValuelist pos2 newblock] 
+ where
+  makeNewBlock2 :: Sent -> SCMEP Sents
+  makeNewBlock2 (Single _ ssent) = do
+   res <- replacer3 stat narr pos (toSimpleSent2 ssent) table
+   return res
+  makeNewBlock2 (Block  _ xs) = do
+   replaced <- forM xs makeNewBlock2 
+   return $ concat replaced
+
+  
 {-  -------------------------------------------------------------------------------
    ********************
    * end of replacer3 *
@@ -237,6 +253,11 @@ replaceSingles :: Functor f => ReplTable -> f Value -> RCMEP (f Value)
 replaceSingles table vlist = do
  coltable <- askFst
  return $ fmap (replaceSingle table coltable) vlist
+ 
+replaceSingles2 :: ReplTable -> TailValueList -> RCMEP TailValueList
+replaceSingles2 table tvlist = do
+ coltable <- askFst
+ return [(o,replaceSingle table coltable v) | (o,v) <- tvlist]
   
 --- replaces a value with collision table top -> replacement table -> collision table rest  
 replaceSingle :: ReplTable -> CollisionTable -> Value -> Value 

@@ -1,16 +1,16 @@
 {-# LANGUAGE FlexibleContexts, TypeSynonymInstances, FlexibleInstances, NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
 module Camphor.Base.Base_Step2.UserState
-(OpInfo,MacroId(..),VFInstance,OpInstance
+(OpInfo,MacroId(..),VFInstance,OpInstance,SyntaxInstance
 ,emptyState,UserState(),TmpStat
-,getTmp,setTmp,clearTmp
+,getTmp,setTmp,clearTmp,addVar,tailTypelistIdentConflict
 ,containsIdent,addIdent,removeIdent,getVFContents,addOpContents,containsAnyIdent
 ,addOpFixity,getOpName,containsOp,getOpContents,matches,getFixValue
 ,isInfixL,isInfixR
 ,show',PrettyPrint
 ,addVFBlock,getTopVFBlock,deleteTopVFBlock,deleteTopVFBlock_ 
-,overlaps,typelistIdentConflict,valuelistIdentConflict
-,getName
+,overlaps,typelistIdentConflict,valuelistIdentConflict,VFInfo(..)
+,getName,addFunSyn,overlaps'
 )where
 import Camphor.SafePrelude
 import Camphor.SepList as Sep
@@ -26,11 +26,14 @@ type VFInstance = (TypeList, Maybe Sent) -- Maybe Sent ::: block or `null functi
 type OpInstance = (TypeList,TypeList, Maybe Sent2)
 type OpInfo = (Fixity,[OpInstance])
 data MacroId = Func Ident2 VFInstance | Operator Oper OpInstance deriving(Show,Eq)  
+type SyntaxInstance = (Between TailTypeList TypeList,Ident2, Sent) -- list, arg, block
+data VFInfo = Variable | FunSyn [VFInstance] [SyntaxInstance] deriving(Show,Eq)
+
 -- private
 type VFList = NonEmpty(M.Map Ident2 VFInfo)
 type OpList = M.Map Oper OpInfo
 data UserState = UserState VFList OpList (Maybe TmpStat) deriving(Show)
-type VFInfo = Between () [VFInstance]
+
 
 getName :: MacroId -> String
 getName (Func ident _) = showIdent ident
@@ -44,11 +47,23 @@ overlaps (SepList (typ,_) xs) (SepList (typ2,_) xs2)
   transform :: (Oper,(Type,Ident2)) -> (Oper,(Type,Ident2)) -> Bool
   transform (op3,(typ3,_)) (op4,(typ4,_)) = op3 == op4 && typ3 `clashesWith` typ4
   CNSTNT_CHAR `clashesWith` CHAR_AND      = False
-  CHAR_AND    `clashesWith` CNSTNT_CHAR   = False 
+  CHAR_AND    `clashesWith` CNSTNT_CHAR   = False
   _           `clashesWith` _             = True
+  
+overlaps' :: TailTypeList -> TailTypeList -> Bool
+overlaps' xs xs2 = length xs == length xs2 && all id (zipWith transform xs xs2)
+ where
+  transform :: (Oper,(Type,Ident2)) -> (Oper,(Type,Ident2)) -> Bool
+  transform (op3,(typ3,_)) (op4,(typ4,_)) = op3 == op4 && typ3 `clashesWith` typ4
+  CNSTNT_CHAR `clashesWith` CHAR_AND      = False
+  CHAR_AND    `clashesWith` CNSTNT_CHAR   = False 
+  _           `clashesWith` _             = True  
 
 typelistIdentConflict :: TypeList -> Bool
 typelistIdentConflict = conflict . map snd . toList'
+
+tailTypelistIdentConflict :: TailTypeList -> Bool
+tailTypelistIdentConflict = conflict . map (snd . snd)
 
 valuelistIdentConflict :: ValueList -> Bool
 valuelistIdentConflict = conflict . filter isVar . toList'
@@ -99,8 +114,8 @@ emptyState = UserState deffun defop Nothing
  where
   deffun :: VFList
   deffun = nE(M.fromList[
-   (readI ,West$[(return(CHAR_AND,bbbb),Just$Single(newPos "__DEFAULT__" 0 0) (Rd  bbbb) )]),
-   (writeI,West$[(return(CHAR_AND,bbbb),Just$Single(newPos "__DEFAULT__" 0 0) (Wrt bbbb) )])
+   (readI ,FunSyn [(return(CHAR_AND,bbbb),Just$Single(newPos "__DEFAULT__" 0 0) (Rd  bbbb) )] []),
+   (writeI,FunSyn [(return(CHAR_AND,bbbb),Just$Single(newPos "__DEFAULT__" 0 0) (Wrt bbbb) )] [])
    ])
   defop :: OpList
   defop = M.fromList[defau "+="$R_Pleq (Var aaaa) (Var nnnn), defau "-="$R_Mneq (Var aaaa) (Var nnnn)]
@@ -140,7 +155,13 @@ deleteTopVFBlock_ e = StateT $ \s -> do
  return((),s')
 
 addIdent :: UserState -> Ident2 -> VFInfo -> UserState
-addIdent      (UserState (vf:|vfs) oplist tmp) ident dat = UserState ((M.insert ident dat vf):|vfs) oplist tmp
+addIdent (UserState (vf:|vfs) oplist tmp) ident dat = UserState ((M.insert ident dat vf):|vfs) oplist tmp
+
+addVar :: UserState -> Ident2 -> UserState
+addVar (UserState (vf:|vfs) oplist tmp) ident = UserState ((M.insert ident Variable vf):|vfs) oplist tmp
+
+addFunSyn :: UserState -> Ident2 -> [VFInstance] -> [SyntaxInstance] -> UserState
+addFunSyn (UserState (vf:|vfs) oplist tmp) ident dat1 dat2 = UserState ((M.insert ident (FunSyn dat1 dat2) vf):|vfs) oplist tmp
 
 getVFContents :: UserState -> Ident2 -> Maybe VFInfo
 getVFContents (UserState vflist _ _) ident = searchBy (M.lookup ident) vflist

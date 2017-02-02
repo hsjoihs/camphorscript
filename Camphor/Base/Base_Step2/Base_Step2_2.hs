@@ -17,7 +17,7 @@ parser2_2 = do{xs <- many sent; eof; return (concat xs);}
 sent :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity [Sent]
 sent = def <|> del <|> scl <|>
  infl <|> infr <|> spac <|> block2 <|> comm <|> pragma <|>
- func_def <|> op_def <|> func_call <|> func_call_with_block <|>
+ func_def <|> op_def <|> func_call <|> syntax_call <|>
  op_call1 <|> op_call2 <|> op_call3 <|> op_call4 <|> op_call5 <|> syntax
 
  
@@ -25,24 +25,20 @@ doWith :: SourcePos -> [Ident2] -> Integer -> [Sent]
 doWith p is 0  =        [  Single p $ Char i | i <- is ] 
 doWith p is nm = concat [ [Single p $ Char i,Single p $ Call2 (wrap "+=") (return$Var i) (return$Constant nm)] | i <- is ] 
 
-
-eitherTL :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity (Between TailTypeList TypeList)
-eitherTL = West <$> try(getTypeList) <|> East <$> try(getTailTypeList)
-
 syntax_ :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity (SourcePos,Ident2,Ident2,Sent,Between TailTypeList TypeList)
 syntax_ = do{
  p <- getPosition;
  _syntax;          __;  -- syntax
  name <- _ident;   __;  -- if
  _paren;           __;  -- (
- list <- eitherTL; __;  -- FIXME
+ list <- eitherTL; __;  -- ~a
  _nerap;           __;  -- )
  _brace;           __;  -- {
  arg <- _ident;    __;  -- block
  many ((_scolon >> return "") <|> _nl);
  _ecarb;           __;  -- }
  bl <- block;      __;  -- { ~~~~ }
- return (p,name,arg,bl,list); -- FIXME
+ return (p,name,arg,bl,list);
  }  
   
 syntax :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity [Sent] 
@@ -171,29 +167,26 @@ op_def = do{
  }
 -- void(演算子)(型 識別子【演算子 型 識別子】;型 識別子【演算子 型 識別子】){【文】}
  
-func_call_without_semicolon :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity (Ident2,ValueList)
-func_call_without_semicolon = do{
-  
- name <- try(do{ n <- _ident; __; _paren; return n}); __; -- clear (
- vs   <- getValueList;                                __; -- a , b
- _nerap;                                              __; -- )
- ----- Semicolon is not parsed in order to handle while(a){}. Things like that are done while the conversion.
- return(name,vs);
- }
- 
 func_call :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity [Sent]
 func_call = try(do{
  p <- getPosition; 
- (name,vs) <- func_call_without_semicolon; __;
- _scolon; return[Single p$Call1 name vs]
+ name <- try(do{ n <- _ident; __; _paren; return n}); __; -- clear (
+ vs   <- getValueList;                                __; -- a , b
+ _nerap;                                              __; -- )
+ _scolon;                                                 -- ;
+ return[Single p$Call1 name vs]
  }) 
-
-func_call_with_block ::  Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity [Sent]
-func_call_with_block = try(do{ 
+ 
+syntax_call ::  Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity [Sent]
+syntax_call = try(do{ 
  p <- getPosition;
- (name,vs) <- func_call_without_semicolon; __;
+ name <- try(do{ n <- _ident; __; _paren; return n}); __; -- if (
+ vs   <- eitherVL;                                    __; -- ~a
+ _nerap;                                              __; -- )
  (p2,m) <- block';
- return[Single p$Call1WithBlock name vs p2 m]
+ case vs of 
+  West tl  -> return[Single p$SynCall1 name tl  p2 m]
+  East ttl -> return[Single p$SynCall2 name ttl p2 m]
  })
 
  
@@ -276,7 +269,9 @@ getTypeList = do
  
 getTailTypeList :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity TailTypeList
 getTailTypeList = many (do{ a <- _op; __; b <- typ; __; c <- _ident; __; return(a,(b,c))}); 
- 
+
+eitherTL :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity (Between TailTypeList TypeList)
+eitherTL = West <$> try(getTypeList) <|> East <$> try(getTailTypeList) 
 
 value :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity Value
 value = (Var <$> _ident <?> "variable") <|> (Constant <$> _num <?> "unsigned integer or character literal")
@@ -286,3 +281,9 @@ getValueList = do
  g <- value;  __;
  h <- many(do{a <- _op; __; b <- value; __; return(a,b)})
  return$SepList g h
+  
+getTailValueList :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity TailValueList
+getTailValueList = many(do{a <- _op; __; b <- value; __; return(a,b)});
+
+eitherVL :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity (Between TailValueList ValueList)
+eitherVL = West <$> try(getValueList) <|> East <$> try(getTailValueList)  

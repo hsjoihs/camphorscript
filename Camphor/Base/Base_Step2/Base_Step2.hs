@@ -10,6 +10,7 @@ import Camphor.SepList as Sep
 import Camphor.Base.Base_Step2.Type
 import Camphor.Base.Base_Step2.UserState
 import Camphor.Base.Base_Step2.New 
+import Camphor.Base.Base_Step2.Call5Result
 import Camphor.Base.Base_Step2.Auxilary
 import Camphor.Base.Base_Step2.Base_Step2_2(parser2_2)
 import Camphor.Base.Base_Step2.PCS_Parser(parser2')
@@ -84,7 +85,8 @@ convert2_2 (Single pos  (Pragma prgm):xs) = case prgm of
   let vars' = forM vars toIdent2
   case vars' of 
    Left e -> err$newErrorMessage(Message$showStr e++" used in a `MEMORY using' pragma is not an identifier")pos 
-   Right vars_ -> complex (convert2_2 xs) (return . setTmp vars_) "" -- INTENTIONALLY LEFT AS convert2_2 
+   Right vars_ -> 
+    complex (convert2_2 xs) (return . setTmp vars_) (concatMap (\iden -> "assert_zero " ++ unId iden ++ ";") vars_) -- INTENTIONALLY LEFT AS convert2_2 
  _                       -> ("/*# " ++ unwords prgm ++ " #*/") <++?> convert2_3 xs
 
 convert2_2 (Single pos (Char iden)                  :xs) = complex (convert2_3 xs) (newC pos iden)                         ("char "   ++ unId iden ++ ";")
@@ -103,10 +105,15 @@ convert2_2 (Single pos (Call2 op valuelist1 valuelist2):xs) = complex2 (convert2
 convert2_2 (Single pos (Call3 op valuelist1 valuelist2):xs) = complex2 (convert2_3 xs) (newK3 pos op valuelist1 valuelist2) --- (val [op val])op val [op val] ; 
 convert2_2 (Single pos (Call4 list valuelist)          :xs) = complex2 (convert2_3 xs) (newK4 pos list valuelist) --- [val op] (val [op val]) ; 
 convert2_2 (Single pos (Call5 valuelist)               :xs) = complex2 (convert2_3 xs) (newK5 pos valuelist) --- val [op val] op val [op val] ;
-convert2_2 (Single _ (Call1WithBlock name valuelist pos2 block):xs) = showCall name valuelist <++?> convert2_3 (Block pos2 block:xs)
+convert2_2 (Single _ (SynCall1 name valuelist pos2 block):xs) = showCall name valuelist <++?> convert2_3 (Block pos2 block:xs) -- FIXME
  where 
   showCall :: Ident2 -> ValueList -> String
-  showCall nm (SepList v ovs) = unId nm ++ "(" ++ show' v ++ concat[ (unOp o2) ++ show' v2 | (o2,v2) <- ovs ] ++ ")" 
+  showCall nm (SepList v ovs) = unId nm ++ "(" ++ show' v ++ concat[ (unOp o2) ++ show' v2 | (o2,v2) <- ovs ] ++ ")"
+
+convert2_2 (Single _ (SynCall2 name tvaluelist pos2 block):xs) = showCall name tvaluelist <++?> convert2_3 (Block pos2 block:xs) -- FIXME
+ where
+  showCall :: Ident2 -> TailValueList -> String
+  showCall nm tvlist = unId nm ++ "(" ++ concat[ (unOp o2) ++ show' v2 | (o2,v2) <- tvlist ] ++ ")"
  
 convert2_2 (Block p ys:xs) = complex3 (convert2_3 xs) (newStat3getter p ys)
 {-----------------------------------------------------------
@@ -124,11 +131,7 @@ newStat3getter p ys = do
  deleteTopVFBlock_ (newErrorMessage(Message$"FIXME: code 0004 ")pos)
  return result
  
-newS1 :: SourcePos -> Ident2 -> TypeList -> Ident2 -> Sent -> UserState -> Either ParseError UserState 
-newS1 _ _ _ _ _ stat = Right stat -- fixme 
 
-newS2 :: SourcePos -> Ident2 -> TailTypeList -> Ident2 -> Sent -> UserState -> Either ParseError UserState 
-newS2 _ _ _ _ _ stat = Right stat -- fixme 
  
 -- Function call
 newK1 :: SourcePos -> Ident2 -> ValueList -> ReaderT UserState (Either ParseError) Txt
@@ -166,9 +169,9 @@ newK5 _   (SepList(Constant _)[])      = return "" -- 123; is a nullary sentence
 newK5 pos (SepList(Var ident )[])      = do
  stat <- ask
  case getVFContents stat ident of
-  Nothing        -> err$newErrorMessage(Message$"identifier "++showIdent ident++" is not defined")pos 
-  Just(East ())  -> return ""
-  Just(West _ )  -> err$newErrorMessage(Message$"cannot use variable "++showIdent ident++" because it is already defined as a function")pos  
+  Nothing           -> err$newErrorMessage(Message$"identifier "++showIdent ident++" is not defined")pos 
+  Just Variable     -> return ""
+  Just (FunSyn _ _) -> err$newErrorMessage(Message$"cannot use variable "++showIdent ident++" because it is already defined as a function")pos  
 
 newK5 pos (SepList x(ov:ovs)) = do
  stat <- ask

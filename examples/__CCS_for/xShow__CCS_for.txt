@@ -9,7 +9,7 @@ b+=48; c+=48; d+=48;
 	{
 		char orig__TMP_1; char new___TMP_1; char not___TMP_1; char tmp__TMP_1; char tmp2__TMP_1;
 		while(a){
-			{
+			assert_zero tmp__TMP_1; {
 				char c2__TMP_1;
 				{
 					while(a){orig__TMP_1+=1;c2__TMP_1+=1;a-=1;}
@@ -19,7 +19,7 @@ b+=48; c+=48; d+=48;
 				}
 				delete c2__TMP_1;
 			}  /*copy the current `a` to `orig`*/
-			{
+			assert_zero tmp__TMP_1; {
 				char b__TMP_1; b__TMP_1+=10;
 				{
 					/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
@@ -43,7 +43,7 @@ b+=48; c+=48; d+=48;
 				}
 				delete b__TMP_1;
 			}  /* subtract `N` from `a`*/
-			{
+			assert_zero tmp__TMP_1;{
 				char d__TMP_1; 
 				{
 					char c2__TMP_1;
@@ -89,7 +89,7 @@ b+=48; c+=48; d+=48;
 	{
 		char orig__TMP_1; char new___TMP_1; char not___TMP_1; char tmp__TMP_1; char tmp2__TMP_1;
 		while(k__TMP_1){
-			{
+			assert_zero tmp__TMP_1; {
 				char c2__TMP_1;
 				{
 					while(k__TMP_1){orig__TMP_1+=1;c2__TMP_1+=1;k__TMP_1-=1;}
@@ -99,7 +99,7 @@ b+=48; c+=48; d+=48;
 				}
 				delete c2__TMP_1;
 			}  /*copy the current `a` to `orig`*/
-			{
+			assert_zero tmp__TMP_1; {
 				char b__TMP_1; b__TMP_1+=10;
 				{
 					/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
@@ -123,7 +123,7 @@ b+=48; c+=48; d+=48;
 				}
 				delete b__TMP_1;
 			}  /* subtract `N` from `a`*/
-			{
+			assert_zero tmp__TMP_1;{
 				char d__TMP_1; 
 				{
 					char c2__TMP_1;

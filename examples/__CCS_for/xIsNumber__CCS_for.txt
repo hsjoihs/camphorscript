@@ -10,7 +10,7 @@ b-=1;/* b=47 */
 
 read(c);
 
-{
+assert_zero d;assert_zero e; {
 	/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
 	/*char d;*//*char e;*/
 	while(b){
@@ -31,7 +31,7 @@ read(c);
 	/*delete d;*//*delete e;*/
 }
 delete b;
-{
+assert_zero e;   {
 	/*char e;*/
 	{
 		while(c){d+=1;e+=1;c-=1;}
@@ -50,7 +50,7 @@ while(c){
 }
 delete c;
 
-{
+assert_zero f;assert_zero g; {
 	/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
 	/*char f;*//*char g;*/
 	while(d){

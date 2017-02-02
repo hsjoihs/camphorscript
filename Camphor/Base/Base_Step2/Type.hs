@@ -5,7 +5,7 @@ module Camphor.Base.Base_Step2.Type
 ,Tok(..)
 ,Type(..),Value(..)
 ,NonEmptyValue,ReplTable,CollisionTable
-,PragmaData,ParserState,TailTypeList
+,PragmaData,ParserState,TailTypeList,TailValueList
 ,Upgrade(..),Extra,Sent,Sent2,Sents,TypeList,ValueList,SimpleSent(..),Fixity(..),isVar,TmpStat
 ,Ident2(),toIdent2,unId,SimpleSent2(..),toSimpleSent2,toSent2
 ,bbbb,aaaa,nnnn,readI,writeI,tmpIdent,showIdent,ident_parser'
@@ -35,6 +35,7 @@ type Sents = [Sent]
 type TypeList = SepList Oper (Type,Ident2)
 type TailTypeList = [(Oper,(Type,Ident2))]
 type ValueList = SepList Oper Value
+type TailValueList = [(Oper,Value)]
 type Sent2 = Upgrade Extra SimpleSent2
 data SimpleSent =
  Scolon | Char Ident2 |   Del Ident2   |   Sp String   | Comm String |
@@ -42,7 +43,8 @@ data SimpleSent =
  Func1 Ident2 TypeList Sent | Func1Nul Ident2 TypeList |
  Func2 Oper TypeList TypeList Sent   | 
  Func2Nul Oper TypeList TypeList     |
- Call1WithBlock  Ident2  ValueList  SourcePos  Sents  |   
+ SynCall1 Ident2 ValueList  SourcePos  Sents  |    
+ SynCall2 Ident2 TailValueList  SourcePos  Sents  |    
  Call1 Ident2 ValueList     | Call2 Oper ValueList ValueList  | 
  Call5 ValueList  | Call3 Oper ValueList ValueList   |  Call4 [(Value,Oper)] ValueList |
  Pleq Ident2 Integer | Mneq Ident2 Integer |   Rd Ident2    |  Wrt Ident2 | 
@@ -55,10 +57,12 @@ data SimpleSent2 =
  R_Func1 Ident2 TypeList Sent | R_Func1Nul Ident2 TypeList |
  R_Func2 Oper TypeList TypeList Sent   | 
  R_Func2Nul Oper TypeList TypeList     |
- R_Call1WithBlock  Ident2  ValueList  SourcePos  Sents  |   
+ R_SynCall1  Ident2  ValueList  SourcePos  Sents  |   
+ R_SynCall2  Ident2  TailValueList  SourcePos  Sents  |   
  R_Call1 Ident2 ValueList     | R_Call2 Oper ValueList ValueList  | 
  R_Call5 ValueList  | R_Call3 Oper ValueList ValueList   |  R_Call4 [(Value,Oper)] ValueList |
- R_Pleq Value Value | R_Mneq Value Value |   R_Rd Value    |  R_Wrt Value  
+ R_Pleq Value Value | R_Mneq Value Value |   R_Rd Value    |  R_Wrt Value |
+ R_Syntax1 Ident2 TypeList Ident2 Sent | R_Syntax2 Ident2 TailTypeList Ident2 Sent  
  deriving(Show,Eq)
 
 data Type = CNSTNT_CHAR | CONST_CHAR | CHAR_AND deriving(Show,Eq)
@@ -118,30 +122,31 @@ toSent2 (Single a b) = Single a (toSimpleSent2 b)
 toSent2 (Block a xs) = Block a (map toSent2 xs)
 
 toSimpleSent2 :: SimpleSent -> SimpleSent2
-toSimpleSent2 Scolon                   = R_Scolon
-toSimpleSent2 (Char i)                 = R_Char i
-toSimpleSent2 (Del i)                  = R_Del i
-toSimpleSent2 (Sp str)                 = R_Sp str
-toSimpleSent2 (Comm str)               = R_Comm str 
-toSimpleSent2 (Pragma p)               = R_Pragma p 
-toSimpleSent2 (Infl f o)               = R_Infl f o 
-toSimpleSent2 (Infr f o)               = R_Infr f o 
-toSimpleSent2 (Syntax1 _ _ _ _)        = R_Comm "" -- fixme 
-toSimpleSent2 (Syntax2 _ _ _ _)        = R_Comm "" -- fixme 
-toSimpleSent2 (Func1 i t s)            = R_Func1 i t s 
-toSimpleSent2 (Func1Nul i t)           = R_Func1Nul i t 
-toSimpleSent2 (Func2 o t1 t2 s)        = R_Func2 o t1 t2 s 
-toSimpleSent2 (Func2Nul o t1 t2)       = R_Func2Nul o t1 t2
-toSimpleSent2 (Call1WithBlock i v p s) = R_Call1WithBlock i v p s
-toSimpleSent2 (Call1 i v)              = R_Call1 i v
-toSimpleSent2 (Call2 o v1 v2)          = R_Call2 o v1 v2
-toSimpleSent2 (Call5 v)                = R_Call5 v
-toSimpleSent2 (Call3 o v1 v2)          = R_Call3 o v1 v2
-toSimpleSent2 (Call4 vo v2)            = R_Call4 vo v2
-toSimpleSent2 (Pleq v i)               = R_Pleq (Var v) (Constant i)
-toSimpleSent2 (Mneq v i)               = R_Mneq (Var v) (Constant i)
-toSimpleSent2 (Rd v)                   = R_Rd (Var v)
-toSimpleSent2 (Wrt v)                  = R_Wrt (Var v)
+toSimpleSent2 Scolon             = R_Scolon
+toSimpleSent2 (Char i)           = R_Char i
+toSimpleSent2 (Del i)            = R_Del i
+toSimpleSent2 (Sp str)           = R_Sp str
+toSimpleSent2 (Comm str)         = R_Comm str 
+toSimpleSent2 (Pragma p)         = R_Pragma p 
+toSimpleSent2 (Infl f o)         = R_Infl f o 
+toSimpleSent2 (Infr f o)         = R_Infr f o 
+toSimpleSent2 (Syntax1 n t a b)  = R_Syntax1 n t a b 
+toSimpleSent2 (Syntax2 n t a b)  = R_Syntax2 n t a b 
+toSimpleSent2 (Func1 i t s)      = R_Func1 i t s 
+toSimpleSent2 (Func1Nul i t)     = R_Func1Nul i t 
+toSimpleSent2 (Func2 o t1 t2 s)  = R_Func2 o t1 t2 s 
+toSimpleSent2 (Func2Nul o t1 t2) = R_Func2Nul o t1 t2
+toSimpleSent2 (SynCall1 i v p s) = R_SynCall1 i v p s
+toSimpleSent2 (SynCall2 i v p s) = R_SynCall2 i v p s
+toSimpleSent2 (Call1 i v)        = R_Call1 i v
+toSimpleSent2 (Call2 o v1 v2)    = R_Call2 o v1 v2
+toSimpleSent2 (Call5 v)          = R_Call5 v
+toSimpleSent2 (Call3 o v1 v2)    = R_Call3 o v1 v2
+toSimpleSent2 (Call4 vo v2)      = R_Call4 vo v2
+toSimpleSent2 (Pleq v i)         = R_Pleq (Var v) (Constant i)
+toSimpleSent2 (Mneq v i)         = R_Mneq (Var v) (Constant i)
+toSimpleSent2 (Rd v)             = R_Rd (Var v)
+toSimpleSent2 (Wrt v)            = R_Wrt (Var v)
 
 showIdent :: Ident2 -> String
 showIdent = showStr . unId

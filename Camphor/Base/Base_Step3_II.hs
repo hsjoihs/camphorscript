@@ -17,7 +17,7 @@ import Camphor.Global.Synonyms
 import Text.Parsec hiding(token)
 import qualified Data.Map as M
 
-data Com3_top = DEF | DEL | REA | WRI | COM | NUL deriving(Show)
+data Com3_top = DEF | DEL | REA | WRI | COM | NUL | AS0 deriving(Show)
 data Com3_mid = ADD | SUB deriving(Show)
 data Com3_bot = WHI | BLO deriving(Show)
 
@@ -40,10 +40,11 @@ parser3' :: Stream s m Char => ParsecT s u m [Set3]
 parser3' = do{sents<-many sentences3;eof;return sents;}
 
 sentences3 :: Stream s m Char => ParsecT s u m Set3
-sentences3 = def <|> del <|> add <|> sub <|> while <|> block <|> read_ <|> write <|> nul <|> emp <|> comm 
+sentences3 = def <|> del <|> asser <|> add <|> sub <|> while <|> block <|> read_ <|> write <|> nul <|> emp <|> comm 
  where 
   def   = do{try(do{string "char"  ;spaces';});xs<-identifier;spaces'; char ';';return$ Top(DEF,xs)}
   del   = do{try(do{string "delete";spaces';});xs<-identifier;spaces'; char ';';return$ Top(DEL,xs)}
+  asser = do{try(do{string "assert_zero";spaces';});xs<-identifier;spaces'; char ';';return$ Top(AS0,xs)}
   add   = try(do{xs<-identifier ;spaces';char '+';spaces';char '=';spaces'; ys<-byte;spaces';char ';';return$ Mid(ADD,xs,ys)})
   sub   = try(do{xs<-identifier ;spaces';char '-';spaces';char '=';spaces'; ys<-byte;spaces';char ';';return$ Mid(SUB,xs,ys)})
   read_ = try(do{string "read"  ;spaces';char '(';spaces';xs<-identifier;spaces';char ')';spaces';char ';';return$ Top(REA,xs)})
@@ -112,6 +113,10 @@ convert3' m f((n ,s:|st ,ls),(Top(DEF,ide     ):xs))
 convert3' m f((n ,s:|st ,ls),(Top(DEL,ide     ):xs)) = case (M.lookup ide s) of
    Just  k                                      -> (("assert_zero "++show k++"; ")++)<$$>convert3' m f((n, M.delete ide s :| st,filter (/=k) ls),xs)
    Nothing                                      -> makeErr(msgIde ide "is not defined or is already deleted in this scope")(f++"--step3_II'") 0 0
+   
+convert3' m f((n ,st    ,ls),(Top(AS0,ide     ):xs)) = case (lookup' ide (toList' st)) of
+   Just  k                                      -> (("assert_zero "++show k++"; ")++)<$$>convert3' m f((n, st,ls),xs)
+   Nothing                                      -> makeErr(msgIde ide "is not defined or is already deleted")(f++"--step3_II'") 0 0
 
 convert3' m f(state         ,(Top(NUL,sp      ):xs)) = (sp++) <$$> convert3' m f(state,xs) 
 

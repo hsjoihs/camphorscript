@@ -49,9 +49,9 @@ getInstanceOfCall1 pos ident valuelist stat = do
  where
   finfo' :: Either ParseError [VFInstance]
   finfo' = case getVFContents stat ident of 
-   Nothing          -> Left $newErrorMessage(Message$"function "++showIdent ident++" is not defined")pos 
-   Just(East())     -> Left $newErrorMessage(Message$"cannot call "++showIdent ident++" because it is defined as a variable")pos
-   Just(West info) -> Right $ info 
+   Nothing             -> Left $newErrorMessage(Message$"function "++showIdent ident++" is not defined")pos 
+   Just Variable       -> Left $newErrorMessage(Message$"cannot call "++showIdent ident++" because it is defined as a variable")pos
+   Just(FunSyn info _) -> Right $ info 
 
 getCall4Left :: SourcePos -> NonEmpty (Value, Oper) -> UserState -> Either ParseError (ValueList, Oper)
 getCall4Left pos (x:|xs) stat = do  

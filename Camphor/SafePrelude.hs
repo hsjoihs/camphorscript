@@ -42,11 +42,11 @@ Bool(..),(&&),(||),not,otherwise
 ,Identity(..),when
 ,mappend,mempty,mconcat,Monoid
 ,comparing
-,ap,liftM,Applicative,(>=>),(<=<)
+,ap,liftM,Applicative,(>=>),(<=<),unless
 )where
 import Prelude hiding(fst,snd)
 import Camphor.Tuple
-import Control.Monad(join,guard,when,ap,liftM,(>=>),(<=<))
+import Control.Monad(join,guard,when,ap,liftM,(>=>),(<=<),unless)
 import Control.Applicative((<*>),(<$>),pure,Applicative)
 import Data.List(genericLength,genericReplicate,genericTake,genericDrop)
 import Data.Maybe(catMaybes,fromMaybe,isJust,isNothing,listToMaybe,mapMaybe,maybeToList)
