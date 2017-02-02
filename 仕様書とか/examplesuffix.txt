@@ -3,9 +3,10 @@ BF_c	compressed brainf*ck
 BF_i	indented brainf*ck created by ccsrc -C88
 
 CS	CamphorScript
-PCS     PreprocessedCamphorScript
+PCS	PreprocessedCamphorScript
 CCS	CompiledCamphorScript
 CCS_rev	CompiledCamphorScript created by ccsrc -C84
+HCCS	HalfCompiledCamphorScript
 
 
 ND	NouDarake

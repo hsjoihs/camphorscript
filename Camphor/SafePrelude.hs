@@ -30,10 +30,10 @@ Bool(..),(&&),(||),not,otherwise
 ,IO,putChar,putStr,putStrLn,print,getChar,getLine,getContents,interact
 ,FilePath,readFile,writeFile,appendFile,readIO,readLn
 ,Between(..)
-,join,ap,pure,(<*>),(<$>)
+,join,ap,pure,(<*>),(<$>),guard
 ,showStr,showNum
 )where
-import Control.Monad(join,ap)
+import Control.Monad(join,ap,guard)
 import Control.Applicative((<*>),(<$>),pure)
 data Between a b = East a | West b deriving(Show, Eq, Ord)
 showStr :: String -> String

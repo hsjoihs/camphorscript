@@ -45,16 +45,17 @@ newF1 :: SourcePos -> Ident2 -> TypeList -> Maybe Sent -> UserState -> Either Pa
 newF1 pos name typelist sent stat
  | typelistIdentConflict typelist = Left $ newErrorMessage(Message$"overlapping parameters of function "++showStr(unId name))pos
  | otherwise = case getVFContents stat name of
-  Just(East ())  -> Left $newErrorMessage(Message$"cannot define function "++showStr(unId name)++" because it is already defined as a variable")pos
+  Just(East ())  -> Left $newErrorMessage(Message$"cannot define function " ++ showStr(unId name) ++ " because it is already defined as a variable")pos
   Nothing        -> Right$addIdent stat name (West[(typelist,sent)])
   Just(West xs) 
    | any (\(tlist,_) -> typelist `overlaps` tlist) xs   -> Left $ newErrorMessage(Message$"type-overlapping definition of function"++showStr(unId name))pos
    | otherwise                                          -> return $ addIdent stat name (West$(typelist,sent):xs)
  
+
 -- Operator definition 
 newF2 :: SourcePos -> Oper -> TypeList -> TypeList -> Maybe Sent -> UserState -> Either ParseError UserState
 newF2 pos op typelist1 typelist2 sent stat = 
- addOpContents stat op (typelist1,typelist2,sent) $ 
+ addOpContents stat op (typelist1,typelist2,fmap toSent2 sent) $ 
   (newErrorMessage(Message$"fixity of operator "++showStr (unOp op)++" is not defined")pos,
   newErrorMessage(Message$"type-overlapping definition of operator "++showStr (unOp op))pos,
   newErrorMessage(Message$"overlapping parameters of operator "++showStr (unOp op))pos)
@@ -64,20 +65,21 @@ getCall5Result pos nEvaluelist stat = do
  fixes <- getOpsFixities' pos stat nEvaluelist
  let minOps = minimumsBy (comparing getFixValue) fixes
  case minOps of 
-  k               :| [] -> newK5_2 nEvaluelist (getOpName k)
+  k               :| [] -> newK5_2 nEvaluelist (getOpName k) pos
   k@(InfixL _ op) :| ks -> case contradiction(k:ks) of
-   Nothing -> newK5_2 nEvaluelist op
+   Nothing -> newK5_2 nEvaluelist op pos
    Just k2 -> Left $newErrorMessage(Message$"cannot mix "++show' k++" and "++show' k2++" in the same infix expression")pos -- message borrowed from GHC
   k@(InfixR _ op) :| ks -> case contradiction(k:ks) of
-   Nothing -> newK5_3 nEvaluelist op
+   Nothing -> newK5_3 nEvaluelist op pos
    Just k2 -> Left $newErrorMessage(Message$"cannot mix "++show' k++" and "++show' k2++" in the same infix expression")pos -- message borrowed from GHC
  
-newK5_2 :: NonEmptyValue -> Oper -> Either ParseError (Oper,ValueList,ValueList)
-newK5_2 nEvaluelist oper = return(oper,vlist1,vlist2)
- where (vlist1,vlist2) = breakBy' oper nEvaluelist 
+newK5_2 :: NonEmptyValue -> Oper -> SourcePos -> Either ParseError (Oper,ValueList,ValueList)
+newK5_2 nEvaluelist oper pos = case breakBy' oper nEvaluelist of
+ Just (vlist1,vlist2) -> return(oper,vlist1,vlist2)
+ Nothing              -> Left $ newErrorMessage(Message$"FIXME:: code 0010")pos -- should be dead
  
-newK5_3 :: NonEmptyValue -> Oper -> Either ParseError (Oper,ValueList,ValueList)
-newK5_3 nEvaluelist oper = return(oper,vlist1,vlist2)
- where 
-  (vlist2',vlist1') = breakBy' oper (reverse'' nEvaluelist)
-  (vlist1,vlist2) = (S.reverse vlist1',S.reverse vlist2')
+newK5_3 :: NonEmptyValue -> Oper -> SourcePos -> Either ParseError (Oper,ValueList,ValueList)
+newK5_3 nEvaluelist oper pos = case breakBy' oper (reverse'' nEvaluelist) of
+ Just (vlist2',vlist1') -> return(oper,vlist1,vlist2) where (vlist1,vlist2) = (S.reverse vlist1',S.reverse vlist2')
+ Nothing                -> Left $ newErrorMessage(Message$"FIXME:: code 0010")pos -- should be dead
+  

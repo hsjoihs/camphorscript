@@ -95,12 +95,12 @@ include  = do
   
 -- CONVERSION
 
-type Table=M.Map Ident String
-type CurrentState=(Table,Integer,Int,Bool,Integer){-defined macro, how deep 'if's are, line num, whether to read a line,depth of skipping  -}
+type Table = M.Map Ident String
+type CurrentState = (Table,Integer,Int,Bool,Integer){-defined macro, how deep 'if's are, line num, whether to read a line,depth of skipping  -}
 
 
 convert1 :: FilePath -> Includers -> [Pre7] -> Either ParseError String
-convert1 file includers xs = snd <$> convert1' file includers ((M.empty,0,0,True,(-1)) ,xs) 
+convert1 file includers@(_,_,t) xs = snd <$> convert1' file includers ((t,0,0,True,(-1)) ,xs) 
 
 
 convert1' :: FilePath -> Includers -> (CurrentState,[Pre7]) -> Either ParseError (Table,String)
@@ -155,8 +155,8 @@ convert1' f i((table,depth,n,True ,_),OTHER t   :xs) = do
  replaced            <- replaceBy table t
  (newtable,result)   <- convert1' f i((table,depth,n+1,True ,(-1) ),xs)
  return (newtable,replaced++"\n"++result)
-convert1' f i@(j,_)((table,depth,n,True ,_),INCLU  fil:xs) = inclus fil j (table,depth,n,f,i,xs) 
-convert1' f i@(_,j)((table,depth,n,True ,_),INCLU2 fil:xs) = inclus fil j (table,depth,n,f,i,xs)
+convert1' f i@(j,_,_)((table,depth,n,True ,_),INCLU  fil:xs) = inclus fil j (table,depth,n,f,i,xs) 
+convert1' f i@(_,j,_)((table,depth,n,True ,_),INCLU2 fil:xs) = inclus fil j (table,depth,n,f,i,xs)
  
 inclus :: FilePath -> FileToTxt ->  (Table, Integer, Line, FilePath, Includers, [Pre7]) -> Either ParseError (Table,String) 
 inclus fil j (table,depth,n,f,i,xs) = case M.lookup fil j of 

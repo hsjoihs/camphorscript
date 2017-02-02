@@ -8,7 +8,8 @@ module Camphor.Base.Base_Step2.Auxilary
 ,makeReplacerTable,makeReplacerTable2,ReplTable
 ,isConsistent,contradiction
 ,NonEmptyValue
-,breakBy',reverse''
+,breakBy'
+,reverse''
 ,isValidCall3,getCall4Left,getInstanceOfCall1,getInstanceOfCall2
 ,getLastPos,toSents,err,toState,fromState
 ) where
@@ -78,24 +79,27 @@ isValidCall3 pos op valuelist2 stat = do
   canBeRightOf' = canBeRightOf pos
 
   
--- FIXME :: SLOW
 reverse'' :: (a,NonEmpty(b,a)) -> (a,NonEmpty(b,a))
 reverse'' (a,(b,a2):|xs) = (q,ws `snoc2`(b,a))
  where S.SepList(q,ws) = S.reverse (S.SepList(a2,xs))
 
---breakBy' :: Oper -> NonEmptyValue -> (ValueList,ValueList)
--- FIXME: if Oper is not found, the list will be split by the last op. This can cause bugs, so you must be sure that Oper `elem` NonEmptyValue.
-breakBy' :: (Eq o) => o -> (v,NonEmpty(o,v)) -> (S.SepList o v,S.SepList o v)
-breakBy' o (v,list) = (S.SepList(v,a),S.SepList(b,c))
- where (a,b,c) = breakBy2 o list
 
-breakBy2 :: (Eq o) => o -> NonEmpty(o,v) -> ([(o,v)],v,[(o,v)]) 
-breakBy2 _ ((_ ,v2):|[])  = ([],v2,[]) -- FIXME
+-- if Oper is not found, it returns Nothing. You must be sure that Oper `elem` NonEmptyValue.
+breakBy' :: (Eq o) => o -> (v,NonEmpty(o,v)) -> Maybe (S.SepList o v,S.SepList o v)
+breakBy' o (v,list) = do
+ (a,b,c) <- breakBy2 o list
+ return (S.SepList(v,a),S.SepList(b,c))
+
+breakBy2 :: (Eq o) => o -> NonEmpty(o,v) -> Maybe ([(o,v)],v,[(o,v)]) 
+breakBy2 o ((o2,v2):|[])  
+ | o == o2    = Just ([],v2,[]) 
+ | otherwise  = Nothing 
 breakBy2 o ((o2,v2):|(ov3:ovs)) 
- | o == o2    = ([]       ,v2,ov3:ovs)
- | otherwise  = ((o2,v2):a,b ,c      )
- where 
-  (a,b,c) = breakBy2 o (ov3:|ovs)
+ | o == o2    = Just ([]       ,v2,ov3:ovs)
+ | otherwise  = do
+  (a,b,c) <- breakBy2 o (ov3:|ovs)
+  return ((o2,v2):a,b,c) 
+  
 
 getOpContents2 :: SourcePos -> UserState -> Oper -> Either ParseError OpInfo
 getOpContents2 pos s o = case getOpContents s o of

@@ -41,17 +41,17 @@ main = do
  
 dispatch4 :: Options -> IO ()
 dispatch4 [] = mapM_ putStrLn info
-dispatch4 xs = case optionParse xs (Nothing,Nothing,(4,8),Nothing,[],[],False,False) of
+dispatch4 xs = case optionParse xs (S Nothing Nothing (4,8) Nothing [] [] False False M.empty) of
  Left e -> abort e
- Right (infile,outf,(a,b),mem,fds,lds,ni,nl) -> do
+ Right (infile,outf,(a,b),mem,fds,lds,ni,nl,t) -> do
   let file_dir = fst $ splitFileName infile
   contents  <- getContentsFrom infile
   includer  <- getManyLibs (if nl then lds else  lib_dir:lds)
   includer2 <- getManyLibs (if ni then fds else file_dir:fds)
-  outputParsed outf (fromTo' a b (step infile (includer,includer2) mem) contents) 
+  outputParsed outf (fromTo' a b (step infile mem (includer,includer2,t)) contents) 
 
-step :: FilePath -> Includers -> Maybe MemSize -> [Txt -> Either ParseError Txt]   
-step file includers mem = map ($file) [step1 includers,step2,step3_I,step3_II mem,step5,step6,step7,step8]
+step :: FilePath -> Maybe MemSize -> Includers -> [Txt -> Either ParseError Txt]   
+step file mem includers  = map ($file) [step1 includers,step2,step3_I,step3_II mem,step5,step6,step7,step8]
 
 -- starts with xth(1-indexed) and ends with yth(1-indexed)
 fromTo' :: Monad m => Int -> Int -> [a -> m a] -> a -> m a

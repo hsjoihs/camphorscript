@@ -70,18 +70,14 @@ complex3 g f = do
  -------------------------------------------------------------------------------------}
 
 convert2_2 :: Sents -> StateT UserState (Either ParseError) Txt
-convert2_2 []                                                   = return "" 
-convert2_2 (Single _    (Comm comm):xs)                           = ("/*" ++ comm ++ "*/")                      <++?> convert2_3 xs 
-convert2_2 (Single _    (Sp   sp  ):xs)                           = sp                                          <++?> convert2_2 xs  -- convert2_2 INTENTIONAL
-convert2_2 (Single _    (Scolon   ):xs)                           = ";"                                         <++?> convert2_3 xs 
-convert2_2 (Single _    (Pleq (Var ident) (Constant integer)):xs) = (unId ident ++ "+=" ++ showNum integer ++ ";") <++?> convert2_3 xs 
-convert2_2 (Single _    (Mneq (Var ident) (Constant integer)):xs) = (unId ident ++ "-=" ++ showNum integer ++ ";") <++?> convert2_3 xs 
-convert2_2 (Single _    (Rd   (Var idnt)):xs)                     = ("read("  ++ unId idnt ++ ")" ++ ";")       <++?> convert2_3 xs 
-convert2_2 (Single _    (Wrt  (Var idnt)):xs)                     = ("write(" ++ unId idnt ++ ")" ++ ";")       <++?> convert2_3 xs 
-convert2_2 (Single pos  (Pleq _ _) :_)                            = err$newErrorMessage(Message$"FIXME:: code 0002")pos
-convert2_2 (Single pos  (Mneq _ _) :_)                            = err$newErrorMessage(Message$"FIXME:: code 0002")pos
-convert2_2 (Single pos  (Rd   _  ) :_)                            = err$newErrorMessage(Message$"FIXME:: code 0002")pos
-convert2_2 (Single pos  (Wrt  _  ) :_)                            = err$newErrorMessage(Message$"FIXME:: code 0002")pos
+convert2_2 []                                                     = return "" 
+convert2_2 (Single _    (Comm comm):xs)                           = ("/*" ++ comm ++ "*/")                         <++?> convert2_3 xs 
+convert2_2 (Single _    (Sp   sp  ):xs)                           = sp                                             <++?> convert2_2 xs  -- convert2_2 INTENTIONAL
+convert2_2 (Single _    (Scolon   ):xs)                           = ";"                                            <++?> convert2_3 xs 
+convert2_2 (Single _    (Pleq ident integer):xs) = (unId ident ++ "+=" ++ showNum integer ++ ";") <++?> convert2_3 xs 
+convert2_2 (Single _    (Mneq ident integer):xs) = (unId ident ++ "-=" ++ showNum integer ++ ";") <++?> convert2_3 xs 
+convert2_2 (Single _    (Rd   idnt):xs)                     = ("read("  ++ unId idnt ++ ")" ++ ";")          <++?> convert2_3 xs 
+convert2_2 (Single _    (Wrt  idnt):xs)                     = ("write(" ++ unId idnt ++ ")" ++ ";")          <++?> convert2_3 xs 
 
 convert2_2 (Single pos  (Pragma prgm):xs) = case prgm of
  ("MEMORY":"using":vars) -> do
@@ -91,22 +87,20 @@ convert2_2 (Single pos  (Pragma prgm):xs) = case prgm of
    Right vars_ -> complex (convert2_2 xs) (return . setTmp vars_) "" -- INTENTIONALLY LEFT AS convert2_2 
  _                       -> ("/*# " ++ unwords prgm ++ " #*/") <++?> convert2_3 xs
 
-convert2_2 (Single pos (Char iden)                        :xs) = complex (convert2_3 xs) (newC pos iden)                         ("char " ++ unId iden ++ ";")
-convert2_2 (Single pos (Del  iden)                        :xs) = complex (convert2_3 xs) (newD pos iden)                       ("delete " ++ unId iden ++ ";")
-convert2_2 (Single pos (Infl fixity op)                   :xs) = complex (convert2_3 xs) (newL pos fixity op)                           ""
-convert2_2 (Single pos (Infr fixity op)                   :xs) = complex (convert2_3 xs) (newR pos fixity op)                           ""
-convert2_2 (Single pos (Func1 name typelist sent)         :xs) = complex (convert2_3 xs) (newF1 pos name typelist (Just sent))          ""
-convert2_2 (Single pos (Func1Nul name typelist)           :xs) = complex (convert2_3 xs) (newF1 pos name typelist Nothing    )          ""
-convert2_2 (Single pos (Func2 op typelist1 typelist2 sent):xs) = complex (convert2_3 xs) (newF2 pos op typelist1 typelist2 (Just sent)) ""
-convert2_2 (Single pos (Func2Nul op typelist1 typelist2)  :xs) = complex (convert2_3 xs) (newF2 pos op typelist1 typelist2 Nothing    ) ""
+convert2_2 (Single pos (Char iden)                  :xs) = complex (convert2_3 xs) (newC pos iden)                         ("char "   ++ unId iden ++ ";")
+convert2_2 (Single pos (Del  iden)                  :xs) = complex (convert2_3 xs) (newD pos iden)                         ("delete " ++ unId iden ++ ";")
+convert2_2 (Single pos (Infl fixity op)             :xs) = complex (convert2_3 xs) (newL pos fixity op)                     ""
+convert2_2 (Single pos (Infr fixity op)             :xs) = complex (convert2_3 xs) (newR pos fixity op)                     ""
+convert2_2 (Single pos (Func1 name typelist sent)   :xs) = complex (convert2_3 xs) (newF1 pos name typelist (Just sent))    ""
+convert2_2 (Single pos (Func1Nul name typelist)     :xs) = complex (convert2_3 xs) (newF1 pos name typelist Nothing    )    ""
+convert2_2 (Single pos (Func2 op tlist1 tlist2 sent):xs) = complex (convert2_3 xs) (newF2 pos op tlist1 tlist2 (Just sent)) ""
+convert2_2 (Single pos (Func2Nul op tlist1 tlist2)  :xs) = complex (convert2_3 xs) (newF2 pos op tlist1 tlist2 Nothing    ) ""
  
 convert2_2 (Single pos (Call1 name valuelist)          :xs) = complex2 (convert2_3 xs) (newK1 pos name valuelist) 
 convert2_2 (Single pos (Call2 op valuelist1 valuelist2):xs) = complex2 (convert2_3 xs) (newK2 pos op valuelist1 valuelist2) --- (val [op val])op(val [op val]);
 convert2_2 (Single pos (Call3 op valuelist1 valuelist2):xs) = complex2 (convert2_3 xs) (newK3 pos op valuelist1 valuelist2) --- (val [op val])op val [op val] ; 
 convert2_2 (Single pos (Call4 list valuelist)          :xs) = complex2 (convert2_3 xs) (newK4 pos list valuelist) --- [val op] (val [op val]) ; 
 convert2_2 (Single pos (Call5 valuelist)               :xs) = complex2 (convert2_3 xs) (newK5 pos valuelist) --- val [op val] op val [op val] ;
-
--- FIXME: does not replace a function call when it's followed by a block
 convert2_2 (Single _ (Call1WithBlock name valuelist pos2 block):xs) = showCall name valuelist <++?> convert2_3 (Block pos2 block:xs)
  where 
   showCall :: Ident2 -> ValueList -> String
@@ -204,19 +198,19 @@ replacerOfFunc :: MacroId -> VFInstance -> ValueList -> SourcePos -> ReaderT Use
 replacerOfFunc funcname (typelist,sent') valuelist pos =
  case sent' of
   Nothing   -> err$newErrorMessage(Message$"cannot call function "++getName funcname++" because it is defined as null")pos
-  Just sent -> replacer funcname sent (makeReplacerTable typelist valuelist) 
+  Just sent -> replacer funcname (toSent2 sent) (makeReplacerTable typelist valuelist) 
  
-replacer :: MacroId -> Sent -> ReplTable -> ReaderT UserState (Either ParseError) Txt
+replacer :: MacroId -> Sent2 -> ReplTable -> ReaderT UserState (Either ParseError) Txt
 replacer mname sent table = do
  result <- simplyReplace mname sent table
  stat <- ask
  lift $ convert2 stat result -- FIXME:: state of convert2 not passed
  
-simplyReplace :: MacroId -> Sent -> ReplTable -> ReaderT UserState (Either ParseError) Sents
+simplyReplace :: MacroId -> Sent2 -> ReplTable -> ReaderT UserState (Either ParseError) Sents
 simplyReplace mname sent table = ReaderT $ \stat -> evalStateT (simplyReplaceRVC mname sent stat table) (M.empty,getTmp stat)
  
 -- simplyReplaceRegardingVariableCollision 
-simplyReplaceRVC :: MacroId -> Sent -> UserState -> ReplTable -> StateT (CollisionTable,Maybe TmpStat) (Either ParseError) Sents
+simplyReplaceRVC :: MacroId -> Sent2 -> UserState -> ReplTable -> StateT (CollisionTable,Maybe TmpStat) (Either ParseError) Sents
 simplyReplaceRVC mname (Single pos2 ssent) stat table = do
  newSents <- replacer3 (clearTmp stat) (nE mname) pos2 ssent table
  let result = toSents pos2 newSents

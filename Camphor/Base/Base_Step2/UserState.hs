@@ -23,7 +23,7 @@ import Camphor.NonEmpty as NE
 import Control.Monad.State hiding(fix)
 
 type VFInstance = (TypeList, Maybe Sent) -- Maybe Sent ::: block or `null function'
-type OpInstance = (TypeList,TypeList, Maybe Sent)
+type OpInstance = (TypeList,TypeList, Maybe Sent2)
 type OpInfo = (Fixity,[OpInstance])
 data MacroId = Func Ident2 VFInstance | Operator Oper OpInstance deriving(Show,Eq)  
 -- private
@@ -98,12 +98,12 @@ emptyState = UserState deffun defop Nothing
  where
   deffun :: VFList
   deffun = nE(M.fromList[
-   (readI ,West$[(single CHAR_AND bbbb,Just$Single(newPos "__DEFAULT__" 0 0) $ Rd $Var bbbb)]),
-   (writeI,West$[(single CHAR_AND bbbb,Just$Single(newPos "__DEFAULT__" 0 0) $ Wrt$Var bbbb)])
+   (readI ,West$[( single CHAR_AND bbbb,Just$Single(newPos "__DEFAULT__" 0 0) (Rd  bbbb) )]),
+   (writeI,West$[( single CHAR_AND bbbb,Just$Single(newPos "__DEFAULT__" 0 0) (Wrt bbbb) )])
    ])
   defop :: OpList
-  defop = M.fromList[defau "+="$Pleq (Var aaaa) (Var nnnn), defau "-="$Mneq(Var aaaa)(Var nnnn)]
-  defau :: String -> SimpleSent -> (Oper,OpInfo)
+  defop = M.fromList[defau "+="$R_Pleq (Var aaaa) (Var nnnn), defau "-="$R_Mneq (Var aaaa) (Var nnnn)]
+  defau :: String -> SimpleSent2 -> (Oper,OpInfo)
   defau a s = (wrap a,(InfixR 5 (wrap a),[(single CHAR_AND aaaa, single CNSTNT_CHAR nnnn, Just$Single(newPos "__DEFAULT__" 0 0)s)]))
   single :: Type -> Ident2 -> TypeList
   single a b = SepList ((a,b),[])
