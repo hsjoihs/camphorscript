@@ -9,7 +9,7 @@ module Camphor.Base_Step7
 ,convert7
 ,convert7'
 ) where
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,(!!))
+import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),error,undefined)
 import Camphor.Global
 import Text.Parsec hiding(token)
 import Control.Applicative hiding ((<|>),many)

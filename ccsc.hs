@@ -32,7 +32,8 @@ info=[
  "Usage: ccsc [options] [-o outfilepath] infile",
  "options: ",
  "-Cnum[num]  compile from step 'num' to step 'num'",
- "-E          C preprocess only"
+ "-E          C preprocess only",
+ "-m num      limit the number of memory used in the compiled Brainf*ck"
  ]
  
 main :: IO()
@@ -41,8 +42,8 @@ main = do
  dispatch4 args
 
 
-step :: FilePath -> (M.Map FilePath Txt) -> [Txt -> Either ParseError Txt]   
-step file includer = map ($file) [step1 includer,undefined,step3_I,step3_II,step5,step6,step7,step8]
+step :: FilePath -> (M.Map FilePath Txt) -> Maybe MemSize -> [Txt -> Either ParseError Txt]   
+step file includer mem= map ($file) [step1 includer,undefined,step3_I,step3_II mem,step5,step6,step7,step8]
 
 
 -- starts with xth(1-indexed) and ends with yth(1-indexed)
@@ -57,30 +58,31 @@ fromTo' x y xs
 
 dispatch4 :: Options -> IO ()
 dispatch4 [] = mapM_ putStrLn info
-dispatch4 xs = dispatch5 xs (Nothing,Nothing,Right(4,8))
+dispatch4 xs = dispatch5 xs (Nothing,Nothing,Right(4,8),Nothing)
 
-type Stat = (Maybe FilePath,Maybe FilePath,Either String(Int,Int)) -- in,out,from,to
+type Stat = (Maybe FilePath,Maybe FilePath,Either String(Int,Int),Maybe MemSize) -- in,out,from,to,memoryNum
 
 dispatch5 :: Options -> Stat -> IO () 
-dispatch5 ("-o":outf:xs)    (inf        ,_   ,frmTo     ) = dispatch5 xs (     inf,Just outf,frmTo)
-dispatch5 ["-o"]             _                            = abort("argument to '-o' is missing")
-
-dispatch5 (o@['-','C',x,y]:xs)(inf        ,outf,_         ) = case (readMay[x],readMay[y]) of
- (Just x',Just y') -> dispatch5 xs (inf,outf,Right(x',y'))
+dispatch5 ("-o":outf:xs)      (inf        ,_   ,frmTo     ,mem) = dispatch5 xs (     inf,Just outf,frmTo,mem)
+dispatch5 ["-o"]               _                                = abort("argument to '-o' is missing")
+dispatch5 ("-m":mem :xs)      (inf        ,outf,frmTo     ,_  ) = case readMay mem of
+ Just mem' -> dispatch5 xs (     inf,     outf,frmTo,Just mem')
+ Nothing   -> abort("argument to '-m' is not an integer")
+dispatch5 ["-m"]               _                                = abort("argument to '-m' is missing")
+dispatch5 (o@['-','C',x,y]:xs)(inf        ,outf,_         ,mem) = case (readMay[x],readMay[y]) of
+ (Just x',Just y') -> dispatch5 xs (inf,outf,Right(x',y'),mem)
  _                 -> abort ("incorrect format "++show o++" of option -Cnum[num]")    
   
-dispatch5 (o@['-','C',x]  :xs)(inf        ,outf,_         ) = case readMay [x] of 
- Nothing  -> abort ("incorrect format "++show o++" of option -Cnum[num]")
- Just x' -> dispatch5 xs (inf,outf,Right(x',x'))
- 
-dispatch5 ("-E":xs)         (inf        ,outf,_         ) = dispatch5 xs (     inf,outf      ,Right(1      ,1      ))
-dispatch5 (inf:xs)          (_          ,outf,frmTo     ) = dispatch5 xs (Just inf,outf      ,frmTo)
+dispatch5 (p@['-','C',x]  :xs)(inf        ,outf,_         ,mem) = case readMay [x] of 
+ Just x'           -> dispatch5 xs (inf,outf,Right(x',x'),mem)
+ Nothing           -> abort ("incorrect format "++show p++" of option -Cnum[num]")
 
-dispatch5 []                (Just infile,outf,Right(a,b)) = do
+dispatch5 ("-E":xs)           (inf        ,outf,_         ,mem) = dispatch5 xs (     inf,outf      ,Right(1,1),mem)
+dispatch5 (inf:xs)            (_          ,outf,frmTo     ,mem) = dispatch5 xs (Just inf,outf      ,frmTo     ,mem)
+
+dispatch5 []                  (_          ,_   ,Left _    ,_  ) = return ()
+dispatch5 []                  (Nothing    ,_   ,_         ,_  ) = abort "no input files"
+dispatch5 []                  (Just infile,outf,Right(a,b),mem) = do
    contents <- getContentsFrom infile
    includer <- getLibs3
-   outputParsed (maybe (replaceExtension infile "bf") id outf) (fromTo' a  b (step infile includer) contents)
-   
-   
-dispatch5 []                (Nothing    ,_   ,_        )  = abort "no input files"
-dispatch5 []                (_          ,_   ,Left _)     = return ()
+   outputParsed (maybe (replaceExtension infile "bf") id outf) (fromTo' a  b (step infile includer mem) contents)

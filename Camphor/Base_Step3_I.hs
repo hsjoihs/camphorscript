@@ -3,7 +3,7 @@
 module Camphor.Base_Step3_I
 (step3_I
 )where
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,(!!),read)
+import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Camphor.Global
 import Camphor.Global
 import Text.Parsec hiding(token)

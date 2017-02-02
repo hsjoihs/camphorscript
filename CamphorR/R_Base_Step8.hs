@@ -5,7 +5,7 @@ module CamphorR.R_Base_Step8
 ,convert8_R
 )where
 
-
+import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,(!!),read)
 step8_R :: String -> Either a String
 step8_R  = Right . convert8_R . parser8_R
 
@@ -14,10 +14,11 @@ convert8_R xs=convert8_R' xs 0
 
 convert8_R' :: [String] -> Int -> String --depth
 convert8_R' []     _   = ""
-convert8_R' (x:xs) n 
- | last x == '['      = (take n    $repeat '\t')++x++"\n"++convert8_R' xs (n+1)
- | last x == ']'      = (take (n-1)$repeat '\t')++x++"\n"++convert8_R' xs (n-1)
- | otherwise          = (take n    $repeat '\t')++x++"\n"++convert8_R' xs n
+convert8_R' (x:xs) n = case reverse x of 
+ '[' : _ -> replicate n     '\t'++x++"\n"++convert8_R' xs (n+1)
+ ']' : _ -> replicate (n-1) '\t'++x++"\n"++convert8_R' xs (n-1)
+ _       -> replicate n     '\t'++x++"\n"++convert8_R' xs n
+
 
 
 

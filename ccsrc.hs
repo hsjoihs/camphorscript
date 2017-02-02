@@ -5,7 +5,7 @@ import Control.Monad
 import Text.Parsec
 import Camphor.IO
 import CamphorR.R_Step8
-import CamphorR.R_Base_Step7
+import CamphorR.R_Step7
 
 
 info :: [String]

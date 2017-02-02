@@ -9,11 +9,11 @@ module Camphor.Global
 ,uint,byte
 ,isJust,isNothing
 ,lib_dir
-,Ident,Txt
+,Ident,Txt,MemSize
 ,lift,(<$$>)
 ,readEith,readMay
 )where
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,(!!),read)
+import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Control.Monad
 import Text.Parsec hiding(token)
 import Data.Char(isSpace,ord)
@@ -92,6 +92,7 @@ newline' = do{newline;return()} <|> do{string "//";many(noneOf "\n");newline;ret
   
 type Ident=String
 type Txt=String
+type MemSize=Integer
   
 lift :: (Functor f, Functor f1) => (a -> b) -> f (f1 a) -> f (f1 b)
 lift = fmap . fmap 

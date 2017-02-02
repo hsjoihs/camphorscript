@@ -1,4 +1,4 @@
---{-# OPTIONS -Wall #-}
+{-# OPTIONS -Wall #-}
 module CamphorR.R_Base_Step7
 (step7_R
 ,parser7_R
@@ -6,7 +6,7 @@ module CamphorR.R_Base_Step7
 ,Type(..)
 ,tokenizeBf
 )where
-
+import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,(!!),read)
 import Text.Parsec hiding(token)
 import Control.Applicative hiding ((<|>),many)
 --import Text.Parsec.Error
@@ -34,12 +34,12 @@ parser7_R' (ads,adr,pos) (((mv,MOV):xs):yss)
  | otherwise                                 = (("mov "++show new++";" )++)<$>parser7_R' (ads,new,pos) (xs:yss)
  where diff = length(filter (=='>') mv) - length(filter (=='<') mv) ; new = adr+diff
 parser7_R' (ads,adr,pos) (((_ ,LOP):xs):yss) = (("mov "++show adr++";loop;")++)<$>parser7_R' (adr:ads,adr,pos) (xs:yss) 
-parser7_R' ([] ,adr,pos) (((_ ,POL):xs):yss) = Left (error "unexpected ]") 
+parser7_R' ([] ,_  ,_  ) (((_ ,POL):_ ):_  ) = Left (error "unexpected ]") 
 parser7_R' (ad:ads,adr,pos) (((_ ,POL):xs):yss) 
  | ad==adr   = (("mov "++show adr++";pool;")++)<$>parser7_R' (ads,adr,pos) (xs:yss) 
  | otherwise = Left(error "address is different")
-parser7_R' ([],adr,pos) []                   = Right ""
-parser7_R' (xs,adr,pos) []                   = Left (error "expecting ]")
+parser7_R' ([],_  ,_  ) []                   = Right ""
+parser7_R' (_ ,_  ,_  ) []                   = Left (error "expecting ]")
 
 
 type CurrState = ([Int],Int,(Int,Int)) --loop addresses(inner=head),current address,position
@@ -65,7 +65,3 @@ tokenizeBf (v:ks) = merge v (tokenizeBf ks)
   merge '.' ys           = (""   ,OUT):ys
   merge x   ((k,SPA):xs) = (x  :k,SPA):xs
   merge x   ys           = ([x]  ,SPA):ys
-
-
-
-
