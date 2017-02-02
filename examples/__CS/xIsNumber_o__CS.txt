@@ -1,0 +1,34 @@
+#include <stdcalc>
+char a;char b;char c;char d;char e;char f;char g;
+
+a += 6;
+b += ~a * 8;
+b -=1;/* b=47 */
+
+read(c);
+
+/*# MEMORY using d e #*/ c -|= ~b ;
+delete b;
+/*# MEMORY using e #*/   d += c ;  
+
+while(c){
+	clear(c);
+	e+=11;
+}
+delete c;
+
+/*# MEMORY using f g #*/ e -|= ~d ;
+delete d;
+
+while(e){
+	clear(e);
+	f+=10;
+	g+= ~f * 11;
+	
+	write(g);
+	g+= 7;write(g);
+	g-= 8;write(g);
+	g-=11;write(g);
+	g+= 3;write(g);
+	g+=13;write(g);
+}

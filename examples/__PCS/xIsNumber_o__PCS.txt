@@ -1,0 +1,205 @@
+/*# LINE start "lib\\stdcalc.txt" #*/
+
+
+
+/*# LINE start "lib\\fixdecl.txt" #*/
+
+
+
+infixl  0 (,);
+infixr  5 (=);    infixr  5 (+=);  infixr  5 (-=); 
+infixr  5 (=~);   infixr  5 (+=~); infixr  5 (-=~);
+infixr  5 (+=!~); infixr  5 (=!~); infixr  5 (-|=); infixr 5 (-|=~);
+infixl 35 (+); infixl 35 (-) ; infixl 35 (+~); infixl 35 (-~) ;
+infixl 40 (*); infixl 40 (%) ; infixl 40 (*~) ; 
+/* infixl 40 (/) ; infixl 40 (/~) ; */   
+
+
+
+/*# LINE end   "lib\\fixdecl.txt" #*/
+
+
+/* a=0; */
+void clear(char&a) {
+	while(a){a-=1;}
+}
+
+void (=)(char&a;constant char N){
+	clear(a);a+=N;
+}
+
+
+/*# LINE start "lib\\eq_til.txt" #*/
+
+
+
+/*# LINE start "lib\\fixdecl.txt" #*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*# LINE end   "lib\\fixdecl.txt" #*/
+void (+=~)(char&a;char&z){
+	while(z){a+=1;z-=1;}
+}	/* a+= ~z */
+
+void (+=~)(char&a,char&b;char&z){
+	while(z){a+=1;b+=1;z-=1;}
+}	/* (a,b)+= ~z*/
+
+void (+=~)(char&a;char&z *constant char N){
+	while(z){a+=N;z-=1;}
+}	/* a+= ~z_star_N */
+
+
+void (-=~)(char&a;char&z){
+	while(z){a-=1;z-=1;}
+}	/* a-= ~z */
+
+void (-=~)(char&a,char&b;char&z){
+	while(z){a-=1;b-=1;z-=1;}
+}	/* (a,b)-= ~z*/
+
+void (-=~)(char&a;char&z *constant char N){
+	while(z){a-=N;z-=1;}
+}	/* a-= ~z_star_N */
+
+
+void (=~)(char&a;char&z){
+	clear(a);
+	a+=~z;
+}	/* a= ~z */
+
+void (=~)(char&a,char&b;char&z){
+	clear(a);clear(b);
+	(a,b)+=~z;
+}	/* (a,b)= ~z*/
+
+void (=~)(char&a;char&z *constant char N){
+	clear(a);
+	a+=~z*N;
+}	/* a= ~z_star_N */
+
+
+
+/*# LINE end   "lib\\eq_til.txt" #*/
+
+/*# LINE start "lib\\eq_bang_til.txt" #*/
+
+
+
+/*# LINE start "lib\\fixdecl.txt" #*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*# LINE end   "lib\\fixdecl.txt" #*/
+void (+=!~)(char&a;char&z){
+	a+=1;
+	while(z){clear(z);a-=1;}
+}	/* a+= !~z*/
+
+void (+=!~)(char&a,char&b;char&z){
+	a+=1; b+=1;
+	while(z){clear(z);a-=1;b-=1;}
+}	/* (a,b)+= !~z*/
+
+void (=!~)(char&a;char&z){
+	clear(a); a+=!~z;
+}	/* a= !~z*/
+
+void (=!~)(char&a,char&b;char&z){
+	clear(a); clear(b); (a,b)+=!~z;
+}	/* (a,b)= !~z*/
+
+
+
+/*# LINE end   "lib\\eq_bang_til.txt" #*/
+
+
+void (+=)(char&a;char&b){
+	char c2;
+	(a,c2)+=~b;
+	b+=~c2;
+	delete c2;
+}
+
+void (+=)(char&a;constant char N *~char&z){
+	while(z){a+=N;z-=1;}
+}	/* a+= ~z_star_N */
+
+void (-|=~)(char&a;char&b){
+	/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
+	char c2;char d2;
+	while(b)
+	{
+		(c2,d2)+=~a;
+		   a +=~d2;
+		while(c2){
+			clear(c2);
+			a-=1;
+		}
+		b-=1;
+	}
+	delete c2;delete d2;
+}
+
+
+
+
+
+
+
+
+/*# LINE end   "lib\\stdcalc.txt" #*/
+char a;char b;char c;char d;char e;char f;char g;
+
+a +=6;
+b +=~a *8;
+b -=1;/* b=47 */
+
+read(c);
+
+/*# MEMORY using d e #*/ c -|=~b ;
+delete b;
+/*# MEMORY using e #*/   d +=c ;  
+
+while(c){
+	clear(c);
+	e+=11;
+}
+delete c;
+
+/*# MEMORY using f g #*/ e -|=~d ;
+delete d;
+
+while(e){
+	clear(e);
+	f+=10;
+	g+=~f *11;
+	
+	write(g);
+	g+=7;write(g);
+	g-=8;write(g);
+	g-=11;write(g);
+	g+=3;write(g);
+	g+=13;write(g);
+}

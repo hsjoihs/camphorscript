@@ -8,7 +8,7 @@ module Camphor.Base.Base_Step2.UserState
 ,addOpFixity,getOpName,containsOp,getOpContents,matches,getFixValue
 ,isInfixL,isInfixR
 ,show',PrettyPrint
-,addVFBlock,getTopVFBlock,deleteTopVFBlock
+,addVFBlock,getTopVFBlock,deleteTopVFBlock,deleteTopVFBlock_ 
 ,overlaps,typelistIdentConflict,valuelistIdentConflict
 ,getName
 )where
@@ -20,6 +20,7 @@ import Camphor.Global.Utilities
 import qualified Data.Map as M
 import Text.Parsec.Pos(newPos)
 import Camphor.NonEmpty as NE
+import Control.Monad.State hiding(fix)
 
 type VFInstance = (TypeList, Maybe Sent) -- Maybe Sent ::: block or `null function'
 type OpInstance = (TypeList,TypeList, Maybe Sent)
@@ -133,6 +134,11 @@ clearTmp (UserState a b _) = UserState a b Nothing
 deleteTopVFBlock :: UserState -> e -> Either e UserState
 deleteTopVFBlock (UserState (_:|[]) _ _) e = Left e
 deleteTopVFBlock (UserState (_:|(vf2:vfs)) oplist tmp) _ = Right$(UserState (vf2:|vfs) oplist tmp)
+
+deleteTopVFBlock_ :: e -> StateT UserState (Either e) ()
+deleteTopVFBlock_ e = StateT $ \s -> do
+ s' <- deleteTopVFBlock s e
+ return((),s')
 
 addIdent :: UserState -> Ident -> VFInfo -> UserState
 addIdent      (UserState (vf:|vfs) oplist tmp) ident dat = UserState ((M.insert ident dat vf):|vfs) oplist tmp

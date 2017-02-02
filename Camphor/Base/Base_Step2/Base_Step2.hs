@@ -21,6 +21,7 @@ import Text.Parsec
 import Text.Parsec.Pos(newPos)
 import qualified Data.Map as M
 import Control.Monad.State
+import Control.Monad.Reader
 import Data.Monoid
  
 step2 ::  FilePath -> Txt -> Either ParseError Txt
@@ -37,47 +38,40 @@ convert :: Sents -> Either ParseError Txt
 convert xs = convert2 defaultStat xs 
 
 convert2 :: UserState -> Sents -> Either ParseError Txt
-convert2 stat sents = fst <$> runStateT (convert2_2 sents) stat 
+convert2 stat sents = evalStateT (convert2_2 sents) stat 
 
 convert2_3 :: Sents -> StateT UserState (Either ParseError) Txt
 convert2_3 sents = do
- stat <- get
- put (clearTmp stat)
+ modify clearTmp
  convert2_2 sents
-
-infixl 4 <++$%>
-(<++$%>) :: (Monad m,Monoid a) => a -> (s, StateT s m a) -> m (a,s)
-a <++$%> (stat,f) = liftM (\(d,c) -> (a `mappend` d,c)) (runStateT f stat)
 
 infixl 4 <++?>
 (<++?>) :: (Monad m,Monoid a) => a -> StateT s m a -> StateT s m a
-a <++?> f = StateT $ \stat -> a <++$%> (stat,f)
-
-err :: e -> StateT s (Either e) a
-err e = StateT $ \_ -> Left e
+a <++?> f = do
+ b <- f 
+ return(a `mappend` b)
 
 complex :: (Monoid a,Monad m) => StateT s m a -> (s -> m s) -> a -> StateT s m a
-complex g f a = StateT $ \stat -> do
- newStat <- f stat
- a <++$%> (newStat,g)
+complex g f result = do
+ StateT $ (\s -> do{x <- f s; return((),x)})
+ result <++?> g
  
-complex2 :: (Monoid a,Monad m) => StateT s m a -> (s -> m a) -> StateT s m a
-complex2 g f = StateT $ \stat -> do
- result <- f stat
- result <++$%> (stat,g)  
+complex2 :: (Monoid a,Monad m) => StateT s m a -> ReaderT s m a -> StateT s m a
+complex2 g f = do
+ result <- toState f 
+ result <++?> g
 
-complex3 :: (Monoid a,Monad m) => StateT s m a -> (s -> m(a,s)) -> StateT s m a
-complex3 g f = StateT $ \stat -> do
- (result,newStat) <- f stat
- result <++$%> (newStat,g)
- 
+complex3 :: (Monoid a,Monad m) => StateT s m a -> StateT s m a -> StateT s m a
+complex3 g f = do
+ result <- f 
+ result <++?> g
 
 {------------------------------------------------------------------------------------- 
  -                              * definition of convert2_2 *                           -
  -------------------------------------------------------------------------------------}
 
 convert2_2 :: Sents -> StateT UserState (Either ParseError) Txt
-convert2_2 []                                                   = StateT $ \stat -> Right ("",stat) 
+convert2_2 []                                                   = return "" 
 convert2_2 (Single _  (Comm comm):xs)                           = ("/*" ++ comm ++ "*/")                 <++?> convert2_3 xs 
 convert2_2 (Single _  (Sp   sp  ):xs)                           = sp                                     <++?> convert2_2 xs  -- convert2_2 INTENTIONAL
 convert2_2 (Single _  (Scolon   ):xs)                           = ";"                                    <++?> convert2_3 xs 
@@ -116,110 +110,115 @@ convert2_2 (Single _ (Call1WithBlock name valuelist pos2 block):xs) = showCall n
   showCall nm (SepList(v,ovs)) = nm ++ "(" ++ show' v ++ concat[ (unOp o2) ++ show' v2 | (o2,v2) <- ovs ] ++ ")" 
  
 convert2_2 (Block p ys:xs) = complex3 (convert2_3 xs) (newStat3getter p ys)
-
-newStat3getter :: SourcePos -> Sents -> UserState -> Either ParseError (Txt, UserState)
-newStat3getter p ys stat = do 
- (res,newStat) <- runStateT(convert2_3 ys) (addVFBlock stat) 
- let result = "{" ++ res ++ "}"
- let remainingVars = getTopVFBlock newStat
- let pos = getLastPos (Block p ys)
- if not $ M.null remainingVars then Left $ newErrorMessage(Message$"identifiers not deleted")pos else do
- newStat3 <- deleteTopVFBlock newStat $ newErrorMessage(Message$"FIXME: code 0004 ")pos
- return(result,newStat3)
-
-
-  
-
 {-----------------------------------------------------------
  -                   * end of convert2_2 *                 -
  -----------------------------------------------------------}
+newStat3getter :: SourcePos -> Sents -> StateT UserState (Either ParseError) Txt
+newStat3getter p ys = do
+ let pos = getLastPos (Block p ys)
+ modify addVFBlock
+ res <- convert2_3 ys
+ let result = "{" ++ res ++ "}"
+ newStat <- get
+ let remainingVars = getTopVFBlock newStat
+ if not $ M.null remainingVars then err$newErrorMessage(Message$"identifiers not deleted")pos else return ()
+ deleteTopVFBlock_ (newErrorMessage(Message$"FIXME: code 0004 ")pos)
+ return result
  
 
-
 -- Function call
-newK1 :: SourcePos -> Ident -> ValueList -> UserState -> Either ParseError Txt
-newK1 pos name valuelist stat = do
- result <- replaceFuncMacro pos name valuelist stat
+newK1 :: SourcePos -> Ident -> ValueList -> ReaderT UserState (Either ParseError) Txt
+newK1 pos name valuelist = do
+ result <- replaceFuncMacro pos name valuelist 
  return result -- stat is unchanged
    
 -- normalized operator call
-newK2 :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError Txt 
-newK2 pos op valuelist1 valuelist2 stat = do
- result <- replaceOpMacro pos op valuelist1 valuelist2 stat
+newK2 :: SourcePos -> Oper -> ValueList -> ValueList -> ReaderT UserState (Either ParseError) Txt
+newK2 pos op valuelist1 valuelist2 = do
+ result <- replaceOpMacro pos op valuelist1 valuelist2
  return result -- stat is unchanged
  
 -- left-parenthesized operator call
-newK3 :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError Txt 
-newK3 pos op valuelist1 valuelist2 stat = do
- isValidCall3 pos op valuelist2 stat
- result   <- replaceOpMacro pos op valuelist1 valuelist2 stat
+newK3 :: SourcePos -> Oper -> ValueList -> ValueList -> ReaderT UserState (Either ParseError) Txt
+newK3 pos op valuelist1 valuelist2 = do
+ stat <- ask
+ lift $ isValidCall3 pos op valuelist2 stat
+ result <- replaceOpMacro pos op valuelist1 valuelist2
  return result -- stat is unchanged
-  
+
 --- Call4 [(Value,Oper)] ValueList
 --- right-parenthesized operator call
-newK4 :: SourcePos -> [(Value,Oper)] -> ValueList -> UserState -> Either ParseError Txt
-newK4 pos [] valuelist stat = newK5 pos valuelist stat -- (val op val); thus is a Call5
-newK4 pos (x:xs) valuelist2 stat = do
- (valuelist1,op) <- getCall4Left pos (x:|xs) stat
- result          <- replaceOpMacro pos op valuelist1 valuelist2 stat
+newK4 :: SourcePos -> [(Value,Oper)] -> ValueList -> ReaderT UserState (Either ParseError) Txt
+newK4 pos [] valuelist = newK5 pos valuelist -- (val op val); thus is a Call5
+newK4 pos (x:xs) valuelist2 = do
+ stat <- ask
+ (valuelist1,op) <- lift $ getCall4Left pos (x:|xs) stat
+ result          <- replaceOpMacro pos op valuelist1 valuelist2 
  return result
 
 --- no-parenthesized operator call  
-newK5 :: SourcePos -> ValueList -> UserState -> Either ParseError Txt
-newK5 _   (SepList(Constant _,[])) _     = return "" -- 123; is a nullary sentence
-newK5 pos (SepList(Var ident ,[])) stat  = case getVFContents stat ident of
- Nothing        -> Left $newErrorMessage(Message$"identifier "++show ident++" is not defined")pos 
- Just(East ())  -> return ""
- Just(West _ )  -> Left $newErrorMessage(Message$"cannot use variable "++show ident++" because it is already defined as a function")pos  
+newK5 :: SourcePos -> ValueList -> ReaderT UserState (Either ParseError) Txt
+newK5 _   (SepList(Constant _,[]))      = return "" -- 123; is a nullary sentence
+newK5 pos (SepList(Var ident ,[]))      = do
+ stat <- ask
+ case getVFContents stat ident of
+  Nothing        -> err$newErrorMessage(Message$"identifier "++show ident++" is not defined")pos 
+  Just(East ())  -> return ""
+  Just(West _ )  -> err$newErrorMessage(Message$"cannot use variable "++show ident++" because it is already defined as a function")pos  
 
-newK5 pos (SepList(x,ov:ovs)) stat = do
- (oper,vlist1,vlist2) <- getCall5Result pos (x,ov:|ovs) stat
- newK2 pos oper vlist1 vlist2 stat
+newK5 pos (SepList(x,ov:ovs)) = do
+ stat <- ask
+ (oper,vlist1,vlist2) <- lift $ getCall5Result pos (x,ov:|ovs) stat
+ result <- newK2 pos oper vlist1 vlist2
+ return result
 
 --- macro-replacing function for operator
-replaceOpMacro :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError Txt
-replaceOpMacro pos op valuelist1 valuelist2 stat
- | conflict$ filter isVar $ (toList' valuelist1 ++ toList' valuelist2) = Left$newErrorMessage(Message$"overlapping arguments of operator "++show op)pos 
+replaceOpMacro :: SourcePos -> Oper -> ValueList -> ValueList -> ReaderT UserState (Either ParseError) Txt
+replaceOpMacro pos op valuelist1 valuelist2 
+ | conflict $ filter isVar $ (toList' valuelist1 ++ toList' valuelist2) = err$newErrorMessage(Message$"overlapping arguments of operator "++show op)pos 
  | otherwise = do
-  instnce <- getInstanceOfCall2 pos op valuelist1 valuelist2 stat
-  replacerOfOp (Operator op instnce) instnce valuelist1 valuelist2 stat pos
+  stat <- ask
+  instnce <- lift $ getInstanceOfCall2 pos op valuelist1 valuelist2 stat
+  result <- replacerOfOp (Operator op instnce) instnce valuelist1 valuelist2 pos 
+  return result
    
 --- macro-replacing function for operator   
-replaceFuncMacro :: SourcePos -> Ident -> ValueList -> UserState -> Either ParseError Txt   
-replaceFuncMacro pos ident valuelist stat 
- | valuelistIdentConflict valuelist = Left$newErrorMessage(Message$"overlapping arguments of function "++show ident)pos 
+replaceFuncMacro :: SourcePos -> Ident -> ValueList -> ReaderT UserState (Either ParseError) Txt   
+replaceFuncMacro pos ident valuelist  
+ | valuelistIdentConflict valuelist = err$newErrorMessage(Message$"overlapping arguments of function "++show ident)pos 
  | otherwise = do
-  instnce <- getInstanceOfCall1 pos ident valuelist stat
-  replacerOfFunc (Func ident instnce) instnce valuelist stat pos 
+  stat <- ask
+  instnce <- lift $ getInstanceOfCall1 pos ident valuelist stat
+  replacerOfFunc (Func ident instnce) instnce valuelist pos		
 
-replacerOfOp :: MacroId -> OpInstance -> ValueList -> ValueList -> UserState -> SourcePos -> Either ParseError Txt
-replacerOfOp opname (typelist1,typelist2,sent') valuelist1 valuelist2 stat pos = 
+replacerOfOp :: MacroId -> OpInstance -> ValueList -> ValueList -> SourcePos -> ReaderT UserState (Either ParseError) Txt
+replacerOfOp opname (typelist1,typelist2,sent') valuelist1 valuelist2 pos =   
  case sent' of 
-  Nothing   -> Left$newErrorMessage(Message$"cannot call operator "++getName opname++" because it is defined as null")pos 
-  Just sent -> replacer opname sent stat $ makeReplacerTable2 (typelist1,typelist2) (valuelist1,valuelist2)
+  Nothing   -> err$newErrorMessage(Message$"cannot call operator "++getName opname++" because it is defined as null")pos 
+  Just sent -> replacer opname sent (makeReplacerTable2 (typelist1,typelist2) (valuelist1,valuelist2)) 
 
-replacerOfFunc :: MacroId -> VFInstance -> ValueList -> UserState -> SourcePos -> Either ParseError Txt
-replacerOfFunc funcname (typelist,sent') valuelist stat pos =
+replacerOfFunc :: MacroId -> VFInstance -> ValueList -> SourcePos -> ReaderT UserState (Either ParseError) Txt
+replacerOfFunc funcname (typelist,sent') valuelist pos =
  case sent' of
-  Nothing   -> Left$newErrorMessage(Message$"cannot call function "++getName funcname++" because it is defined as null")pos
-  Just sent -> replacer funcname sent stat $ makeReplacerTable typelist valuelist
+  Nothing   -> err$newErrorMessage(Message$"cannot call function "++getName funcname++" because it is defined as null")pos
+  Just sent -> replacer funcname sent (makeReplacerTable typelist valuelist) 
  
-replacer :: MacroId -> Sent -> UserState -> ReplTable -> Either ParseError Txt
-replacer mname sent stat table = do
- result <- simplyReplace mname sent stat table
- convert2 stat result -- FIXME:: state not passed
+replacer :: MacroId -> Sent -> ReplTable -> ReaderT UserState (Either ParseError) Txt
+replacer mname sent table = do
+ result <- simplyReplace mname sent table
+ stat <- ask
+ lift $ convert2 stat result -- FIXME:: state of convert2 not passed
  
-simplyReplace :: MacroId -> Sent -> UserState -> ReplTable -> Either ParseError Sents
-simplyReplace mname sent stat table = fst <$> simplyReplaceRVC mname sent stat table M.empty
+simplyReplace :: MacroId -> Sent -> ReplTable -> ReaderT UserState (Either ParseError) Sents
+simplyReplace mname sent table = ReaderT $ \stat -> evalStateT (simplyReplaceRVC mname sent stat table) (M.empty,getTmp stat)
  
 -- simplyReplaceRegardingVariableCollision 
-simplyReplaceRVC :: MacroId -> Sent -> UserState -> ReplTable -> CollisionTable -> Either ParseError (Sents,CollisionTable)
-simplyReplaceRVC mname (Single pos2 ssent) stat table clt = do
- let using = getTmp stat; 
- (newSents,clTable) <- runStateT(replacer3 (clearTmp stat) (nE mname) pos2 ssent table using) clt
- return(map (Single pos2)(toList' newSents),clTable)
-simplyReplaceRVC mname (Block p xs) stat table clt = do
- (results,clTable) <- forStatM xs (\ssent tbl -> simplyReplaceRVC mname ssent stat table tbl) clt
- {- forStatM is defined in Camphor.Global.Utilities as `forStatM :: (Monad m) => [a] -> (a -> b -> m (c,b)) -> b -> m ([c],b)' 
- -- and can be used to sequence with passing a state  -}
- return ([Block p $ concat results],clTable) 
+simplyReplaceRVC :: MacroId -> Sent -> UserState -> ReplTable -> StateT (CollisionTable,Maybe TmpStat) (Either ParseError) Sents
+simplyReplaceRVC mname (Single pos2 ssent) stat table = do
+ newSents <- replacer3 (clearTmp stat) (nE mname) pos2 ssent table
+ let result = toSents pos2 newSents
+ return result
+ 
+simplyReplaceRVC mname (Block p xs) stat table = do
+ results <- forM xs (\ssent -> simplyReplaceRVC mname ssent stat table) 
+ return [Block p $ concat results]

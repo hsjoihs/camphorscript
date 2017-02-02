@@ -7,4 +7,5 @@ xCopyVar 6
 xCopyVar2 7
 xIsNumber 8
 qNullDeclare 9
+xIsNumber_o 10
 ; PCS -> HCCS

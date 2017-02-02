@@ -16,7 +16,7 @@ import qualified Data.Map as M
 -- Auxilary
 type NonEmptyValue = (Value,NonEmpty (Oper,Value))
 type ReplTable = M.Map Ident Value
-type CollisionTable = M.Map Ident Ident
+type CollisionTable = M.Map Ident (Ident,Bool) -- bool : is this variable defined by the `using' pragma?
 
 -- PCS_Parser
 data Tok = 

@@ -10,7 +10,7 @@ module Camphor.Base.Base_Step2.Auxilary
 ,NonEmptyValue
 ,breakBy',reverse''
 ,isValidCall3,getCall4Left,getInstanceOfCall1,getInstanceOfCall2
-,getLastPos
+,getLastPos,toSents,err,toState,fromState
 ) where
 import Camphor.SafePrelude
 import qualified Camphor.SepList as S
@@ -22,11 +22,13 @@ import Text.Parsec
 import Camphor.NonEmpty
 import qualified Data.Map as M
 import Data.Maybe(listToMaybe)
+import Control.Monad.State
+import Control.Monad.Reader
 
 getLastPos :: Sent -> SourcePos
 getLastPos (Single pos _) = pos
 getLastPos (Block  p [] ) = p
-getLastPos (Block  _ (x:xs)) = getLastPos $ last' (x:|xs)
+getLastPos (Block  _ (x:xs)) = getLastPos $ last' (x :| xs)
 
 getInstanceOfCall2 :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError OpInstance
 getInstanceOfCall2 pos op valuelist1 valuelist2 stat = do
@@ -156,3 +158,19 @@ contradiction [ ] = Nothing
 contradiction [_] = Nothing
 contradiction (InfixL _ _:xs) = listToMaybe $ filter isInfixR xs 
 contradiction (InfixR _ _:xs) = listToMaybe $ filter isInfixL xs 
+
+toSents :: Extra -> [SimpleSent] -> Sents
+toSents  = map . Single
+
+err :: MonadTrans t => a1 -> t (Either a1) a
+err = lift . Left 
+
+toState :: (Monad m) => ReaderT r m a -> StateT r m a
+toState (ReaderT f) = StateT $ \s -> do
+ a <- f s
+ return (a,s)
+ 
+fromState :: (Monad m) => StateT r m a -> ReaderT r m a
+fromState (StateT f) = ReaderT $ \s -> do
+ (a,_) <- f s
+ return a
