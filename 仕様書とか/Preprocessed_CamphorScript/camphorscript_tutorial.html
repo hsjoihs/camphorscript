@@ -1,0 +1,257 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="files/sidebar.css">
+	<link rel="stylesheet" type="text/css" href="files/main.css">
+	<title>CamphorScript入門</title>
+</head>
+<body>
+<body>
+<div id="all">
+	<div id="main">
+		<div id="title">
+			<h1 id="titletxt">CamphorScript入門</h1>
+		</div>
+
+		<div id="introtext">
+			<p style="font-style:normal;">
+				CamphorScriptを学ぼう
+			</p>
+		</div>
+		
+		<div class="chapter">
+			<h2 class="content"><a href="#" id="a1" class="btn">1. CamphorScriptの使い方</a></h2>
+			<h3>1-1. 使い方</h3>
+			
+			<div class="line"><span>Windowsの場合</span></div>
+			<p>	まず、「メモ帳」を起動し、以下のように打ち込んで下さい。</p>
+			<p><strong>大文字と小文字、全角と半角は区別されます。全て半角で入力して下さい。</strong></p>
+			<table><tr><td>
+<pre class="codes">
+char a = 'H', b = 'e', c ='l', d = 'o';
+write(a);
+write(b);
+write(c);
+write(c);
+write(d);</pre>
+			</td></tr></table>
+			<p>
+				「ファイル」から「名前を付けて保存」を選択し、「ファイルの種類」を「すべてのファイル」にした後、ファイル名をHello.cphsとして保存して下さい。
+			</p>
+			<p class="img"><img src="files/010101filesave.png" width="450" alt="名前を付けて保存" /></p>	
+			<p>
+				次に、同封の!exec.batというファイルを開いて下さい。
+			</p>
+			<p class="img"><img src="files/010102prompt.png" width="450" alt="!exec.bat" /></p>
+			<p>
+				表示された画面に<span class="console">ccsc -run "</span>と打ち込んだ後、
+				先ほど作成したHello.cphsを!exec.batにドラッグ&amp;ドロップし、
+				その後に<span class="console">"</span>と打ち込んで下さい。
+			</p>
+			<p class="img"><img src="files/010103firstcommand.png" width="450" alt="!exec.bat with command" /></p>
+			<p>
+				Enterキーを押すと、<span class="console">Hello</span>と表示されます。
+			</p>
+			<p class="img"><img src="files/010104commandexecuted.png" width="450" alt="!exec.bat with command" /></p>
+			<p>
+				何らかのエラーが発生した場合は、上記のプログラムの写し間違いである可能性があるので、直して再実行して下さい。
+			</p>
+			<p>
+				ちゃんと<span class="console">Hello</span>と表示された場合は、おめでとうございます、初めてのCamphorScriptプログラムの完成です！
+			</p>
+			<div class="line"><span>Linuxの場合</span></div>
+			<ol>
+				<li>ターミナルを開き、<span class="console">sudo apt-get install haskell-platform</span>を実行</li>
+				<li>同封のフォルダを適切な場所にコピー</li>
+				<li>ターミナルを開き、今コピーしたccsc.hsのあるディレクトリに<span class="console">cd</span></li>
+				<li><span class="console">ghc --make ccsc -o ccsc &amp;&amp; chmod 755 ccsc</span>を実行</li>
+				<li><span class="console">./ccsc</span>を実行し、エラーが出ないことを確認する</li>
+				<li>
+					テキストエディタを起動し、以下のように打ち込む<br />(<strong>大文字と小文字、全角と半角は区別されます。全て半角で入力して下さい。</strong>)
+					<table><tr><td>
+<pre class="codes">
+char a = 'H', b = 'e', c ='l', d = 'o';
+write(a);
+write(b);
+write(c);
+write(c);
+write(d);</pre>
+					</td></tr></table>
+				</li>
+				<li>Hello.cphsという名前で保存する</li>
+				<li><span class="console">./ccsc -run "<i>先ほど作成したHello.cphsの絶対パス</i>"</span>を実行</li>
+				<li><span class="console">Hello</span>と出力されていれば成功！</li>
+			</ol>
+			<br /><h3>1-2. 基本</h3>
+			<p>前回作成したプログラムは、<span class="console">Hello</span>と出力するだけのプログラムです。</p>
+			<table><tr><td>
+<pre class="codes">
+char a = 'H', b = 'e', c ='l', d = 'o';
+write(a);
+write(b);
+write(c);
+write(c);
+write(d);</pre>
+			</td></tr></table>
+			<p>先に進む前に、このプログラムを詳しく見ていきましょう。</p>
+			<p>
+				まず1行目では、<span class="code">a</span>や<span class="code">b</span>などの<strong>変数</strong>と言うものを宣言しています。
+				変数とは、データを格納しておくための入れ物です。
+			</p>
+			<p>1行目では、宣言と同時にそこに<span class="code">'H'</span>などのデータを格納しています。<span class="note">（「<strong>初期化</strong>」と呼ぶ）</span></p>
+			<p>
+				それ以降の行では、<span class="code">write</span>と言うものを使って、変数の中のデータを出力しています。
+			
+				また、出力した後も変数の中にデータは残るので、
+				<span class="code">c</span>に<span class="code">'l'</span>が入っている時に
+				<span class="code">write(c); write(c);</span>と書けば、<span class="console">ll</span>と出力されるわけです。
+			</p>
+			<p>「なぜわざわざ変数なんか作るんだろう」と思うかもしれませんが、今のところは「そういうものだ」と思っていて下さい。</p>
+			
+			<p>では、基本的な仕組みが分かったところで、出力する中身を変えていきましょう。ということで、前回作ったHello.cphsを開きましょう。</p>
+			<div class="line"><span>Windowsの場合</span></div>
+			<p>「メモ帳」を開き、「ファイル」から「開く」を選択し、「テキスト文書」となっているところを「すべてのファイル」に変更し、前回作ったHello.cphsを選択し、開いて下さい。</p>
+			<p class="img"><img src="files/010201fileopen.png" width="450" alt="open file" /></p>
+			<div class="line"><span>Linuxの場合</span></div>
+			<p>お好みのテキストエディタをお使い下さい。</p>
+			<div class="hr"></div>
+			<p>ファイルが開けたところで、プログラムを書き換え、実行してみましょう。</p>
+			<table><tr><td>
+<pre class="codes">
+char a = '2', b = '+', c = '3', d = '=', e = '5';
+write(a); write(b); write(c); write(d); write(e); </pre>
+			</td></tr></table>
+			
+			<div class="exec">
+			<span>実行結果</span>
+			<div>2+3=5</div>
+			</div>
+			
+			<p>これまでのプログラムを見て分かるように、一つ一つの命令<span class="note">（「<strong>文</strong>」と呼ぶ）</span>は
+			原則としてセミコロン（<span class="code">;</span>）で終わります。</p>
+			<p>また、空白や改行は自由に入れることが出来ます。例えば、</p>
+			<table><tr><td>
+<pre class="codes">
+char a = '2', b = '+', c = '3', d = '=', e = '5';</pre>
+			</td></tr></table>
+			<p>と</p>
+			<table><tr><td>
+<pre class="codes">
+char    a
+   =  '2'  
+ ,b   = 
+  '+',c
+=
+'3', d 
+=    '=',e ='5'
+
+;</pre>
+			</td></tr></table>
+			<p>
+				は全く同じものとして扱われます。
+				ただ、後者のような書き方をすると非常に読みにくくなるので、このような書き方はお薦めしません。</p>
+			<p>
+				例外的に、<span class="code">char</span>を<span class="code">ch ar</span>と書いたり、
+				<span class="code">char a</span>を<span class="code">chara</span>と書いたりすることは出来ず、
+				また<span class="code">'</span>と<span class="code">'</span>の間に余分な空白や改行は置けません。
+			</p>
+			
+		</div>
+		<div class="chapter">
+			<h2 class="content"><a href="#" id="a2" class="btn">2. CamphorScriptの基本</a></h2>
+			<h3>2-1. 入力</h3>
+			<p>プログラムは、実行中にデータを受け取ることができます。次のプログラムを見てください。</p>
+			<table><tr><td>
+<pre class="codes">
+char a = '@', b = '&gt;', c = ' ', d = ':';
+write(b);write(c);
+read(a);
+write(d);write(a);write(a);</pre>
+			</td></tr></table>
+			<p>
+				実行すると、<span class="console">&gt;&nbsp;</span>と出力され、一旦プログラムが停止します。キーボードから文字を入力して下さい。
+			</p>
+			<p>
+				入力が終わるとプログラムが再開します。このプログラムの場合、<span class="console">:</span>が出力された後、入力された文字が2回出力されます。
+			</p>
+			<p>
+				なお、以下、このプログラムの実行結果をこのように表します。赤い文字は実際には表示されないのでご注意を。
+			</p>
+			<div class="exec">
+				<span>実行結果1</span>
+				<div>&gt;&nbsp;<span class="input">q</span>:qq</div>
+			</div>
+			<div class="exec">
+				<span>実行結果2</span>
+				<div>&gt;&nbsp;<span class="input">y</span>:yy</div>
+			</div>
+			
+			<div class="line"><span>プログラムの解説</span></div>
+			<p>
+				さて、それではプログラムを詳しく見ていきましょう。
+			</p>
+			<p>
+				1行目の宣言は今までと同様です。2行目では、<span class="console">&gt;&nbsp;</span>を出力しています。
+			</p>
+			<p>
+				3行目では、<span class="code">read</span>と言うものを使って、変数の中にあるデータを入力から受け取った文字で上書きしています。
+			</p>
+			<p>
+				4行目では、<span class="console">:</span>を出力した後に、入力した文字を2回出力しています。
+			</p>
+			
+			<div class="line"><span>初期化の省略</span></div>
+			<p>
+				前回のプログラムでは、<span class="code">a</span>を<span class="code">@</span>で初期化していますが、結局使っていません。
+			</p>
+			<p>
+				それもそのはず、3行目で<span class="code">read</span>を使って<span class="code">a</span>を上書きしているので、
+				<span class="code">@</span>は消えてしまいます。
+			</p>
+			<p>
+				消えてしまうのならば、そもそも初期化を省略してしまっても問題ないはずです。ということで、消してみましょう。
+			</p>
+			<table><tr><td>
+<pre class="codes">
+char a, b = '&gt;', c = ' ', d = ':';
+write(b);write(c);
+read(a);
+write(d);write(a);write(a);</pre>
+			</td></tr></table>
+			<div class="exec">
+				<span>実行結果1</span>
+				<div>&gt;&nbsp;<span class="input">q</span>:qq</div>
+			</div>
+			<div class="exec">
+				<span>実行結果2</span>
+				<div>&gt;&nbsp;<span class="input">y</span>:yy</div>
+			</div>
+			<p>
+				問題ないみたいですね。
+			</p>
+			<p>
+				このように、変数宣言時の初期化は省略することができます。
+			</p>
+			
+			<br /><h3>2-2. 文字コード</h3>
+		</div>
+		
+
+	</div>
+
+	<div id="sidebar">
+		<ul class="links">
+			<li><a href="#a1">1. CamphorScriptの使い方</a></li>
+			<li><a href="#a2">2. CamphorScriptの基本</a></li>
+		</ul>
+	
+		
+	</div>
+	
+	<div style="clear:both; margin:10px 0 0; padding:5px; line-height:1.6em; width:960px; color:#777; text-align:left;">
+		<p>&copy; 2014 Hirotaka Sato <br></p>
+	</div>
+</div>
+
+</body></html>

@@ -20,29 +20,21 @@
 		
 		<div class="chapter">
 			<h2 class="content"><a href="#" id="a1" class="btn">1. Introduction</a></h2>
-			
-			<h3>1-1.</h3>
-			<p>Alpha <strong>Beta</strong> Gamma</p>
+			<h3>1-1. Introduction</h3>
 			<p>
-			
+				Preprocessed CamphorScript is an imperative language designed to facilitate programming 
+				in <a href="http://en.wikipedia.org/wiki/Brainfuck">Brainf*ck</a>, an esoteric programming language made up of only eight instructions. 
 			</p>
-			<span class="source">source: <a href="">LINK2</a>[ http://www.examples.com/2.html ]</span>
+			<p>
+				Programming in Brainf*ck can be difficult and tedious. However, by using many syntactic extensions, 
+				Preprocessed CamphorScript makes it possible to write programs much easier.
+			</p>
+			<p>
+				One of the most important properties of Preprocessed CamphorScript is that it is <strong>extendable</strong>.
+				It is equipped with many ways to extend this language, 
+				including <strong>user-defined operators</strong> and <strong>customizable syntaxes</strong>.
+			</p>
 			
-			<br /><h3>1-2.</h3>
-			<p>Delta <strong>Epsilon</strong> Zeta</p>
-		
-			<span class="source">source: <a href="">LINK2</a>[ http://www.examples.com/2.html ]</span>
-			<span class="source">source: <a href="http://www.examples.com/3.html">LINK3</a>[ http://www.examples.com/3.html ]</span><br>
-			<div style="border: solid 1px #c6d6bc">
-				a
-			</div>
-			<br>
-			<br /><h3>1-3.</h3>
-			<p>Theta</p>
-			<span class="source">source: <a href="">LINK2</a>[ http://www.examples.com/2.html ]</span>
-				Alpha<br>
-			<span class="source">source: <a href="http://www.examples.com/3.html">LINK3</a>[ http://www.examples.com/3.html ]</span><br><br>
-			<a href="http://www.examples.com/out.html">outer link</a>
 		</div>
 		<div class="chapter">
 		<h2 class="content"><a href="#" id="a2" class="btn">2. Lexical Structure</a></h2>
@@ -159,7 +151,10 @@
 				<span class="pat">alphanumbar</span> = <span class="pat">alphabar</span> | <span class="pat">digit</span>;
 			</p>
 			<p>
-				<span class="pat">alphabar</span> = 
+				<span class="pat">alphabar</span> = <span class="pat">upper</span> | <span class="pat">lower</span>;
+			</p>
+			<p>
+				<span class="pat">upper</span> = 
 				<span class="str">'A'</span> |
 				<span class="str">'B'</span> |
 				<span class="str">'C'</span> |
@@ -185,7 +180,10 @@
 				<span class="str">'W'</span> |
 				<span class="str">'X'</span> |
 				<span class="str">'Y'</span> |
-				<span class="str">'Z'</span> |
+				<span class="str">'Z'</span>;
+			</p>
+			<p>
+				<span class="pat">lower</span> = 
 				<span class="str">'a'</span> |
 				<span class="str">'b'</span> |
 				<span class="str">'c'</span> |
@@ -353,17 +351,15 @@
 		</div>
 		
 		
-		<!--
-		<p>
-				Compilers are allowed to choose the effect of the value becoming greater than 255 or negative: 
-				either make it a run-time error or add/subtract 256 implicitly to fit it in the 0-255 range.
-			</p>
-		-->
+		
 		<div class="chapter">
 		<h2 class="content"><a href="#" id="a4" class="btn">4. Variables</a></h2>
-			<p>A variable is defined using, or <strong>linked</strong> to, a type base, storing a datum that belongs to the type base. </p>
+			<p>
+				A variable is defined using, or <strong>linked</strong> to, a type base, storing a datum that belongs to the type base. 
+				Referring to an undefined variable must result in an error.
+			</p>
 			
-			<h3>4-1. Variable Definition</h3>
+			<br /><h3>4-1. Variable Definition</h3>
 			<p>Variables are defined by declaration statements.</p>
 			<p>It is possible to add initializers (e.g. <span class="code">char a = 5;</span>) to variables. If not, they will automatically be initialized with 0. </p>
 			<p>Note that <span class="code">=</span> is not a built-in operator; 
@@ -442,6 +438,12 @@
 			<tr><td><span class="code">const T</span></td><td>The value of the argument, which can be a variable or a constant, cannot be modified.</td></tr>
 			<tr><td><span class="code">constant T</span></td><td>The value of the argument, which must be a constant, cannot be modified.</td></tr>
 			</table> -->
+			<!--
+		<p>
+				Compilers are allowed to choose the effect of the value becoming greater than 255 or negative: 
+				either make it a run-time error or add/subtract 256 implicitly to fit it in the 0-255 range.
+			</p>
+		-->
 			<p>
 				<span class="pat">type</span> = 
 				<span class="str">'constant'</span>, <span class="pat">none</span>, <span class="pat">__</span>, 
@@ -777,13 +779,52 @@
 			
 			<h3>7-1. Pragmas</h3>
 			<p>Pragmas are special statements used to give additional instuctions to the compiler. </p>
-			<p>A compiler does not need to implement any pragmas, though unrecognized pragmas should be ignored.</p>
+			<p>A compiler does not need to implement any pragmas, though unimplemented pragmas should be ignored.</p>
 			<p>
 				<span class="pat">pragma</span> = 
 					<span class="str">'/*#'</span>,
 					{ <span class="pat">allchar</span> },
 					<span class="str">'#*/'</span>;
 			</p>
+			
+			<br /><h3>7-2. Line Start Pragmas</h3>
+			<p>The <span class="code">LINE start</span> pragma tells the compiler that following lines are from another file and that compilers implementing this pragma should produce error messages according to that information.</p>
+			<p>Note that <span class="code">LINE start</span> pragmas can be recursively used.</p>
+			<p>
+				Example: <span class="code">/*# LINE start "stdcalc" #*/</span>
+			</p>
+			
+			<br /><h3>7-3. Line End Pragmas</h3>
+			<p>The <span class="code">LINE end</span> pragma tells the compiler that following lines are no longer from another file and that compilers implementing this pragma should produce error messages according to that information.</p>
+			<p>
+				Example: <span class="code">/*# LINE end "stdcalc" #*/</span>
+			</p>
+			
+			<br /><h3>7-4. Memory Using Pragmas</h3>
+			<p>
+				When a <span class="code">MEMORY using</span> pragma is followed by a call whose definition defines "local" variable(s),
+				it tells the compiler to use specific variable(s), 
+				all of which <strong class="very">must</strong> be zero,
+				instead of newly allocating memories for the "local" variable(s).
+			</p>
+			<p>
+				Example: 
+			</p>
+			<table><tr><td>
+			<pre class="codes">
+void (+=)(char&amp; a; char&amp; b){
+	char c2;
+	while(b){
+		a += 1; c2 += 1; b -= 1;
+	}
+	while(c2){
+		b += 1; c2 -= 1;
+	}
+	delete c2;
+}
+char c,d,e; read(c);
+/*# MEMORY using e #*/   d += c ; </pre>
+			</td></tr></table>
 		</div>
 		
 		<div class="chapter">
@@ -901,7 +942,10 @@
 				<span class="pat">alphanumbar</span> = <span class="pat">alphabar</span> | <span class="pat">digit</span>;
 			</p>
 			<p>
-				<span class="pat">alphabar</span> = 
+				<span class="pat">alphabar</span> = <span class="pat">upper</span> | <span class="pat">lower</span>;
+			</p>
+			<p>
+				<span class="pat">upper</span> = 
 				<span class="str">'A'</span> |
 				<span class="str">'B'</span> |
 				<span class="str">'C'</span> |
@@ -927,7 +971,10 @@
 				<span class="str">'W'</span> |
 				<span class="str">'X'</span> |
 				<span class="str">'Y'</span> |
-				<span class="str">'Z'</span> |
+				<span class="str">'Z'</span>;
+			</p>
+			<p>
+				<span class="pat">lower</span> = 
 				<span class="str">'a'</span> |
 				<span class="str">'b'</span> |
 				<span class="str">'c'</span> |
@@ -1302,7 +1349,7 @@
 			<li><a href="#a7">7. Pragmas</a></li>
 			<li><a href="#a8">8. Full Lexical Structure</a></li>
 		</ul>
-
+		<!--
 		<br /><h3>References</h3>
 		<ul class="outerlinks">
 			<li><a href="http://www.examples.com/1.html">LINK1</a></li>
@@ -1313,12 +1360,12 @@
 			<li><a href="http://www.examples.com/6.html">LINK6</a></li>
 			<li><a href="http://www.examples.com/7.html">LINK7</a></li>
 			<li><a href="http://www.examples.com/8.html">LINK8</a></li>
-		</ul>
+		</ul> -->
 		
 	</div>
 	
 	<div style="clear:both; margin:10px 0 0; padding:5px; line-height:1.6em; width:960px; color:#777; text-align:left;">
-		<p>© 2014 Hirotaka Sato <br></p>
+		<p>&copy; 2014 Hirotaka Sato <br></p>
 	</div>
 </div>
 

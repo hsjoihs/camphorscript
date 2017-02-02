@@ -7,6 +7,7 @@ module Camphor.BF_interpreter
 import Camphor.SafePrelude 
 import Camphor.Global.Synonyms
 import Camphor.IO
+import System.IO(stdout,hFlush)
 import Camphor.InfList
 import Camphor.BF_parser
 import Text.Parsec
@@ -39,7 +40,7 @@ class (Functor io, Monad io) => IOLike io where
  
 instance IOLike IO where
  getChar' = Just <$> getHiddenChar
- putChar' = putChar
+ putChar' a = putChar a >> hFlush stdout
  liftIO' = liftIO 
  
 instance IOLike VIO where
