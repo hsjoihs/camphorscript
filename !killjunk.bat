@@ -7,6 +7,7 @@ if '%userkey%'=='y' goto start
 exit
 
 :start 
+rd _tmp
 echo.
 for /F "usebackq" %%i in (`dir /s /b *.hi *.o `) do ( 
 echo deleted %%i 

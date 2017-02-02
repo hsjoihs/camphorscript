@@ -25,7 +25,6 @@ import Data.Maybe(isJust)
 import Camphor.Lib
 
 import qualified Data.Map as M
-
 {- C macro  -}
 step1 :: (M.Map FilePath Txt) -> FilePath -> Txt -> Either ParseError Txt
 step1 includer file str = parse parser1' (file ++ "--step1") (str ++ "\n") >>= convert1 file includer
@@ -187,7 +186,8 @@ parser1'5 = many token
 
 
 token :: Stream s m Char => ParsecT s u m String
-token = tIdentifier <|> tOperator <|> tChar <|> tString <|> tSpecial <|> tSpace <|> tNumeral <|> tComment <|> tComment2
+token = tIdentifier <|> tComment <|> tComment2 <|> tOperator <|> -- Comm first, Op second
+ tChar <|> tString <|> tSpecial <|> tSpace <|> tNumeral 
  where
   tIdentifier = identifier
   tNumeral    = try(many1 digit)

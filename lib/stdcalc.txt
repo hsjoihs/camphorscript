@@ -1,3 +1,6 @@
+#ifndef __STD_LIB_STD_CALC_DEFINED__
+#define __STD_LIB_STD_CALC_DEFINED__
+#include <fixdecl>
 #define c_ constant char
 
 /* a=0; */
@@ -39,3 +42,5 @@ void (-=|~)(char& a;char& b){
 }
 
 #undef c_
+
+#endif /*__STD_LIB_STD_CALC_DEFINED__*/

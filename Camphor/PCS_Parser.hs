@@ -12,7 +12,6 @@ import Camphor.Global.Parsers
 import Camphor.Global.Synonyms
 import Text.Parsec hiding(token)
 
-
 parser2' :: Stream s m Char => ParsecT s u m [(SourcePos,Tok)]
 parser2' = do{ts<-many tok;eof;return ts;}
 
@@ -27,7 +26,8 @@ data Tok =
 tok :: Stream s m Char => ParsecT s u m (SourcePos,Tok)
 tok = _char <|> _delete  <|> _num <|> _scolon <|>
  _paren <|> _nerap <|> _brace <|> _ecarb <|>
- _comm <|> _op <|> _infixl <|> _infixr <|>
+ _comm <|> _op <|> -- _comm first, _op second
+ _infixl <|> _infixr <|>
  _void <|> _sp <|> _cnstnt <|> _const <|> _ident
 
 _paren :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)

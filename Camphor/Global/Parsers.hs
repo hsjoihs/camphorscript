@@ -104,7 +104,7 @@ blockComm :: Stream s m Char => ParsecT s u m String
 blockComm = try(do{string "/*"; comm<-manyTill anyChar(try(string "*/"));return(comm>>=escStar)}) <?> "block comment"
 
 operator :: Stream s m Char => ParsecT s u m Oper
-operator = try(oneOf "!%&*+,-:<=>?@^|~" <:> many(oneOf "!%&*+,-:<=>?@^|~" <|> space ))
+operator = try(oneOf "!%&*+,-:<=>?@^/|~" <:> many(oneOf "!%&/*+,-:<=>?@^|~" <|> space ))
 
 
 -- ####################### End of Chapter 3 ######################

@@ -4,7 +4,7 @@ import Text.Parsec
 import Camphor.Global.Utilities
 import Camphor.Global.Operators
 import Camphor.Global.Synonyms
-import Camphor.Step1
+import Camphor.Base_Step1
 import Camphor.Step2
 import Camphor.Step3_I
 import Camphor.Step3_II

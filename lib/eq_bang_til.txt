@@ -1,3 +1,6 @@
+#ifndef __STD_LIB_EQ_BANG_TIL_DEFINED__
+#define __STD_LIB_EQ_BANG_TIL_DEFINED__
+#include <fixdecl>
 void (+=!~)(char& a;char& z){
 	a+=1;
 	while(z){clear(z);a-=1;}
@@ -15,3 +18,4 @@ void (=!~)(char& a;char& z){
 void (=!~)(char& a,char& b;char& z){
 	clear(a); clear(b); (a,b)+= !~z;
 }	/* (a,b)= !~z*/
+#endif /*__STD_LIB_EQ_BANG_TIL_DEFINED__*/

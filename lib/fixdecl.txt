@@ -1,0 +1,8 @@
+#ifndef __STD_LIB_FIXDECL_INCLUDED__
+#define __STD_LIB_FIXDECL_INCLUDED__
+infixl  0 (,);
+infixr  5 (=); infixr  5 (+=); infixr  5 (-=); infixr  5 (+=~); infixr  5 (-=~);infixr 5 (-|=);infixr 5 (-|=~);
+infixl 35 (+); infixl 35 (-) ; infixl 35 (+~); infixl 35 (-~) ;
+infixl 40 (*); infixl 40 (%) ; infixl 40 (*~) ; 
+/* infixl 40 (/) ; infixl 40 (/~) ; */   
+#endif /*__STD_LIB_FIXDECL_INCLUDED__*/

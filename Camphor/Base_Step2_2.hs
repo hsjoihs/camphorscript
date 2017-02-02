@@ -13,14 +13,14 @@ import Camphor.PCS_Parser2
 import Data.Functor.Identity
 
 
-parser2_2 :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity [Sent]
+parser2_2 :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sents
 parser2_2 = do{xs <- many sent; eof; return xs;} 
  
 data Upgrade a = Single a | Block [Upgrade a] deriving(Show)
 
 data Extra = X deriving(Show,Eq,Ord,Bounded,Enum)
 type Sent  = Upgrade (Extra,SimpleSent)
-type Sents  = [Sent]
+type Sents = [Sent]
 
 type TypeList1 = (Type, Ident, [(Oper, Type, Ident)])
 
@@ -29,6 +29,9 @@ data SimpleSent =
  Func1 Ident TypeList1 Sent | Func2 Oper TypeList1 TypeList1 Sent | Call1 Ident ValueList |
  Call2 Oper ValueList ValueList | Call3 Oper ValueList ValueList | Call4 [(Value,Oper)] ValueList | Call5 ValueList deriving(Show)
 
+data Type = CNSTNT_CHAR | CONST_CHAR | CHAR_AND deriving(Show,Eq)
+ 
+data Value = Var Ident | Constant Integer deriving(Show,Eq)
 
 
 
@@ -171,7 +174,7 @@ op_call5 = try(do{
  })
  
 
-data Type = CNSTNT_CHAR | CONST_CHAR | CHAR_AND deriving(Show,Eq)
+
 
 typ :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Type
 typ = 
@@ -185,8 +188,6 @@ getTypeList = do
  h <- _ident;   __;    
  i <- many (do{a <- _op; __; b <- typ; __; c <- _ident; return(a,b,c)}); 
  return(g,h,i)
- 
-data Value = Var Ident | Constant Integer deriving(Show,Eq)
 
 value :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Value
 value = (Var <$> _ident <?> "variable") <|> (Constant <$> _num <?> "unsigned integer or character literal")
