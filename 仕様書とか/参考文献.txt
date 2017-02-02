@@ -13,6 +13,12 @@ http://d.hatena.ne.jp/language_and_engineering/20081122/1227279791
 Java のスクラップブックを HTML + JScript で作る　（HTAで子プロセスを操作） - 主に言語とシステム開発に関して
 
 
+--GUI素材--
+http://commons.wikimedia.org/wiki/File:Applications-system.svg
+File:Applications-system.svg - Wikimedia Commons
+
+
+
 --開発支援--
 
 http://d.hatena.ne.jp/language_and_engineering/20130502/PatternsOfMSDOSorBAT

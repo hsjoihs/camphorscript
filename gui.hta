@@ -1,4 +1,8 @@
-﻿<head>
+﻿<!-- <!DOCTYPE HTML> -->
+<html style="width:100%;height:100%">
+<head>
+<meta charset="UTF-8">
+<title>CHAtsFtD CamphorScript Compiler GUI</title>
 <script type="text/javascript" src="js/langselect.js"></script>
 <script type="text/javascript" src="js/core.js"></script>
 <hta:application
@@ -20,54 +24,79 @@
     singleinstance="no" 
     sysmenu="yes" 
     version="value"
-    windowstate="maximize" />
+	windowstate="maximize" 
+    />
 </head>
-<body onload="init()" style="background-color:#465DAA">
-<div width="100%">
+<body onload="init()" style="background-color:#465DAA;width:100%;height:100%">
 	<form name="c">
-		<table width="100%" height="100%">
+		<table style="width:100%;height:100%">
 			<tr>
-			<td colspan=2 width="5">
-				<select name="from" onchange="setTo()">
-				<option value="">****FROM****</option>
-				<option value="">CamphorScript</option>
-				<option value="">PreprocessedCamphorScript</option>
-				<option value="">HalfCompiledCamphorScript</option>
-				<option value="">CompiledCamphorScript</option>
-				<option value="">NouDarake</option>
-				<option value="">Brainf*ck(with spaces)</option>
-				<option value="">Brainf*ck(without spaces)</option>
-				</select>
-			
-			</td>
-			<td colspan=2 width="10000" style="text-align:center;">
-			<input type="button" onclick="run()" value="&gt;&gt;&gt;&gt;COMPILE&gt;&gt;&gt;&gt;"/>
-			</td>
-			<td colspan=2>
-				<select name="to">
-				<option value="">****TO****</option>
-				<option value=""></option>
-				<option value=""></option>
-				<option value=""></option>
-				<option value=""></option>
-				<option value=""></option>
-				<option value=""></option>
-				</select>
+				<td colspan=2>
+					<select name="from" onchange="setTo()">
+						<option value="">***********FROM***********</option>
+						<option value="">CamphorScript</option>
+						<option value="">PreprocessedCamphorScript</option>
+						<option value="">HalfCompiledCamphorScript</option>
+						<option value="">CompiledCamphorScript</option>
+						<option value="">NouDarake</option>
+						<option value="">Brainf*ck(with spaces)</option>
+						<option value="">Brainf*ck(without spaces)</option>
+					</select>
+				</td>
+				<td colspan=2 style="text-align:center;width:10000px">
+					<input type="button" onclick="run()" value="&gt;&gt;&gt;&gt;COMPILE&gt;&gt;&gt;&gt;"/>
+				</td>
+				<td colspan=1>
+					<select name="to">
+					<option value="">***************TO***************</option>
+					<option value="">&nbsp;</option>
+					<option value="">&nbsp;</option>
+					<option value="">&nbsp;</option>
+					<option value="">&nbsp;</option>
+					<option value="">&nbsp;</option>
+					<option value="">&nbsp;</option>
+					</select>
 				</td>
 			</tr>
-		
-	
-		<tr><td colspan=6 >
-			<input type="file" name="path" style="width:100%" onchange="openFile(this.value)">
-		</td></tr><tr style="width:100%;height:100%"><td style="width:50%;" colspan=3>
-			<textarea name="inp" style="width:100%;height:100%" readonly></textarea>
-			&nbsp;<!-- no collapse -->
-		</td><td style="width:50%" colspan=3>	
-			<textarea name="out" style="width:100%;height:100%" ></textarea>
-		</td></tr><tr><td colspan=6>
-			<textarea name="err" style="width:100%" rows=4></textarea>
-		</td></tr>
-	</table>
+			
+			<tr>
+				<td colspan=5>
+					<input type="file" name="path" style="width:100%" onchange="openFile(this.value)">
+				</td>
+			</tr>
+			<tr>
+				<td rowspan=4>
+					<img src="js/gear2.png" width=45 height=45 alt="options"/>
+				</td>
+				<td colspan=4>
+				</td>
+				
+			</tr>
+			<tr style="width:100%;height:100%">
+				<td style="width:50%;" colspan=2>
+					<textarea name="inp" style="width:100%;height:100%" readonly></textarea>
+					&nbsp;<!-- no collapse -->
+				</td>
+				<td style="width:50%" colspan=2>	
+					<textarea name="out" style="width:100%;height:100%" ></textarea>
+				</td>
+			</tr>
+			
+			<tr>
+				<td colspan=4>
+					<textarea name="err" style="width:100%" rows=4></textarea>
+				</td>
+			</tr>
+				<tr>
+				<td colspan=1 >
+					<div style="width:150px;height:1px;font-size:1"></div> 
+					<!-- prevents the option bar from becoming too wide -->	
+				</td>
+				<td colspan=3>
+				</td>
+				
+			</tr>
+		</table>
 	</form>
-</div>
 </body>
+</html>

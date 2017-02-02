@@ -2,21 +2,13 @@
 {-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
 module Camphor.Base.NL_parser
 (parserNL'
-,ComNum(..)
-,Com(..)
-,Nul(..)
-,ABC(..)
-,Chunk
+,Chunk(..)
 )where
 
 import Camphor.SafePrelude 
 import Text.Parsec hiding(token)
 import Camphor.Global.Parsers
-data ABC a b c = A a | B b | C c deriving(Show)
-data ComNum = INC | DEC | MOV | ASR deriving(Show)
-data Com    = LOOP | POOL | IN | OUT  deriving(Show)
-data Nul    = NUL deriving(Show)
-type Chunk  = ABC (ComNum,Integer) Com (Nul,String)
+data Chunk  = INC Integer | DEC Integer | MOV Integer | ASR Integer | LOOP | POOL | IN | OUT | NUL String deriving(Show)
 
 parserNL' :: Stream s m Char => ParsecT s u m [Chunk]
 parserNL' = do{sents <- many sentences;eof;return sents}
@@ -26,18 +18,18 @@ sentences = inc <|> dec <|> loop <|> pool <|> mov <|> assert <|> assert2 <|> ass
  where
   uintOr1 = do{spaces;num <- option 1 uint';spaces;char ';';return num}
   uintAndS = do{spaces;num <- uint';spaces;char ';';return num}
-  inc    = do{string "inc";num <- uintOr1; return$A(INC,num)}
-  dec    = do{string "dec";num <- uintOr1; return$A(DEC,num)}
-  mov    = do{string "mov";num <- uintAndS; return$A(MOV,num)}
-  assert = do{string "unsafe_assert";num <- uintAndS; return$A(ASR,num)}
-  assert2= do{string "begin_static_assert";num <- uintAndS; return$A(ASR,num)}
-  assert3= do{string "end_static_assert";num <- uintAndS; return$A(ASR,num)}
-  loop   = do{string "loop";spaces;char ';'; return(B LOOP)}
-  pool   = do{string "pool";spaces;char ';'; return(B POOL)}
-  input  = do{string "_input";spaces;char ';'; return(B IN)} {- "_input" rather than "input" to avoid 'try' -}
-  output = do{string "output";spaces;char ';'; return(B OUT)}
-  nul    = do{sp<-many1 space;return$C(NUL,sp)}
-  comm   = do{string "/*";comment<-many(noneOf "*");string "*/";return$C(NUL,"/*"++(comment>>=escape)++"*/")}
+  inc    = do{string "inc";num <- uintOr1; return$INC num}
+  dec    = do{string "dec";num <- uintOr1; return$DEC num}
+  mov    = do{string "mov";num <- uintAndS; return$MOV num}
+  assert = do{string "unsafe_assert";num <- uintAndS; return$ASR num}
+  assert2= do{string "begin_static_assert";num <- uintAndS; return$ASR num}
+  assert3= do{string "end_static_assert";num <- uintAndS; return$ASR num}
+  loop   = do{string "loop";spaces;char ';'; return LOOP}
+  pool   = do{string "pool";spaces;char ';'; return POOL}
+  input  = do{string "_input";spaces;char ';'; return IN} {- "_input" rather than "input" to avoid 'try' -}
+  output = do{string "output";spaces;char ';'; return OUT}
+  nul    = do{sp <- many1 space;return$NUL sp}
+  comm   = do{string "/*";comment <- many(noneOf "*");string "*/";return$NUL$"/*"++(comment>>=escape)++"*/"}
   escape '+' = "_plus_" 
   escape '-' = "_minus_" 
   escape ',' = "_comma_" 

@@ -26,12 +26,12 @@ var toReal = {
 	PCS    :"PreprocessedCamphorScript",
 	HCCS   :"HalfCompiledCamphorScript",
 	CCS    :"CompiledCamphorScript",
-	CCS_rev:"CompiledCamphorScript(reverse compiled)",
+	CCS_rev:"CompiledCamphorScript(rev)",
 	ND     :"NouDarake",
-	ND_rev :"NouDarake(reversed compiled)",
+	ND_rev :"NouDarake(rev)",
 	BF     :"Brainf*ck(with spaces)",
 	BF_c   :"Brainf*ck(without spaces)",
-	BF_i   :"Indented Brainf*ck(reversed compiled)",
+	BF_i   :"Indented Brainf*ck(rev)",
 	""     :"",
 	undefined:""
 	}
