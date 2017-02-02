@@ -1,8 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
 module Camphor.Base_Step2.PCS_Parser2
-(parser2'
-,Tok(..)
+(Tok(..)
 ,showTok
 --,tok
 ,_char,_delete,_paren,_nerap,_brace

@@ -5,7 +5,8 @@ module Camphor.Base_Step2.UserState
 ,UserState(..),VFInfo,OpInfo,VFList,OpList
 ,emptyState
 ,containsIdent,addIdent,removeIdent,getVFContents
-,addOpFixity,getOpName,containsOp,getOpContents,matches
+,addOpFixity,getOpName,containsOp,getOpContents,matches,getFixValue
+
 )where
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Camphor.Base_Step2.Base_Step2_2
@@ -31,6 +32,12 @@ UserState should contain the following things...
 2. operator list, i.e.  M.Map Oper (Fixity,[(TypeList,TypeList, Sent)])
 
 -}
+
+getFixValue :: Fixity -> Integer
+getFixValue (InfixL fix _) = fix
+getFixValue (InfixR fix _) = fix
+
+
 
 getOpName :: Fixity -> Oper
 getOpName (InfixL _ op) = op
@@ -60,6 +67,7 @@ containsOp (UserState _ oplist) oper = oper `M.member` oplist
 
 getOpContents :: UserState -> Oper -> Maybe OpInfo
 getOpContents (UserState _ oplist) oper = M.lookup oper oplist
+
 
 matches :: ValueList -> TypeList -> Bool
 matches (val,ovs) (typ,_,otis) 

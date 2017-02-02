@@ -7,9 +7,9 @@ module Camphor.Base_Step2.Base_Step2
 ) where
 
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
-import Control.Applicative hiding(many,(<|>))
 import Camphor.Partial
 import Camphor.Base_Step2.Base_Step2_2
+import Camphor.Base_Step2.PCS_Parser(parser2')
 import Camphor.Base_Step2.UserState
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
@@ -109,14 +109,9 @@ convert2 stat (Single(_,Call1 name valuelist):Block ys:xs) = do -- FIXME: does n
    show'(Var x) = x; show'(Constant n) = show n
 
 {-- 
-convert2 stat (Single(pos,Call3 op  valuelist1 valuelist2):xs) = undefined
 convert2 stat (Single(pos,Call4 list  valuelist):xs) = undefined
 convert2 stat (Single(pos,Call5 valuelist):xs) = undefined
-
 --}
-
-
- 
 
 --- (val [op val])op(val [op val]);
 convert2 stat (Single(pos,Call2 op valuelist1 valuelist2):xs) = do
@@ -124,7 +119,11 @@ convert2 stat (Single(pos,Call2 op valuelist1 valuelist2):xs) = do
  left <- convert2 stat xs
  return(result ++ left)
 
- 
+--- (val [op val])op val [op val] ; 
+convert2 stat (Single(pos,Call3 op  valuelist1 valuelist2):xs) = do
+ result <- newK3 pos op valuelist1 valuelist2 stat
+ left <- convert2 stat xs
+ return(result ++ left)
 
 
 {-----------------------------------------------------------
@@ -203,7 +202,22 @@ newK2 :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either Pars
 newK2 pos op valuelist1 valuelist2 stat = do
  result <- replaceOpMacro pos op valuelist1 valuelist2 stat
  return result -- stat is unchanged
-
+ 
+ 
+-- left-parenthesized operator call
+newK3 :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError Txt 
+newK3 pos op valuelist1 valuelist2 stat = do
+ opfixity <- opfixity'
+ ops <- ops'
+ mapM_ (`canBeRightOf'` opfixity) ops
+ result <- replaceOpMacro pos op valuelist1 valuelist2 stat
+ return result -- stat is unchanged
+ where 
+  ops' :: Either ParseError [Fixity]
+  ops' = mapM (fmap fst . getOpContents2 pos stat) $ toOpList valuelist2
+  opfixity' :: Either ParseError Fixity
+  opfixity' = fmap fst $ getOpContents2 pos stat op  
+  canBeRightOf' = canBeRightOf pos
 
 --- macro-replacing function for operator
 replaceOpMacro :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError Txt
@@ -211,13 +225,12 @@ replaceOpMacro pos op valuelist1 valuelist2 stat = do
  opinfo <- opinfo'
  let matchingOpInstance = [ a | a@(typelist1,typelist2,_) <- opinfo, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ] 
  case matchingOpInstance of 
-  []        -> Left $newErrorMessage(Message$"no type-matching instance of "++show op)pos 
+  []        -> Left $newErrorMessage(Message$"no type-matching instance of "++show op++" defined")pos 
   [instnce] -> replacerOfOp instnce valuelist1 valuelist2 stat
   xs        -> Left $newErrorMessage(Message$show(length xs)++" type-matching instances of "++show op++" defined")pos 
  where
-  opinfo' = case getOpContents stat op of  -- Either ParseError [(TypeList,TypeList, Sent)]
-   Nothing       -> Left $newErrorMessage(Message$"operator "++show op++" is not defined")pos 
-   Just (_,info) -> Right info
+  opinfo' :: Either ParseError [(TypeList,TypeList, Sent)]
+  opinfo' = fmap snd $ getOpContents2 pos stat op
 
 --- macro-replacing function for operator   
 replaceFuncMacro :: SourcePos -> Ident -> ValueList -> UserState -> Either ParseError Txt   
@@ -225,11 +238,12 @@ replaceFuncMacro pos ident valuelist stat = do
  finfo <- finfo'
  let matchingFuncInstance = [ a | a@(typelist,_) <- finfo, valuelist `matches` typelist ]
  case matchingFuncInstance of
-  []        -> Left $newErrorMessage(Message$"no type-matching instance of "++show ident)pos  
+  []        -> Left $newErrorMessage(Message$"no type-matching instance of "++show ident++" defined")pos  
   [instnce] -> replacerOfFunc instnce valuelist stat
   xs        -> Left $newErrorMessage(Message$show(length xs)++" type-matching instances of "++show ident++" defined")pos   
  where
-  finfo' = case getVFContents stat ident of -- Either ParseError [(TypeList, Sent)]
+  finfo' :: Either ParseError [(TypeList, Sent)]
+  finfo' = case getVFContents stat ident of 
    Nothing          -> Left $newErrorMessage(Message$"function "++show ident++" is not defined")pos 
    Just(Left())     -> Left $newErrorMessage(Message$"cannot call"++show ident++" because it is defined as a variable")pos
    Just(Right info) -> Right $ info
@@ -293,8 +307,27 @@ replacer2 pos (Del ident) table = case M.lookup ident table of
    ********************
 ----------------------------------------------------------------------------------}
  
+getOpContents2 :: SourcePos -> UserState -> Oper -> Either ParseError OpInfo
+getOpContents2 pos s o = case getOpContents s o of
+ Nothing   -> Left $ newErrorMessage(Message$"operator "++show o++" is not defined")pos
+ Just info -> Right$ info
+
  
+canBeRightOf :: SourcePos -> Fixity -> Fixity -> Either ParseError ()
+canBeRightOf pos f2 f1
+ | v2 > v1 = Right()
+ | v2 < v1 = __mkmsg pos (getOpName f1) (getOpName f2)
+ where v1 = getFixValue f1; v2 = getFixValue f2;
+canBeRightOf pos (InfixL _ nm1) (InfixL _ nm2) = __mkmsg pos nm1 nm2
+canBeRightOf pos (InfixL _ nm1) (InfixR _ nm2) = __mixed pos nm1 nm2
+canBeRightOf pos (InfixR _ nm1) (InfixL _ nm2) = __mixed pos nm1 nm2
+canBeRightOf _ (InfixR _ _) (InfixR _ _) = Right()
+
+__mkmsg :: SourcePos -> Oper -> Oper -> Either ParseError a
+__mkmsg pos nm1 nm2 = Left $ newErrorMessage(Message$"operator "++show nm2++" has smaller fixity than its outer operator "++nm1)pos
  
+__mixed :: SourcePos -> Oper -> Oper -> Either ParseError a
+__mixed pos nm1 nm2 = Left $ newErrorMessage(Message$"operator "++show nm1++" and operator "++show nm2++" has opposite fixity and thus cannot coexist")pos  
  
  
 toList1 :: TypeList -> [Ident]
@@ -302,6 +335,9 @@ toList1 (_,t,xs) = t:[x|(_,_,x)<-xs]
  
 toList2 :: ValueList -> [Value]
 toList2 (v,xs) = v:map snd xs 
+
+toOpList :: ValueList -> [Oper]
+toOpList (_,xs) = map fst xs
 
 
 -- type TypeList = (Type, Ident, [(Oper, Type, Ident)])
@@ -313,3 +349,4 @@ makeReplacerTable tlist vlist = M.fromList$zip(toList1 tlist)(toList2 vlist)
 
 makeReplacerTable2 :: (TypeList,TypeList) -> (ValueList,ValueList) -> ReplTable
 makeReplacerTable2 (t1,t2)(v1,v2) = M.fromList$zip(toList1 t1++toList1 t2)(toList2 v1++toList2 v2)
+
