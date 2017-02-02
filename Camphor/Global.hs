@@ -2,7 +2,7 @@
 {-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
 module Camphor.Global
 (identifier,identifier'
-,nbsp,nbsps,nbnls,newline'
+,nbsp,nbsps,nbnls,nbnl,newline'
 ,spaces',spaces1'
 ,(<++>),(<:>),(>=>),(</>)
 ,strP
@@ -63,8 +63,9 @@ space' =
 -- non-breaking space or comment
 nbnls :: Stream s m Char => ParsecT s u m ()
 nbnls=skipMany nbnl
- where 
-  nbnl = nbsp <|> try(do{string "/*"; manyTill anyChar(try(string "*/"));return ' ';}) <?> "non-breaking space or block comment"
+
+nbnl :: Stream s m Char => ParsecT s u m Char
+nbnl = nbsp <|> try(do{string "/*"; manyTill anyChar(try(string "*/"));return ' ';}) <?> "non-breaking space or block comment"
 
 
 strP :: Stream s m Char => ParsecT s u m Char -> ParsecT s u m String

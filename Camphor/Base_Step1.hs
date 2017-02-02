@@ -41,38 +41,33 @@ parser1' = do{sents<-many line;eof;return sents;}
 line :: Stream s m Char => ParsecT s u m Set
 line = ifdef <|> ifndef <|> endif <|> else_dir <|> define <|> undef <|> include <|> other
  where
-  ifdef    = (do{ try(do{nbnls;char '#';nbnls;string "ifdef" ;nbsp});nbnls;x<-identifier;nbnls;newline';return(IFDEF ,x,"") })
-  ifndef   = (do{ try(do{nbnls;char '#';nbnls;string "ifndef";nbsp});nbnls;x<-identifier;nbnls;newline';return(IFNDEF,x,"") })
-  undef    = (do{ try(do{nbnls;char '#';nbnls;string "undef" ;nbsp});nbnls;x<-identifier;nbnls;newline';return(UNDEF ,x,"") })
+  ifdef    = (do{ try(do{nbnls;char '#';nbnls;string "ifdef" ;nbnl});nbnls;x<-identifier;nbnls;newline';return(IFDEF ,x,"") })
+  ifndef   = (do{ try(do{nbnls;char '#';nbnls;string "ifndef";nbnl});nbnls;x<-identifier;nbnls;newline';return(IFNDEF,x,"") })
+  undef    = (do{ try(do{nbnls;char '#';nbnls;string "undef" ;nbnl});nbnls;x<-identifier;nbnls;newline';return(UNDEF ,x,"") })
   endif    = (do{ try(do{nbnls;char '#';nbnls;string "endif" });nbnls;newline';return(ENDIF,"","") })
   else_dir = (do{ try(do{nbnls;char '#';nbnls;string "else" }) ;nbnls;newline';return(ELSE,"","") })
 
 other :: Stream s m Char => ParsecT s u m Set
 other = do
- xs <- many(noneOf("\n"))
- newline
- return(OTHER,"",xs)
-{- not working
-other = do
- xs <- manyTill (noneOf "\n") (try (string "/*"))
- do{newline';return(OTHER,"",xs)} <|> do{
-  string "/*";
-  ys <- manyTill anyChar (try(string "*/")); 
-  string "*/"; 
-  (_,_,ms) <- other;
-  return(OTHER,"",xs++"/*"++filter (/='\n')ys++"*/"++ms)
+ xs <- many(noneOf("\n/"))
+ do{newline;return(OTHER,"",xs)} <|> do{
+  char '/';
+  do{char '/';ys<-many(noneOf("\n"));newline;                                    return(OTHER,"",xs++"/*"++(ys>>=esc)++"*/")} <|> 
+  do{char '*';ys<-manyTill anyChar(try(string "*/"));(_,_,zs)<-other;return(OTHER,"",xs++"/*"++(ys>>=esc)++"*/"++zs)} <|>
+  do{(_,_,ys) <- other; return(OTHER,"",xs++"/"++ys) }
   }
--}
+ 
+
   
   
   
 {-functional not yet-}
 define :: Stream s m Char => ParsecT s u m Set
 define = do
-  try(do{nbnls;char '#';nbnls;string "define";nbsp})
+  try(do{nbnls;char '#';nbnls;string "define";nbnl})
   nbnls
   xs <- identifier'
-  ys <- do{newline';return $ Right ""} <|> do{nbsp;nbnls;m<-many(noneOf "\n");newline';return $ Right m} <|> do{ks<-many(noneOf "\n");newline';return $ Left ks}
+  ys <- do{newline';return $ Right ""} <|> do{nbnl;nbnls;m<-many(noneOf "\n");newline';return $ Right m} <|> do{ks<-many(noneOf "\n");newline';return $ Left ks}
   case ys of
    Right ys' -> return (DEFINE,xs,ys')
    Left  ys' -> return (OTHER ,"","#define "++xs++ys')
@@ -190,7 +185,7 @@ token = tIdentifier <|> tOperator <|> tChar <|> tString <|> tSpecial <|> tSpace 
   tNumeral    = try(many1 digit)
   tOperator   = try(oneOf "!%&*+,-:<=>?@^|~" <:> many(oneOf "!%&*+,-:<=>?@^|~" <|> space ))
   tChar       = try(char '\'' <:> noneOf "'" <:> string "'"   )
-  tString     = try(char '"'  <:> many(noneOf "\"")<++> string "\"")
+  tString     = try(char '"'  <:> many(noneOf "\"") <++> string "\"")
   tSpecial    = strP $ oneOf "#$().;{\\}[]"
   tComment    = try(do{string"/*";xs<-manyTill anyChar (try (string "*/"));return$"/*"++(xs>>=esc)++"*/" })
   tComment2   = try(do{string"//";xs<-manyTill anyChar eof;return$"/*"++(xs>>=esc)++"*/"})
