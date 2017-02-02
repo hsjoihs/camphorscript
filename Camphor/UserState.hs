@@ -56,8 +56,11 @@ matches :: ValueList -> TypeList -> Bool
 matches (val,ovs) (typ,_,otis) 
  | length ovs /= length otis    = False -- wrong length
  | not(val `isTypeof` typ)      = False -- wrong type
- | all id $ zipWith (\(op2,val2)(op3,typ3,_) -> remSpace op2 == remSpace op3 && val2 `isTypeof` typ3) ovs otis = True
- | otherwise                                                                                                  = False
+ | all id $ zipMatch ovs otis   = True
+ | otherwise                    = False
+ where 
+  zipMatch :: [(Oper,Value)] -> [(Oper,Type,a)] -> [Bool]
+  zipMatch = zipWith (\(op2,val2)(op3,typ3,_) -> remSpace op2 == remSpace op3 && val2 `isTypeof` typ3)
 
 isTypeof :: Value -> Type -> Bool
 isTypeof _            CONST_CHAR  = True

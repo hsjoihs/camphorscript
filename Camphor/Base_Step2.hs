@@ -36,9 +36,9 @@ convert xs = convert2 defaultStat xs
 convert2 :: UserState -> Sents -> Either ParseError Txt
 
 convert2 _    []                       = Right "" 
-convert2 stat (Single(_,Comm comm):xs) = (("/*"++comm++"*/")++)     <$> convert2 stat     xs
-convert2 stat (Single(_,Sp   sp  ):xs) = (sp++)                     <$> convert2 stat     xs
-convert2 stat (Single(_,Scolon   ):xs) = (";"++)                    <$> convert2 stat     xs
+convert2 stat (Single(_,Comm comm):xs) = (("/*"++comm++"*/")++) <$> convert2 stat xs
+convert2 stat (Single(_,Sp   sp  ):xs) = (sp++)                 <$> convert2 stat xs
+convert2 stat (Single(_,Scolon   ):xs) = (";"++)                <$> convert2 stat xs
 
 convert2 stat (Single(pos,Char iden):xs) = do
  newStat <- newC pos iden stat 
@@ -126,9 +126,43 @@ newK2 pos op valuelist1 valuelist2 stat = do
 
 --- macro-replacing function for operator
 replaceOpMacro :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError Txt
-replaceOpMacro pos op valuelist1 valuelist2 stat = undefined
+replaceOpMacro pos op valuelist1 valuelist2 stat = do
+ opinfo <- opinfo'
+ let matchingOpInstance = [ a | a@(typelist1,typelist2,_) <- opinfo, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ] 
+ case matchingOpInstance of 
+  []        -> Left $newErrorMessage(Message$"no type-matching instance of "++show op)pos 
+  [instnce] -> replacer instnce valuelist1 valuelist2
+  xs        -> Left $newErrorMessage(Message$show(length xs)++" type-matching instances of "++show op++" defined")pos 
  where
-  opinfo = case findOpContents stat op of  -- Either ParseError [(TypeList,TypeList, Sent)]
+  opinfo' = case findOpContents stat op of  -- Either ParseError [(TypeList,TypeList, Sent)]
    Nothing       -> Left $newErrorMessage(Message$"operator "++show op++" is not defined")pos 
    Just (_,info) -> Right info
-  
+
+
+-- type TypeList = (Type, Ident, [(Oper, Type, Ident)])
+-- type ValueList = (Value,[(Oper,Value)])   
+-- type Sent  = Upgrade (Extra,SimpleSent) = Single (Extra,SimpleSent) | Block [Upgrade (Extra,SimpleSent)]
+-- type Extra = SourcePos
+replacer :: (TypeList,TypeList, Sent) -> ValueList -> ValueList -> Either ParseError Txt
+replacer (typelist1,typelist2,Single(pos2,ssent)) valuelist1 valuelist2 = 
+ replacer2 pos2 ssent $makeReplacerTable2 (typelist1,typelist2) (valuelist1,valuelist2)
+ 
+replacer (typelist1,typelist2,Block xs) valuelist1 valuelist2 = do 
+ result <- sequence [replacer (typelist1,typelist2,x) valuelist1 valuelist2 | x <- xs] -- :: Either ParseError [Txt]
+ return$concat(["{"]++result++["}"])
+ 
+replacer2 :: SourcePos -> SimpleSent -> M.Map Ident Value -> Either ParseError Txt
+replacer2 pos ssent table = undefined
+ 
+
+toList1 :: TypeList -> [Ident]
+toList1 (_,t,xs) = t:[x|(_,_,x)<-xs]
+ 
+toList2 :: ValueList -> [Value]
+toList2 (v,xs) = v:map snd xs 
+ 
+makeReplacerTable :: TypeList -> ValueList -> M.Map Ident Value
+makeReplacerTable tlist vlist = M.fromList$zip(toList1 tlist)(toList2 vlist) 
+
+makeReplacerTable2 :: (TypeList,TypeList) -> (ValueList,ValueList) -> M.Map Ident Value
+makeReplacerTable2 (t1,t2)(v1,v2) = M.fromList$zip(toList1 t1++toList1 t2)(toList2 v1++toList2 v2)
