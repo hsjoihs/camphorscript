@@ -2,16 +2,20 @@
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
 {- Functional macro expansion -}
 module Camphor.Base_Step2.New
-(newC,newD,newL,newR,newF1,newF2
+(newC,newD,newL,newR,newF1,newF2,getCall5Result
 ) where 
 
+
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
+import Data.Ord(comparing)
 import Camphor.Base_Step2.Base_Step2_2
+import Camphor.Base_Step2.Auxilary
 import Camphor.Base_Step2.UserState
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
+import Camphor.NonEmpty
 import Text.Parsec 
-import qualified Data.Map as M
+import qualified Data.Map as M 
 
 newC :: SourcePos -> Ident -> UserState -> Either ParseError UserState
 newC pos ident stat 
@@ -54,3 +58,27 @@ newF2 pos op typelist1 typelist2 sent stat@(UserState vflist oplist) = case getO
   where 
    newOplist = M.insert op (fix,newlist) oplist
    newlist = (typelist1,typelist2,sent):list -- FIXME : does not check the double definition
+   
+   
+getCall5Result :: SourcePos -> NonEmptyValue -> UserState -> Either ParseError (Oper,ValueList,ValueList)
+getCall5Result pos nEvaluelist stat = do
+ fixes <- getOpsFixities' pos stat nEvaluelist
+ let minOps = minimumsBy (comparing getFixValue) fixes
+ case minOps of 
+  k               :| [] -> newK5_2 nEvaluelist (getOpName k)
+  k@(InfixL _ op) :| ks -> case contradiction(k:ks) of
+   Nothing -> newK5_2 nEvaluelist op
+   Just k2 -> Left $newErrorMessage(Message$"cannot mix "++show' k++" and "++show' k2++" in the same infix expression")pos -- message borrowed from GHC
+  k@(InfixR _ op) :| ks -> case contradiction(k:ks) of
+   Nothing -> newK5_3 nEvaluelist op
+   Just k2 -> Left $newErrorMessage(Message$"cannot mix "++show' k++" and "++show' k2++" in the same infix expression")pos -- message borrowed from GHC
+ 
+newK5_2 :: NonEmptyValue -> Oper -> Either ParseError (Oper,ValueList,ValueList)
+newK5_2 nEvaluelist oper = return(oper,vlist1,vlist2)
+ where (vlist1,vlist2) = breakBy' oper nEvaluelist 
+ 
+newK5_3 :: NonEmptyValue -> Oper -> Either ParseError (Oper,ValueList,ValueList)
+newK5_3 nEvaluelist oper = return(oper,vlist1,vlist2)
+ where 
+  (vlist2',vlist1') = breakBy' oper (reverse'' nEvaluelist)
+  (vlist1,vlist2) = (reverse' vlist1',reverse' vlist2')

@@ -7,7 +7,6 @@ module Camphor.Base_Step2.Base_Step2
 ) where 
 
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
-import Data.Ord(comparing)
 import Camphor.Partial
 import Camphor.Base_Step2.Base_Step2_2
 import Camphor.Base_Step2.New 
@@ -20,7 +19,7 @@ import Camphor.Global.Operators
 import Camphor.NonEmpty
 import Data.Maybe(isJust)
 import Text.Parsec 
-import qualified Data.Map as M
+import qualified Data.Map as M 
  
 step2 ::  FilePath -> Txt -> Either ParseError Txt
 step2 file txt = do
@@ -111,8 +110,7 @@ convert2 stat (Single(_,Call1 name valuelist):Block ys:xs) = do -- FIXME: does n
  return$ showCall name valuelist ++ left
   where 
    showCall nm (v,ovs) = nm ++ "(" ++ show' v ++ concat[ o2 ++ show' v2 | (o2,v2) <- ovs ] ++ ")"
-   
-
+  
 --- (val [op val])op(val [op val]);
 convert2 stat (Single(pos,Call2 op valuelist1 valuelist2):xs) = do
  result <- newK2 pos op valuelist1 valuelist2 stat
@@ -152,8 +150,6 @@ newB2 stat ys = do
  txt <- convert2 stat ys -- FIXME : state is not passed
  return(stat,txt)
 
-
-
 -- Function call
 newK1 :: SourcePos -> Ident -> ValueList -> UserState -> Either ParseError Txt
 newK1 pos name valuelist stat = do
@@ -172,7 +168,6 @@ newK3 pos op valuelist1 valuelist2 stat = do
  isValidCall3 pos op valuelist2 stat
  result   <- replaceOpMacro pos op valuelist1 valuelist2 stat
  return result -- stat is unchanged
-
   
 --- Call4 [(Value,Oper)] ValueList
 --- right-parenthesized operator call
@@ -183,40 +178,19 @@ newK4 pos (x:xs) valuelist2 stat = do
  result   <- replaceOpMacro pos op valuelist1 valuelist2 stat
  return result
 
-
 --- no-parenthesized operator call  
 newK5 :: SourcePos -> ValueList -> UserState -> Either ParseError Txt
 newK5 _   (Constant _,[]) _     = return "" -- 123; is a nullary sentence
 newK5 pos (Var ident ,[]) stat  = case getVFContents stat ident of
    Nothing        -> Left $newErrorMessage(Message$"identifier "++show ident++" is not defined")pos 
    Just(Left ())  -> return ""
-   Just(Right _)  -> Left $newErrorMessage(Message$"cannot use variable "++show ident++" because it is already defined as a function")pos
-   
+   Just(Right _)  -> Left $newErrorMessage(Message$"cannot use variable "++show ident++" because it is already defined as a function")pos  
+
 newK5 pos (x,ov:ovs) stat = do
- (y:|ys) <- getOpsFixities' pos stat (x,ov:|ovs)
- newK5' pos (x,ov:|ovs) stat (y:|ys)
- 
-newK5' :: SourcePos -> NonEmptyValue -> UserState -> NonEmpty Fixity -> Either ParseError Txt
-newK5' pos nEvaluelist stat fixes = do
- let minOps = minimumsBy (comparing getFixValue) fixes
- case minOps of 
-  k               :| [] -> newK5_2 pos nEvaluelist (getOpName k) stat
-  k@(InfixL _ op) :| ks -> case contradiction(k:ks) of
-   Nothing -> newK5_2 pos nEvaluelist op stat
-   Just k2 -> Left $newErrorMessage(Message$"cannot mix "++show' k++" and "++show' k2++" in the same infix expression")pos -- message borrowed from GHC
-  k@(InfixR _ op) :| ks -> case contradiction(k:ks) of
-   Nothing -> newK5_3 pos nEvaluelist op stat
-   Just k2 -> Left $newErrorMessage(Message$"cannot mix "++show' k++" and "++show' k2++" in the same infix expression")pos -- message borrowed from GHC
- 
-newK5_2 :: SourcePos -> NonEmptyValue -> Oper -> UserState -> Either ParseError Txt
-newK5_2 pos nEvaluelist oper stat = newK2 pos oper vlist1 vlist2 stat
- where (vlist1,vlist2) = breakBy' oper nEvaluelist 
- 
-newK5_3 :: SourcePos -> NonEmptyValue -> Oper -> UserState -> Either ParseError Txt
-newK5_3 pos nEvaluelist oper stat = newK2 pos oper vlist1 vlist2 stat
- where 
-  (vlist2',vlist1') = breakBy' oper (reverse'' nEvaluelist)
-  (vlist1,vlist2) = (reverse' vlist1',reverse' vlist2')
+ (oper,vlist1,vlist2) <- getCall5Result pos (x,ov:|ovs) stat
+ newK2 pos oper vlist1 vlist2 stat
+
+
 
 --- macro-replacing function for operator
 replaceOpMacro :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError Txt
@@ -319,8 +293,9 @@ replacer2 _ _ _ (Call5 (Var ident,[])) table = case M.lookup ident table of
  Nothing -> return (Call5 (Var ident,[]):|[])
  Just x  -> return (Call5 (x        ,[]):|[])
  
-replacer2 stat narr pos (Call5 (x,ov:ovs)) table = undefined
-
+replacer2 stat narr pos (Call5 (x,ov:ovs)) table = do
+ (oper,vlist1,vlist2) <- getCall5Result pos (x,ov:|ovs) stat
+ replacer2 stat narr pos (Call2 oper vlist1 vlist2) table
 {-  -------------------------------------------------------------------------------
    ********************
    * end of replacer2 *
