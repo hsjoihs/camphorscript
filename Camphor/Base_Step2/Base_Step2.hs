@@ -98,9 +98,6 @@ convert2_2 stat (Block ys:xs) = do
  where 
   pos = newPos "__FIXME__" 0 0
 
-
- 
-
 convert2_2 stat (Single(_,Call1WithBlock name valuelist block):xs) = do -- FIXME: does not replace a function call when it's followed by a block
  (newStat2,left) <- convert2_2 stat (Block block :xs)
  return(newStat2,showCall name valuelist ++ left)
@@ -198,9 +195,18 @@ replacerOfFunc funcname (typelist,sent) valuelist stat =
  replacer funcname sent stat $ makeReplacerTable typelist valuelist
  
 replacer :: MacroId -> Sent -> UserState -> ReplTable -> Either ParseError Txt
-replacer mname (Single(pos2,ssent)) stat table = do
+replacer mname sent stat table = do
+ result <- simplyReplace mname sent stat table
+ convert2 stat result -- FIXME:: state not passed
+ 
+simplyReplace :: MacroId -> Sent -> UserState -> ReplTable -> Either ParseError Sents
+simplyReplace mname (Single(pos2,ssent)) stat table = do
  newSents <- replacer2 stat (nE mname) pos2 ssent table
- case newSents of newSSent:|[] -> convert2 stat [Single(pos2,newSSent)] ; (x:|xs) -> convert2 stat [Block$map(\k->Single(pos2,k))(x:xs)]
-replacer mname (Block xs) stat table = do
- result <- sequence [replacer mname ssent stat table | ssent <- xs]
- return$concat(["{"]++result++["}"])
+ case newSents of 
+  x:|[] -> return $ [Single(pos2,x)]
+  x:|xs -> return $ map (\k->Single(pos2,k))(x:xs)  
+ 
+simplyReplace mname (Block xs) stat table = do
+ results <- sequence [ simplyReplace mname ssent stat table | ssent <- xs ]
+ let result = concat results
+ return [Block result]

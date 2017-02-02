@@ -90,7 +90,7 @@ replacer2 stat (n:|ns) pos (Call1 ident valuelist) table
   let matchingInstance = [ a | a@(Func name (typelist,_)) <- (n:ns), name == ident , valuelist `matches` typelist]
   case matchingInstance of
    []    -> rpl1 (n:|ns) pos ident valuelist table stat
-   (x:_) -> Left$newErrorMessage(Message$"cannot recursively call "++show' x++" inside "++show' n)pos
+   (x:_) -> Left$newErrorMessage(Message$"cannot call "++show' x++" recursively inside "++show' n)pos
    
 replacer2 stat (n:|ns) pos (Call1WithBlock ident valuelist block) table = do  -- ident is not replaced
  let newValuelist = fmap (replaceSingle table) valuelist
@@ -109,7 +109,7 @@ replacer2 stat (n:|ns) pos (Call2 oper valuelist1 valuelist2) table = do
  let matchingInstance = [ a | a@(Operator o (typelist1,typelist2,_)) <- (n:ns), o == oper, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ]
  case matchingInstance of
    []    -> rpl2 (n:|ns) pos oper (valuelist1,valuelist2) table stat
-   (x:_) -> Left$newErrorMessage(Message$"cannot recursively call "++show' x++" inside "++show' n)pos
+   (x:_) -> Left$newErrorMessage(Message$"cannot call "++show' x++" recursively inside "++show' n)pos
   
 replacer2 stat narr pos (Call3 op valuelist1 valuelist2) table = do
  isValidCall3 pos op valuelist2 stat

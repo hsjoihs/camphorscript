@@ -1,0 +1,7 @@
+
+
+char b; 
+read(b); write(b); 
+{
+	while(b){b-=1;}
+} delete b;

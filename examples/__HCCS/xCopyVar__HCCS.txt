@@ -1,0 +1,15 @@
+    
+
+
+
+
+
+
+
+char a;char b;char C;
+{
+	char c;
+	 while(b){a+=1;c+=1;b-=1;} 
+	 while(c){b+=1;c-=1;} 
+	delete c;
+}

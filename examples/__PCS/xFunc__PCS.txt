@@ -1,0 +1,7 @@
+void clear(char& a) {
+	while(a){a-=1;}
+}
+
+char b; 
+read(b); write(b); 
+clear(b); delete b;

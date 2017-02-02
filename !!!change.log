@@ -3,6 +3,38 @@ Step7のエラーメッセージ改良
 operatorパーサとかいうバグの温床を修正
 Step2から黒魔術排除
 Step2のautotesterrへの登録
+テスト例を増やす
+可読性も上げる
+
+ver 0.6.4 20:18 2014/06/15 (日)
+--課題--
+中でメモリを獲得する関数が呼べない
+外で同一名の変数が定義されているか否かによって
+エラーメッセージが変わる(無し: _temp\malloc.txt 有り:_temp\malloc2.txt)ところからして、
+スコープ系統のバグと思われる
+
+--原因究明過程--
+1. 調べてみた。なんとnewC, newD系統のエラー。つまりreplacer2ではないかも
+2. 検証。malloc.txtではdeleteを、malloc2ではcharを消したらエラーが消えた
+   つまり、defineエラーだけでなく、char/deleteの対応もできてない事が判明
+3. ソースを読む。
+4. どうせBase_Step2の202行目の sequence [replacer mname ssent stat table | ssent <- xs]だろう。
+5. いや、replacerの仕事はreplaceすることだけだからstatが伝わっていようがいまいが関係ない
+   convert2_2を呼んでる箇所にこそバグはあるはず
+6. なるほど、200行目か。1文ずつconvert2に渡ってたらそりゃバグるはず。
+
+--解決--
+ということでreplaceする部分＝再帰する部分と、convert2に渡す部分を分けたら直った
+char/deleteの対応もできた
+xIsNumberもコンパイルできた
+そしてそれらをautotest.batに追加
+さて次回からの目標どうしよう
+テスト例を増やすか
+可読性も上げたいけど
+
+--その他--
+xFunc__PCS.txt追加
+
 
 ver 0.6.3 10:44 2014/06/15 (日)
 --課題--

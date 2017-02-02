@@ -1,10 +1,11 @@
-xAtoI 9
-yPreProcess 1
-yInclude 2
-yDualInclude 3
-yRepInclude 4
-yIfElseTrue 5
-yIfElseFalse 6
-yIfdefGuard 7
-yIf0If1 8
+xAtoI 1
+xIsNumber 2
+yPreProcess 3
+yInclude 4
+yDualInclude 5
+yRepInclude 6
+yIfElseTrue 7
+yIfElseFalse 8
+yIfdefGuard 9
+yIf0If1 10
 ; CS -> PCS

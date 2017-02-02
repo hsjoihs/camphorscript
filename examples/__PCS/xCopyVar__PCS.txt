@@ -1,0 +1,15 @@
+ infixr  5 (+=);  infixr  5 (+=~); 
+
+void (+=~)(char&a;char&z){ while(z){a+=1;z-=1;} }
+void (+=~)(char& a,char& b;char& z){ while(z){a+=1;b+=1;z-=1;} }
+
+
+void (+=)(char&a;char&b){
+	char c;
+	(a,c)+=~b;
+	b+=~c;
+	delete c;
+}
+
+char a;char b;char C;
+(a) += (b) ;
