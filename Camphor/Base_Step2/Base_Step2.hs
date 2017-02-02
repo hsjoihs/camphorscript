@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
 {- Functional macro expansion -}
 module Camphor.Base_Step2.Base_Step2
@@ -88,15 +87,19 @@ convert2_2 stat (Single(pos,Func2 op typelist1 typelist2 sent):xs) = do
  convert2_2 newStat xs
  
 convert2_2 stat (Block ys:xs) = do
- (newStat,result) <- newB (addVFBlock stat) ys -- FIXME: does not check deletion
+ (newStat,res) <- convert2_2 (addVFBlock stat) ys
+ let result = "{" ++ res ++ "}"
  let remainingVars = getTopVFBlock newStat
- --let log = show remainingVars
+ --let log = show (newStat,addVFBlock stat)
  if not$M.null remainingVars then Left$newErrorMessage(Message$"identifiers not deleted"++show remainingVars)pos else do
- (newStat2,left) <- convert2_2 newStat xs
+ newStat3 <- deleteTopVFBlock newStat $ newErrorMessage(Message$"FIXME: code 0004 "{-++log-})pos
+ (newStat2,left) <- convert2_2 newStat3 xs
  return(newStat2,{-log ++ -} result ++ left)
- where pos = newPos "__FIXME__" 0 0
+ where 
+  pos = newPos "__FIXME__" 0 0
 
 
+ 
 
 convert2_2 stat (Single(_,Call1WithBlock name valuelist block):xs) = do -- FIXME: does not replace a function call when it's followed by a block
  (newStat2,left) <- convert2_2 stat (Block block :xs)
@@ -132,15 +135,7 @@ convert2_2 stat (Single(pos,Call5 valuelist):xs) = do
  -                   * end of convert2_2 *                   -
  -----------------------------------------------------------}
  
-newB :: UserState -> Sents -> Either ParseError (UserState,Txt)
-newB stat ys = do
- (newStat,res) <- newB2 stat ys
- return(newStat,"{" ++ res ++ "}")
 
-newB2 :: UserState -> Sents -> Either ParseError (UserState,Txt)
-newB2 stat ys = do
- (newStat2,txt) <- convert2_2 stat ys 
- return(newStat2,txt)
 
 -- Function call
 newK1 :: SourcePos -> Ident -> ValueList -> UserState -> Either ParseError Txt
@@ -204,7 +199,7 @@ replacerOfFunc funcname (typelist,sent) valuelist stat =
  
 replacer :: MacroId -> Sent -> UserState -> ReplTable -> Either ParseError Txt
 replacer mname (Single(pos2,ssent)) stat table = do
- newSents <- replacer2 stat (mname:|[]) pos2 ssent table
+ newSents <- replacer2 stat (nE mname) pos2 ssent table
  case newSents of newSSent:|[] -> convert2 stat [Single(pos2,newSSent)] ; (x:|xs) -> convert2 stat [Block$map(\k->Single(pos2,k))(x:xs)]
 replacer mname (Block xs) stat table = do
  result <- sequence [replacer mname ssent stat table | ssent <- xs]

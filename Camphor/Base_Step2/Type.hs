@@ -1,9 +1,9 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
+{-# OPTIONS -Wall #-}
 module Camphor.Base_Step2.Type
-(NonEmptyValue,ReplTable,Ident
-,Upgrade(..),Sent,Sents,Type(..),Value(..),TypeList,ValueList,Extra,SimpleSent(..)
+(Type(..),Value(..),Ident
+,NonEmptyValue,ReplTable
 ,Tok(..)
+,Upgrade(..),Extra,Sent,Sents,TypeList,ValueList,SimpleSent(..)
 )where
 import Camphor.SepList
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
@@ -11,9 +11,6 @@ import Camphor.Global.Synonyms
 import Camphor.NonEmpty
 import Text.Parsec 
 import qualified Data.Map as M 
-
-
-
  
 -- Auxilary
 type NonEmptyValue = (Value,NonEmpty (Oper,Value))

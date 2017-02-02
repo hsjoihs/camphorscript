@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts , TypeSynonymInstances , FlexibleInstances #-}
-{-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
+{-# OPTIONS -Wall #-}
 module Camphor.Base_Step2.UserState
 (Fixity(..),OpInfo,MacroId(..)
 ,emptyState,UserState()
@@ -7,7 +7,7 @@ module Camphor.Base_Step2.UserState
 ,addOpFixity,getOpName,containsOp,getOpContents,matches,getFixValue
 ,isInfixL,isInfixR
 ,show',PrettyPrint
-,addVFBlock,getTopVFBlock
+,addVFBlock,getTopVFBlock,deleteTopVFBlock
 )where
 import Camphor.SepList
 import Camphor.Base_Step2.Type
@@ -23,7 +23,7 @@ type OpInfo = (Fixity,[(TypeList,TypeList, Sent)])
 data MacroId = Func Ident (TypeList,Sent) | Operator Oper (TypeList,TypeList,Sent) deriving(Show,Eq)  
 type VFList = NonEmpty(M.Map Ident VFInfo)
 type OpList = M.Map Oper OpInfo
-data UserState = UserState VFList OpList
+data UserState = UserState VFList OpList deriving(Show)
 
 
 isInfixL :: Fixity -> Bool
@@ -72,10 +72,10 @@ emptyState :: UserState
 emptyState = UserState deffun defop
  where
   deffun :: VFList
-  deffun = (M.fromList[
+  deffun = nE(M.fromList[
    ("read" ,Right[(single CHAR_AND "bbbb",Single(newPos "__DEFAULT__" 0 0,Rd (Var "bbbb")))]),
    ("write",Right[(single CHAR_AND "bbbb",Single(newPos "__DEFAULT__" 0 0,Wrt(Var "bbbb")))])
-   ]):|[]
+   ])
   defop :: OpList
   defop = M.fromList[defau "+="$Pleq (Var "aaaa") (Var "NNNN") ,defau "-="$Mneq(Var "aaaa")(Var "NNNN")]
   defau :: String -> SimpleSent -> (Oper,OpInfo)
@@ -93,6 +93,11 @@ addVFBlock (UserState vflist oplist) = UserState (M.empty `cons` vflist) oplist
 getTopVFBlock :: UserState -> M.Map Ident VFInfo
 getTopVFBlock (UserState (vf:|_) _) = vf
 
+
+deleteTopVFBlock :: UserState -> e -> Either e UserState
+deleteTopVFBlock (UserState (_:|[]) _) e = Left e
+deleteTopVFBlock (UserState (_:|(vf2:vfs)) oplist) _ = Right$(UserState (vf2:|vfs) oplist)
+
 addIdent :: UserState -> Ident -> VFInfo -> UserState
 addIdent      (UserState (vf:|vfs) oplist) ident dat = UserState ((M.insert ident dat vf):|vfs) oplist 
 
@@ -101,10 +106,10 @@ getVFContents (UserState vflist _) ident = searchBy (M.lookup ident) vflist
 
 removeIdent :: UserState -> Ident -> UserState
 removeIdent (UserState vflist oplist) ident = case vflist of 
- vf:|[]        -> UserState (M.delete ident vf:|[]) oplist
+ vf:|[]        -> UserState (nE $ M.delete ident vf) oplist
  vf:|(vf2:vfs) -> case M.lookup ident vf of
   Nothing -> removeIdent (UserState (vf2:|vfs) oplist) ident
-  _       -> UserState (M.delete ident vf:|[]) oplist
+  _       -> UserState (M.delete ident vf :| (vf2:vfs)) oplist
 
 addOpFixity :: UserState -> Fixity -> UserState
 addOpFixity (UserState vflist oplist) fixity = 

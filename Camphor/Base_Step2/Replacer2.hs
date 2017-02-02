@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
 module Camphor.Base_Step2.Replacer2
 (replacer2
@@ -23,23 +22,23 @@ import qualified Data.Map as M
 ----------------------------------------------------------------------------------}   
 replacer2 :: UserState -> NonEmpty MacroId -> SourcePos -> SimpleSent -> ReplTable ->  Either ParseError (NonEmpty SimpleSent)
 
-replacer2 _ _ _ Scolon   _ = return(Scolon:|[])
-replacer2 _ _ _ (Sp x)   _ = return(Sp x:|[])
-replacer2 _ _ _ (Comm x) _ = return(Comm x:|[])
+replacer2 _ _ _ Scolon   _ = return(nE Scolon)
+replacer2 _ _ _ (Sp x)   _ = return(nE $ Sp x)
+replacer2 _ _ _ (Comm x) _ = return(nE $ Comm x)
 replacer2 _ _ pos (Infl _ _) _ = Left$newErrorMessage(Message$"cannot declare fixity inside function/operator definition ")pos  
 replacer2 _ _ pos (Infr _ _) _ = Left$newErrorMessage(Message$"cannot declare fixity inside function/operator definition ")pos  
 
 replacer2 _ _ pos (Char ident) table = case M.lookup ident table of
- Nothing -> return(Char ident:|[])
+ Nothing -> return(nE $ Char ident)
  Just _  -> Left$newErrorMessage(Message$"cannot redefine an argument "++show ident)pos 
  
 replacer2 _ _ pos (Del ident) table = case M.lookup ident table of
- Nothing -> return(Del ident:|[])
+ Nothing -> return(nE $ Del ident)
  Just _  -> Left$newErrorMessage(Message$"cannot delete an argument"++show ident)pos 
 
 replacer2 _ _ pos (Pleq (Var v1) (Constant v2)) table = case M.lookup v1 table of
- Nothing      -> return(Pleq (Var v1)(Constant v2):|[])
- Just (Var x) -> return(Pleq (Var x) (Constant v2):|[])
+ Nothing      -> return(nE $ Pleq (Var v1)(Constant v2))
+ Just (Var x) -> return(nE $ Pleq (Var x) (Constant v2))
  Just _       -> Left $newErrorMessage(Message$show v1++" is a constant and thus cannot be the left side op operator \"+=\"")pos 
 replacer2 stat ns pos (Pleq (Var v1) (Var v2)) table = case M.lookup v1 table of
  Nothing -> res v1
@@ -49,12 +48,12 @@ replacer2 stat ns pos (Pleq (Var v1) (Var v2)) table = case M.lookup v1 table of
  res var = case M.lookup v2 table of
   Nothing      -> Left $newErrorMessage(Message$"FIXME:: code 0001")pos 
   Just (Var y) -> replacer2 stat ns pos (Call2 (wrap "+=") (SepList((Var var),[])) (SepList((Var y),[]))) table 
-  Just c       -> return(Pleq (Var var) c:|[])
+  Just c       -> return(nE $ Pleq (Var var) c)
 replacer2 _ _ pos (Pleq (Constant c) _) _ = Left $newErrorMessage(Message$show c++" is a constant and thus cannot be the left side op operator \"+=\"")pos 
   
 replacer2 _ _ pos (Mneq (Var v1) (Constant v2)) table = case M.lookup v1 table of
- Nothing      -> return(Mneq (Var v1)(Constant v2):|[])
- Just (Var x) -> return(Mneq (Var x) (Constant v2):|[])
+ Nothing      -> return(nE $ Mneq (Var v1)(Constant v2))
+ Just (Var x) -> return(nE $ Mneq (Var x) (Constant v2))
  Just _       -> Left $newErrorMessage(Message$show v1++" is a constant and thus cannot be the left side op operator \"-=\"")pos 
 replacer2 stat ns pos (Mneq (Var v1) (Var v2)) table = case M.lookup v1 table of
  Nothing -> res v1
@@ -64,18 +63,18 @@ replacer2 stat ns pos (Mneq (Var v1) (Var v2)) table = case M.lookup v1 table of
  res var = case M.lookup v2 table of
   Nothing      -> Left $newErrorMessage(Message$"FIXME:: code 0001")pos 
   Just (Var y) -> replacer2 stat ns pos (Call2 (wrap "-=") (SepList((Var var),[])) (SepList((Var y),[]))) table 
-  Just c       -> return(Mneq (Var var) c:|[])
+  Just c       -> return(nE $ Mneq (Var var) c)
 replacer2 _ _ pos (Mneq (Constant c) _) _ = Left $newErrorMessage(Message$show c++" is a constant and thus cannot be the left side op operator \"-=\"")pos 
  
 replacer2 stat ns pos (Rd (Var ident)) table = case M.lookup ident table of
  Nothing     -> Left $newErrorMessage(Message$"identifier "++show ident++" is not defined")pos 
- Just(Var x) -> return(Rd (Var x):|[]) 
+ Just(Var x) -> return(nE $ Rd (Var x)) 
  Just c      -> replacer2 stat ns pos (Call1 "read" (SepList (c,[]))) table 
 replacer2 stat ns pos (Rd c) table = replacer2 stat ns pos (Call1 "read" (SepList (c,[]))) table
  
 replacer2 stat ns pos (Wrt (Var ident)) table = case M.lookup ident table of
  Nothing     -> Left $newErrorMessage(Message$"identifier "++show ident++" is not defined")pos 
- Just(Var x) -> return(Wrt (Var x):|[])  
+ Just(Var x) -> return(nE $ Wrt (Var x))  
  Just c      -> replacer2 stat ns pos (Call1 "write" (SepList (c,[]))) table 
 replacer2 stat ns pos (Wrt c) table = replacer2 stat ns pos (Call1 "write" (SepList (c,[]))) table 
 
@@ -96,7 +95,7 @@ replacer2 stat (n:|ns) pos (Call1 ident valuelist) table
 replacer2 stat (n:|ns) pos (Call1WithBlock ident valuelist block) table = do  -- ident is not replaced
  let newValuelist = fmap (replaceSingle table) valuelist
  newblock <- makeNewBlock (Block block)
- return(Call1WithBlock ident newValuelist newblock:|[])
+ return(nE $ Call1WithBlock ident newValuelist newblock)
  where
   makeNewBlock :: Sent -> Either ParseError Sents
   makeNewBlock (Single(_,ssent)) = do
@@ -122,10 +121,10 @@ replacer2 stat narr pos (Call4 (x:xs) valuelist2) table = do
  (valuelist1,op) <- getCall4Left pos (x:|xs) stat
  replacer2 stat narr pos (Call2 op valuelist1 valuelist2) table
 
-replacer2 _ _ _ (Call5 (SepList(Constant _,[]))) _ = return(Scolon:|[])
+replacer2 _ _ _ (Call5 (SepList(Constant _,[]))) _ = return(nE $ Scolon)
 replacer2 _ _ _ (Call5 (SepList(Var ident,[]))) table = case M.lookup ident table of
- Nothing -> return (Call5 (SepList(Var ident,[])):|[])
- Just x  -> return (Call5 (SepList(x        ,[])):|[])
+ Nothing -> return (nE $ Call5 (SepList(Var ident,[])))
+ Just x  -> return (nE $ Call5 (SepList(x        ,[])))
  
 replacer2 stat narr pos (Call5 (SepList(x,ov:ovs))) table = do
  (oper,vlist1,vlist2) <- getCall5Result pos (x,ov:|ovs) stat
@@ -150,7 +149,7 @@ rpl1_1 pos (Single(_,ssent)) table2 newMs stat  = replacer2 stat newMs pos ssent
 rpl1_1 pos (Block xs) table2 newMs stat = do
  replaced <- sequence [rpl1_1 pos ssent table2 newMs stat | ssent <- xs] -- [NonEmpty SimpleSent]
  case replaced of 
-  [] -> return(Scolon:|[])
+  [] -> return(nE $ Scolon)
   (r:rs) -> return$concat' (r:|rs)
    
 rpl2 :: NonEmpty MacroId -> SourcePos -> Oper -> (ValueList,ValueList) -> ReplTable -> UserState -> Either ParseError (NonEmpty SimpleSent)

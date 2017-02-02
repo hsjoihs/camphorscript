@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
 module Camphor.Base_Step2.Auxilary
 (getOpContents2

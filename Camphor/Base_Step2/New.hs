@@ -1,5 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
+{-# OPTIONS -Wall  #-}
 {- Functional macro expansion -}
 module Camphor.Base_Step2.New
 (newC,newD,newL,newR,newF1,newF2,getCall5Result

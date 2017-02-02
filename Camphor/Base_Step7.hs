@@ -3,8 +3,6 @@
 {- symbolization -}
 module Camphor.Base_Step7
 (step7
-
-
 ,parserND'
 ,convert7
 ,convert7'

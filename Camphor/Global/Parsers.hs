@@ -39,7 +39,7 @@ nbsps :: Stream s m Char => ParsecT s u m ()
 nbsps = skipMany nbsp
 
 nbnls :: Stream s m Char => ParsecT s u m () -- non-breaking space or comment
-nbnls=skipMany nbnl
+nbnls = skipMany nbnl
 
 nbnl :: Stream s m Char => ParsecT s u m Char
 nbnl = ( nbsp <?> "non-breaking space" ) <|> ( blockComm >> return ' ' )
@@ -105,14 +105,11 @@ blockComm = try(do{string "/*"; comm<-manyTill anyChar(try(string "*/"));return(
 operator :: Stream s m Char => ParsecT s u m Oper
 operator = wrap <$> try(oneOf "!%&*+,-:<=>?@^/|~" <:> many(oneOf "!%&/*+,-:<=>?@^|~" <|> space ))
 
-
 -- ####################### End of Chapter 3 ######################
 
 escStar :: Char -> String
 escStar '*' = "_star_"
 escStar x   = [x]
 
-
 strP :: Stream s m Char => ParsecT s u m Char -> ParsecT s u m String
 strP = fmap (:[])
- 

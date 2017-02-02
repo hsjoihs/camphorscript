@@ -19,6 +19,7 @@ call bat\setlogname testresult
 type nul > %LOG% 
 if exist %FAIL% del %FAIL%
 for /F "usebackq eol=; delims=" %%i in (`type bat\Elist.txt`)    do ( call :tester ccsc  -E   CS       PCS     C11test  %%i )
+for /F "usebackq eol=; delims=" %%i in (`type bat\C22list.txt`)  do ( call :tester ccsc  -C22 PCS      HCCS    C22test  %%i )
 for /F "usebackq eol=; delims=" %%i in (`type bat\C48list.txt`)  do ( call :tester ccsc  -C48 CCS      BF_c    C48test  %%i )
 for /F "usebackq eol=; delims=" %%i in (`type bat\C48list2.txt`) do ( call :tester ccsc  -C48 CCS_rev  BF_c    C48test_ %%i )
 for /F "usebackq eol=; delims=" %%i in (`type bat\C88list1.txt`) do ( call :tester ccsc  -C88 BF       BF_c    C88test  %%i )

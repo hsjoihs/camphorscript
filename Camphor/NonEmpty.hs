@@ -9,6 +9,7 @@ module Camphor.NonEmpty
 ,minimumsBy
 ,concat'
 ,searchBy
+,nE
 )where
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 data NonEmpty a = (:|)a [a] deriving(Show)
@@ -27,9 +28,11 @@ searchBy f (x :| (x2:xs)) = case f x of
 
 
 toList :: NonEmpty a -> [a]
+{-# INLINE toList #-}
 toList (x :| xs) = x:xs
 
 cons :: a -> NonEmpty a -> NonEmpty a
+{-# INLINE cons #-}
 x `cons` (y :| ys) = x :| (y:ys)
 
 snoc :: NonEmpty a -> a -> NonEmpty a
@@ -69,3 +72,7 @@ minimumsBy cmp_ (x_ :| xs_) = go2 cmp_ xs_ (x_:|[])
 concat' :: NonEmpty(NonEmpty a) -> NonEmpty a
 concat' (xs:|[]) = xs 
 concat' (xs:|(xs2:xss)) = xs `append` (concat' (xs2:|xss))
+
+nE :: a -> NonEmpty a
+{-# INLINE nE #-}
+nE = (:|[])

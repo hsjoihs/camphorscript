@@ -1,0 +1,8 @@
+char   b   ;
+{
+	char a    ;
+	b += (3) ; (a) += 3 ;
+	delete a   ;
+
+}
+delete   b   ;

@@ -1,0 +1,161 @@
+/* start of "lib\\stdcalc.txt" */
+
+
+
+/* start of "lib\\fixdecl.txt" */
+
+
+
+
+       
+    
+   
+   
+   
+/* infixl 40 (/) ; infixl 40 (/~) ; */   
+
+
+
+/*  end  of "lib\\fixdecl.txt" */
+
+
+/* a=0; */
+
+
+
+
+
+/* start of "lib\\eq_til.txt" */
+
+
+
+/* start of "lib\\fixdecl.txt" */
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*  end  of "lib\\fixdecl.txt" */
+	/* a+= ~z */
+
+	/* (a,b)+= ~z*/
+
+	/* a+= ~z_star_N */
+
+
+	/* a-= ~z */
+
+	/* (a,b)-= ~z*/
+
+	/* a-= ~z_star_N */
+
+
+	/* a= ~z */
+
+	/* (a,b)= ~z*/
+
+	/* a= ~z_star_N */
+
+
+
+/*  end  of "lib\\eq_til.txt" */
+
+/* start of "lib\\eq_bang_til.txt" */
+
+
+
+/* start of "lib\\fixdecl.txt" */
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*  end  of "lib\\fixdecl.txt" */
+	/* a+= !~z*/
+
+	/* (a,b)+= !~z*/
+
+	/* a= !~z*/
+
+	/* (a,b)= !~z*/
+
+
+
+/*  end  of "lib\\eq_bang_til.txt" */
+
+
+
+
+	/* a+= ~z_star_N */
+
+
+
+
+
+
+
+
+
+
+/*  end  of "lib\\stdcalc.txt" */
+char a; char b; char c; char dig1; char dig2; char dig3; char g;
+
+a+=4;
+while(a){{
+	b+=4; {
+	while(b){c+=3;b-=1;}
+} /* c+=12;*/
+	a-=1;
+}} /* c += 48*/
+delete a; delete b;
+read(dig1);
+read(dig2);
+read(dig3);
+while(c){{
+	dig1-=1;
+	dig2-=1;
+	dig3-=1;
+	c-=1;
+}}
+{
+	while(dig3){g+=1;dig3-=1;}
+}
+
+while(dig2){{
+	dig3+=5;
+	{
+	while(dig3){g+=2;dig3-=1;}
+} /* g += 10;*/
+	
+	dig2-=1;
+}} /* g += ~dig2 _star_ 10;*/
+
+while(dig1){{
+	dig2+=5;
+	while(dig2){{
+		dig3+=5;
+		{
+	while(dig3){g+=4;dig3-=1;}
+} /* g+=20;*/
+		
+		dig2-=1;
+	}} /*g += 100;*/
+	dig1-=1;
+}} /* g+= ~dig1 _star_ 100*/
+write(g);

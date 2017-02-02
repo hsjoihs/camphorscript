@@ -5,7 +5,6 @@ module Camphor.Base_Step3_II
 (step3_II
 ,parser3
 ,convert3
-
 ) where
 
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)

@@ -1,5 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
+{-# OPTIONS -Wall #-}
 module Camphor.SepList
 (SepList(..),reverse,toList,toSeparatorList
 ) where

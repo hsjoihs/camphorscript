@@ -4,6 +4,24 @@ operatorパーサとかいうバグの温床を修正
 Step2から黒魔術排除
 Step2のautotesterrへの登録
 
+ver 0.6.3 10:44 2014/06/15 (日)
+--課題--
+char b;{char a; a+=3; delete a;}delete b;がバグる(identifier "b" is not defined)
+そのせいでxAtoIが変換出来ない
+
+--解決--
+散々探しまくった挙句、removeIdentにバグあり。直した。
+この過ちを繰り返さぬよう__HCCSというフォルダを作り、
+xAtoI__PCS.txt -> xAtoI__HCCS.txtをautotest.batに登録
+他にもxOper__PCS.txt, xBlock__PCS.txt, xBlock2__PCS.txtなども同様。
+
+--その他--
+要らない-fno-warn-do-bindなどの消去
+nE=(:|[])という関数の作成。やはりコンストラクタは前になきゃね
+でもこれ使ってるのって殆どがreplacer2だしreplacer2の戻り値を変えたほうがいい気がする
+
+
+
 ver 0.6.2  8:40 2014/06/15 (日)
 --課題--
 deleteされていない変数を監視できない

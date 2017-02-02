@@ -1,5 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
+{-# OPTIONS -Wall #-}
 module Camphor.Oper
 (Oper(),wrap,unOp
 )where
