@@ -7,7 +7,7 @@ module Camphor.Global
 ,(<++>),(<:>),(>=>),(</>)
 ,strP
 ,uint,byte
-,isJust
+,isJust,isNothing
 ,lib_dir
 ,Ident,Txt
 )where
@@ -17,6 +17,7 @@ import Text.Parsec hiding(token)
 import Data.Char(isSpace,ord)
 import Control.Applicative hiding ((<|>),many)
 import System.FilePath
+import Data.Maybe(isJust,isNothing)
 
 infixr 5 <++>
 (<++>) :: Applicative f => f [a] -> f [a] -> f [a]
@@ -29,9 +30,7 @@ infixr 5 <:>
 lib_dir :: FilePath
 lib_dir = "lib"
 
-isJust :: Maybe x -> Bool
-isJust (Just _) = True
-isJust Nothing = False
+
 
 identifier :: Stream s m Char => ParsecT s u m Ident
 identifier=try((letter <|> char '_') <:> many(alphaNum <|> char '_') )<?>"identifier"
@@ -76,11 +75,16 @@ byte :: Stream s m Char => ParsecT s u m String
 byte = many1 digit <|> 
  try(do{
   char '\'';
-  y <- (noneOf "\\" <|> do{char '\\';x<-oneOf "'\\";return x});
+  y <- (noneOf "\\\n" <|> do{char '\\';x<-oneOf "'\\nt";return(unesc x)});
   char '\'';
   return . show . ord $ y
   })
-
+ where 
+  unesc :: Char -> Char
+  unesc 'n' = '\n'
+  unesc 't' = '\t'
+  unesc x   = x
+  
 newline' :: Stream s m Char => ParsecT s u m ()
 newline' = do{newline;return()} <|> do{string "//";many(noneOf "\n");newline;return()} <?> "new line or line comment"
   

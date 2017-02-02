@@ -15,25 +15,32 @@ if exist %FAIL% del %FAIL%
 
 rem  :compile compiler option source                  tmp        judger
 call :compile ccsc     -C48   xIsNumber__CCS.txt      C48test    xIsNumber__BF_c.txt
+call :compile ccsc     -C48   xEscSeq__CCS.txt        C48test2   xEscSeq__BF_c.txt
 
 call :compile ccsc     -C88   xIsNumber__BF.txt       C88test    xIsNumber__BF_c.txt
 call :compile ccsc     -C88   xIsNumber__BF_i.txt     C88test2   xIsNumber__BF_c.txt
 call :compile ccsc     -C88   xAtoI__BF_i.txt         C88test3   xAtoI__BF_c.txt
 call :compile ccsc     -C88   xEcho__BF_i.txt         C88test4   xEcho__BF_c.txt
+call :compile ccsc     -C88   xEcho__BF.txt           C88test5   xEcho__BF_c.txt
 
 call :compile ccsc     -C78   xIsNumber__ND_rev.txt   C78test    xIsNumber__BF_c.txt
 call :compile ccsc     -C78   xIsNumber__ND.txt       C78test2   xIsNumber__BF_c.txt
 call :compile ccsc     -C78   xAtoI__ND_rev.txt       C78test3   xAtoI__BF_c.txt
 call :compile ccsc     -C78   xEcho__ND.txt           C78test4   xEcho__BF_c.txt
-call :compile ccsc     -C78   xHello__ND_rev.txt      C78test5   xHello__BF_c.txt
-call :compile ccsc     -C78   xtoLower__ND_rev.txt    C78test6   xtoLower__BF_c.txt
+call :compile ccsc     -C78   xEscSeq__ND.txt         C78test5   xEscSeq__BF_c.txt
+call :compile ccsc     -C78   xHello__ND_rev.txt      C78test6   xHello__BF_c.txt
+call :compile ccsc     -C78   xtoLower__ND_rev.txt    C78test7   xtoLower__BF_c.txt
 
-call :compile ccsc     -E     yPreProcess__CS.txt C11test    yPreProcessed.txt
+call :compile ccsc     -E     yPreProcess__CS.txt     C11test    yPreProcessed.txt
 call :compile ccsc     -E     yInclude__CS.txt        C11test2   yIncluded.txt
 call :compile ccsc     -E     yDualInclude__CS.txt    C11test3   yDualIncluded.txt
-call :compile ccsc     -E     yRepInclude__CS.txt    C11test3   yRepIncluded.txt
+call :compile ccsc     -E     yRepInclude__CS.txt     C11test4   yRepIncluded.txt
 
 call :compile ccsrc    -C88   xIsNumber__BF_c.txt     R88test    xIsNumber__BF_i.txt
+call :compile ccsrc    -C88   xEcho__BF_c.txt         R88test2   xEcho__BF_i.txt
+call :compile ccsrc    -C88   xHello__BF_c.txt        R88test3   xHello__BF_i.txt
+call :compile ccsrc    -C88   xtoLower__BF_c.txt      R88test4   xtoLower__BF_i.txt
+
 call :compile ccsrc    -C87   xIsNumber__BF_c.txt     R87test    xIsNumber__ND_rev.txt
 
 echo.

@@ -1,0 +1,4 @@
+char a; a+='\n'; write(a);
+char b; b+='\t'; write(b);
+char c; c+='\\'; write(c);
+char d; d+='\''; write(d);

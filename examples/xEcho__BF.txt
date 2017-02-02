@@ -1,0 +1,9 @@
+
+ /*comment _plus__minus__comma__dot_{()}_gt__lt_*/ 
++ 
+[ 
+	> 
+	. 
+	, 
+	< 
+]
