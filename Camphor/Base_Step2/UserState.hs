@@ -7,6 +7,7 @@ module Camphor.Base_Step2.UserState
 ,isInfixL,isInfixR
 ,show',PrettyPrint,MacroId(..)
 )where
+import Camphor.SepList
 import Camphor.Base_Step2.Type
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Camphor.Global.Synonyms
@@ -33,7 +34,7 @@ instance PrettyPrint Value where
  
 -- (Type, Ident, [(Oper, Type, Ident)]) 
 instance PrettyPrint TypeList where
- show' (typ, ident, xs) = show' typ ++ " " ++ ident ++ " " ++ concatMap (\(o,t,i) -> o ++ " " ++ show' t ++ " " ++ i ++ " ") xs
+ show' (SepList((typ, ident), xs)) = show' typ ++ " " ++ ident ++ " " ++ concatMap (\(o,(t,i)) -> o ++ " " ++ show' t ++ " " ++ i ++ " ") xs
  
 instance PrettyPrint Type where
  show' CNSTNT_CHAR = "constant char"
@@ -81,14 +82,14 @@ getOpContents (UserState _ oplist) oper = M.lookup oper oplist
 
 
 matches :: ValueList -> TypeList -> Bool
-matches (val,ovs) (typ,_,otis) 
+matches (SepList(val,ovs)) (SepList((typ,_),otis))
  | length ovs /= length otis    = False -- wrong length
  | not(val `isTypeof` typ)      = False -- wrong type
  | all id $ zipMatch ovs otis   = True
  | otherwise                    = False
  where 
-  zipMatch :: [(Oper,Value)] -> [(Oper,Type,a)] -> [Bool]
-  zipMatch = zipWith (\(op2,val2)(op3,typ3,_) -> remSpace op2 == remSpace op3 && val2 `isTypeof` typ3)
+  zipMatch :: [(Oper,Value)] -> [(Oper,(Type,a))] -> [Bool]
+  zipMatch = zipWith (\(op2,val2)(op3,(typ3,_)) -> remSpace op2 == remSpace op3 && val2 `isTypeof` typ3)
 
 isTypeof :: Value -> Type -> Bool
 isTypeof _            CONST_CHAR  = True

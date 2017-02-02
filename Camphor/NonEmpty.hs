@@ -7,6 +7,7 @@ module Camphor.NonEmpty
 ,shiftPair
 ,minimumBy'
 ,minimumsBy
+,concat'
 )where
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 data NonEmpty a = (:|)a [a] deriving(Show)
@@ -56,3 +57,7 @@ minimumsBy cmp_ (x_ :| xs_) = go2 cmp_ xs_ (x_:|[])
    GT -> go2 cmp xs acc --- x > y
    EQ -> go2 cmp xs (x `cons` acc) -- x == y
    LT -> go2 cmp xs (x :| []) -- x < y
+   
+concat' :: NonEmpty(NonEmpty a) -> NonEmpty a
+concat' (xs:|[]) = xs 
+concat' (xs:|(xs2:xss)) = xs `append` (concat' (xs2:|xss))

@@ -5,6 +5,7 @@ module Camphor.Base_Step2.New
 (newC,newD,newL,newR,newF1,newF2,getCall5Result
 ) where 
 
+import qualified Camphor.SepList as S
 import Camphor.Base_Step2.Type
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Data.Ord(comparing)
@@ -80,4 +81,4 @@ newK5_3 :: NonEmptyValue -> Oper -> Either ParseError (Oper,ValueList,ValueList)
 newK5_3 nEvaluelist oper = return(oper,vlist1,vlist2)
  where 
   (vlist2',vlist1') = breakBy' oper (reverse'' nEvaluelist)
-  (vlist1,vlist2) = (reverse' vlist1',reverse' vlist2')
+  (vlist1,vlist2) = (S.reverse vlist1',S.reverse vlist2')

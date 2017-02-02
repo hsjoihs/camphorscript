@@ -3,6 +3,7 @@
 module Camphor.Base_Step2.Base_Step2_2
 (parser2_2
 )where
+import Camphor.SepList hiding(reverse)
 import Camphor.Base_Step2.Type
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Text.Parsec 
@@ -162,8 +163,8 @@ getTypeList :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity TypeLi
 getTypeList = do
  g <- typ;      __;   
  h <- _ident;   __;    
- i <- many (do{a <- _op; __; b <- typ; __; c <- _ident; return(a,b,c)}); 
- return(g,h,i)
+ i <- many (do{a <- _op; __; b <- typ; __; c <- _ident; return(a,(b,c))}); 
+ return$SepList((g,h),i)
 
 value :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Value
 value = (Var <$> _ident <?> "variable") <|> (Constant <$> _num <?> "unsigned integer or character literal")
@@ -172,4 +173,4 @@ getValueList :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Value
 getValueList = do
  g <- value;  __;
  h <- many(do{a <- _op; __; b <- value; __; return(a,b)})
- return(g,h)
+ return$SepList(g,h)
