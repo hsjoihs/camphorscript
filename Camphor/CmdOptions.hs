@@ -33,10 +33,10 @@ optionParse ("-m":mem               :xs)(inf        ,outf     ,frmTo,_  ,fd,ld,n
 optionParse ["-m"]               _                                            = Left "argument to '-m' is missing"
 optionParse (o@['-','C',x,y]        :xs)(inf        ,outf     ,_    ,mem,fd,ld,ni,nl) = case (readMay[x],readMay[y]) of
  (Just x',Just y') -> optionParse xs (inf,outf,(x',y'),mem,fd,ld,ni,nl)
- _                 -> Left ("incorrect format "++show o++" of option -Cnum[num]")  
+ _                 -> Left ("incorrect format "++showStr o++" of option -Cnum[num]")  
 optionParse (p@['-','C',x]          :xs)(inf        ,outf     ,_    ,mem,fd,ld,ni,nl) = case readMay [x] of 
  Just x'           -> optionParse xs (inf,outf,(x',x'),mem,fd,ld,ni,nl)
- Nothing           -> Left ("incorrect format "++show p++" of option -Cnum[num]")
+ Nothing           -> Left ("incorrect format "++showStr p++" of option -Cnum[num]")
 optionParse (('-':'I':(dir@(_:_)))  :xs)(inf        ,outf     ,frmTo,mem,fd,ld,ni,nl) = optionParse xs (     inf,outf,frmTo,mem,fd++[dir],ld,ni,nl)
 optionParse (('-':'L':(dir@(_:_)))  :xs)(inf        ,outf     ,frmTo,mem,fd,ld,ni,nl) = optionParse xs (     inf,outf,frmTo,mem,fd,ld++[dir],ni,nl)
 optionParse ("-I":dir:xs)               (inf        ,outf     ,frmTo,mem,fd,ld,ni,nl) = optionParse xs (     inf,outf,frmTo,mem,fd++[dir],ld,ni,nl)

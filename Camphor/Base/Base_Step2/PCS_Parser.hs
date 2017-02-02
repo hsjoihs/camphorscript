@@ -2,14 +2,13 @@
 {-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
 module Camphor.Base.Base_Step2.PCS_Parser
 (parser2'
-,Tok(..)
 ,showTok
-
 )where
-import Camphor.Base.Base_Step2.Type
 import Camphor.SafePrelude 
 import Camphor.Global.Parsers
 import Text.Parsec hiding(token)
+import Camphor.Base.Base_Step2.Type
+import Camphor.Global.Synonyms
 
 parser2' :: Stream s m Char => ParsecT s u m [(SourcePos,Tok)]
 parser2' = do{ts<-many tok;eof;return ts;}
@@ -19,7 +18,7 @@ tok = _char <|> _delete  <|> _num <|> _scolon <|>
  _paren <|> _nerap <|> _brace <|> _ecarb <|>
  _pragma <|> _comm <|> _op <|> -- _pragma -> _comm -> _op (IMPORTANT)
  _infixl <|> _infixr <|>
- _void <|> _sp <|> _cnstnt <|> _const <|> _ident
+ _void <|> _sp <|> _cnstnt <|> _const <|> ident_parser
 
 _paren :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
 _paren  = do{p <- getPosition; char '('; return (p,PAREN)}
@@ -60,8 +59,7 @@ _cnstnt  = do{p <- getPosition; try(do{string "constant" ; notFollowedBy alphaNu
 _const :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
 _const   = do{p <- getPosition; try(do{string "const"    ; notFollowedBy alphaNumBar}); return (p,CONST)} 
 
-_ident :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
-_ident   = do{p <- getPosition; x <- identifier;return(p,IDENT x)}
+
 
 _num :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok) 
 _num     = do{p <- getPosition; x <- uint';     return(p,NUM x)}
@@ -80,21 +78,21 @@ _op      = do{p <- getPosition; x <- operator;return(p,OP x)}
 
 
 showTok :: Tok -> String
-showTok  CHAR     = "token "     ++show "char"
-showTok  DELETE   = "token "     ++show "delete"
-showTok (IDENT i) = "identifier "++show i
-showTok (NUM n)   = "number "    ++show n
-showTok  PAREN    = "token "     ++show "("
-showTok  NERAP    = "token "     ++show ")"
-showTok  BRACE    = "token "     ++show "{"
-showTok  ECARB    = "token "     ++show "}"
-showTok  SCOLON   = "token "     ++show ";"
-showTok (COMM s)  = "comment "   ++show ("/*"++s++"*/")
-showTok (PRAGMA s) = "pragma "    ++show ("/*#"++unwords s++"#*/")
-showTok (OP s)    = "operator "  ++show s
-showTok INFIXL    = "token "     ++show "infixl"
-showTok INFIXR    = "token "     ++show "infixr"
-showTok VOID      = "token "     ++show "void"
-showTok CONST     = "token "     ++show "const"
+showTok  CHAR     = "token "     ++showStr "char"
+showTok  DELETE   = "token "     ++showStr "delete"
+showTok (IDENT i) = "identifier "++showStr(unId i)
+showTok (NUM n)   = "number "    ++showNum n
+showTok  PAREN    = "token "     ++showStr "("
+showTok  NERAP    = "token "     ++showStr ")"
+showTok  BRACE    = "token "     ++showStr "{"
+showTok  ECARB    = "token "     ++showStr "}"
+showTok  SCOLON   = "token "     ++showStr ";"
+showTok (COMM s)  = "comment "   ++showStr ("/*"++s++"*/")
+showTok (PRAGMA s) = "pragma "   ++showStr ("/*#"++unwords s++"#*/")
+showTok (OP s)    = "operator "  ++showStr(unOp s)
+showTok INFIXL    = "token "     ++showStr "infixl"
+showTok INFIXR    = "token "     ++showStr "infixr"
+showTok VOID      = "token "     ++showStr "void"
+showTok CONST     = "token "     ++showStr "const"
 showTok (SP _)    = "space "     
-showTok CNSTNT    = "token "     ++show "constant"
+showTok CNSTNT    = "token "     ++showStr "constant"

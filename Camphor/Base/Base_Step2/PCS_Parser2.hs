@@ -2,20 +2,22 @@
 {-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
 module Camphor.Base.Base_Step2.PCS_Parser2
 (Tok(..)
-,showTok
+,showTok2
 --,tok
 ,_char,_delete,_paren,_nerap,_brace
 ,_ecarb,_scolon,_cnstnt,_infixl,_infixr
 ,_void,_const,_ident,_num,_pragma,_comm,_op,_sp,_nl,__
-
 ,_and,_eq,_zero
+
 )where
 
 import Camphor.SafePrelude
 import Text.Parsec 
+import Camphor.Base.Base_Step2.Type
 import Camphor.Base.Base_Step2.PCS_Parser
 import Data.Functor.Identity
 import Camphor.Global.Synonyms
+
 
 _nl :: Stream s Identity (SourcePos, Tok) => Parsec s u String
 _nl = _sp <|> _comm
@@ -59,7 +61,7 @@ _void   = parseIf VOID
 _const  :: Stream s Identity (SourcePos, Tok) => Parsec s u Tok
 _const  = parseIf CONST
 
-_ident  :: Stream s Identity (SourcePos, Tok) => Parsec s u Ident
+_ident  :: Stream s Identity (SourcePos, Tok) => Parsec s u Ident2
 _ident  = parseWhen qqq
  where qqq (_,IDENT t) = Just t ; qqq(_,_) = Nothing
  

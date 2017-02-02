@@ -35,26 +35,26 @@ getInstanceOfCall2 pos op valuelist1 valuelist2 stat = do
  opinfo <- opinfo'
  let matchingOpInstance = [ a | a@(typelist1,typelist2,_) <- opinfo, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ] 
  case matchingOpInstance of 
-  []        -> Left $newErrorMessage(Message$"no type-matching instance of "++show op++" defined")pos 
+  []        -> Left $newErrorMessage(Message$"no type-matching instance of "++showStr (unOp op)++" defined")pos 
   [instnce] -> return instnce
-  xs        -> Left $newErrorMessage(Message$show(length xs)++" type-matching instances of "++show op++" defined")pos 
+  xs        -> Left $newErrorMessage(Message$showNum(length xs)++" type-matching instances of "++showStr (unOp op)++" defined")pos 
  where
   opinfo' :: Either ParseError [OpInstance]
   opinfo' = fmap snd $ getOpContents2 pos stat op
 
-getInstanceOfCall1 :: SourcePos -> Ident -> ValueList -> UserState -> Either ParseError VFInstance
+getInstanceOfCall1 :: SourcePos -> Ident2 -> ValueList -> UserState -> Either ParseError VFInstance
 getInstanceOfCall1 pos ident valuelist stat = do
  finfo <- finfo' -- checks if `ident' is a function; if so, look for all the instances.
  let matchingFuncInstance = [ a | a@(typelist,_) <- finfo, valuelist `matches` typelist ]
  case matchingFuncInstance of
-  []        -> Left $newErrorMessage(Message$"no type-matching instance of "++show ident++" defined")pos  
+  []        -> Left $newErrorMessage(Message$"no type-matching instance of "++showStr(unId ident)++" defined")pos  
   [instnce] -> return instnce
-  xs        -> Left $newErrorMessage(Message$show(length xs)++" type-matching instances of "++show ident++" defined")pos   
+  xs        -> Left $newErrorMessage(Message$showNum(length xs)++" type-matching instances of "++showStr(unId ident)++" defined")pos   
  where
   finfo' :: Either ParseError [VFInstance]
   finfo' = case getVFContents stat ident of 
-   Nothing          -> Left $newErrorMessage(Message$"function "++show ident++" is not defined")pos 
-   Just(East())     -> Left $newErrorMessage(Message$"cannot call "++show ident++" because it is defined as a variable")pos
+   Nothing          -> Left $newErrorMessage(Message$"function "++showStr(unId ident)++" is not defined")pos 
+   Just(East())     -> Left $newErrorMessage(Message$"cannot call "++showStr(unId ident)++" because it is defined as a variable")pos
    Just(West info) -> Right $ info 
 
 getCall4Left :: SourcePos -> NonEmpty (Value, Oper) -> UserState -> Either ParseError (ValueList, Oper)
@@ -99,7 +99,7 @@ breakBy2 o ((o2,v2):|(ov3:ovs))
 
 getOpContents2 :: SourcePos -> UserState -> Oper -> Either ParseError OpInfo
 getOpContents2 pos s o = case getOpContents s o of
- Nothing   -> Left $ newErrorMessage(Message$"operator "++show o++" is not defined")pos
+ Nothing   -> Left $ newErrorMessage(Message$"operator "++showStr (unOp o)++" is not defined")pos
  Just info -> Right$ info
 
  
@@ -124,12 +124,12 @@ canBeLeftOf pos (InfixL _ nm1) (InfixR _ nm2) = __mixed pos nm1 nm2
 canBeLeftOf _   (InfixL _ _  ) (InfixL _ _  ) = Right()
 
 __mkmsg :: SourcePos -> Oper -> Oper -> Either ParseError a
-__mkmsg pos nm1 nm2 = Left $ newErrorMessage(Message$"operator "++show (unOp nm2)++" has smaller fixity than its outer operator "++show (unOp nm1))pos
+__mkmsg pos nm1 nm2 = Left $ newErrorMessage(Message$"operator "++showStr (unOp nm2)++" has smaller fixity than its outer operator "++showStr (unOp nm1))pos
  
 __mixed :: SourcePos -> Oper -> Oper -> Either ParseError a
-__mixed pos nm1 nm2 = Left $ newErrorMessage(Message$"operator "++show (unOp nm1)++" and operator "++show (unOp nm2)++" has opposite fixity and thus cannot coexist")pos  
+__mixed pos nm1 nm2 = Left $ newErrorMessage(Message$"operator "++showStr (unOp nm1)++" and operator "++showStr (unOp nm2)++" has opposite fixity and thus cannot coexist")pos  
   
-toIdentList :: TypeList -> [Ident]
+toIdentList :: TypeList -> [Ident2]
 toIdentList (S.SepList((_,t),xs)) = t:[x|(_,(_,x))<-xs]
  
 getOpFixity :: SourcePos -> UserState -> Oper -> Either ParseError Fixity

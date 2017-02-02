@@ -1,3 +1,429 @@
+terrresult2014-07-19_01-39-20: 
+failed    "ccsc -E examples\error\Step1_commented_endif.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_commented_endif.txt--step1'" (line 4, column 1):
+expecting #endif
+ 
+failed    "ccsc -E examples\error\Step1_defnum.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_defnum.txt--step1" (line 1, column 9):
+unexpected "1"
+expecting non-breaking space, block comment or identifier
+ 
+failed    "ccsc -E examples\error\Step1_defnum_in_if0.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_defnum_in_if0.txt--step1" (line 2, column 9):
+unexpected "1"
+expecting non-breaking space, block comment or identifier
+ 
+failed    "ccsc -E examples\error\Step1_doubledef.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_doubledef.txtstep1'" (line 1, column 1):
+C macro "abc" is already defined
+ 
+failed    "ccsc -E examples\error\Step1_endif.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_endif.txtstep1'" (line 0, column 1):
+unexpected #endif
+ 
+failed    "ccsc -E examples\error\Step1_loneelse.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_loneelse.txtstep1'" (line 0, column 1):
+unexpected #else
+ 
+failed    "ccsc -E examples\error\Step1_loneelse2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_loneelse2.txtstep1'" (line 0, column 1):
+unexpected #else
+ 
+failed    "ccsc -E examples\error\Step1_loneifdef.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_loneifdef.txt--step1" (line 1, column 9):
+unexpected "\n"
+expecting non-breaking space, block comment or identifier
+ 
+failed    "ccsc -E examples\error\Step1_noendif.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_noendif.txt--step1'" (line 1, column 1):
+expecting #endif
+ 
+failed    "ccsc -E examples\error\Step1_noexistinclude.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_noexistinclude.txtstep1'" (line 0, column 1):
+library "doesnotexist__btjztlfoyvechyofuhjj.txt" is not found
+ 
+failed    "ccsc -E examples\error\Step1_undef.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_undef.txtstep1'" (line 0, column 1):
+C macro "abc" is not defined
+ 
+failed    "ccsc -C22 examples\error\Step2_callvar.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_callvar.txt-step2" (line 1, column 20):
+cannot call "func" because it is defined as a variable
+ 
+failed    "ccsc -C22 examples\error\Step2_conflictiongfixity.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_conflictiongfixity.txt-step2" (line 1, column 15):
+conflicting fixity definitions of operator "+"
+ 
+failed    "ccsc -C22 examples\error\Step2_fixitydefinitioninfunc.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_fixitydefinitioninfunc.txt-step2" (line 1, column 20):
+cannot declare fixity inside function/operator definition 
+ 
+failed    "ccsc -C22 examples\error\Step2_funcdefinedasvar.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_funcdefinedasvar.txt-step2" (line 2, column 1):
+cannot define function "ttt" because it is already defined as a variable
+ 
+failed    "ccsc -C22 examples\error\Step2_newvardeletion.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_newvardeletion.txt-step2-2" (line 1, column 1):
+identifier "a" is not defined
+ 
+failed    "ccsc -C22 examples\error\Step2_nofixity.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_nofixity.txt-step2-2" (line 1, column 1):
+fixity of operator "%%" is not defined
+ 
+failed    "ccsc -C22 examples\error\Step2_noinstancefunc.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_noinstancefunc.txt-step2" (line 2, column 9):
+no type-matching instance of "ddd" defined
+ 
+failed    "ccsc -C22 examples\error\Step2_noinstanceop.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_noinstanceop.txt-step2" (line 3, column 17):
+no type-matching instance of "%%" defined
+ 
+failed    "ccsc -C22 examples\error\Step2_notdefinedfunc.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_notdefinedfunc.txt-step2" (line 1, column 9):
+function "ddd" is not defined
+ 
+failed    "ccsc -C22 examples\error\Step2_notdefinedop.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_notdefinedop.txt-step2" (line 1, column 32):
+no type-matching instance of "%%" defined
+ 
+failed    "ccsc -C22 examples\error\Step2_notdeleteidentinfunc.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_notdeleteidentinfunc.txt-step2" (line 1, column 36):
+identifiers not deleted
+ 
+failed    "ccsc -C22 examples\error\Step2_nulldeclarecall.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_nulldeclarecall.txt-step2" (line 1, column 47):
+cannot call operator += because it is defined as null
+ 
+failed    "ccsc -C22 examples\error\Step2_oppositefixity.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_oppositefixity.txt-step2" (line 6, column 1):
+cannot mix ">"[infixl 10] and "<"[infixr 10] in the same infix expression
+ 
+failed    "ccsc -C22 examples\error\Step2_overlapargumentfunc.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_overlapargumentfunc.txt-step2" (line 1, column 58):
+overlapping arguments of function "func"
+ 
+failed    "ccsc -C22 examples\error\Step2_overlapargumentop.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_overlapargumentop.txt-step2" (line 1, column 58):
+overlapping arguments of operator "+="
+ 
+failed    "ccsc -C22 examples\error\Step2_overlapparameterfunc.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_overlapparameterfunc.txt-step2-2" (line 1, column 1):
+overlapping parameters of function "func"
+ 
+failed    "ccsc -C22 examples\error\Step2_overlapparameterop.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_overlapparameterop.txt-step2" (line 1, column 16):
+overlapping parameters of operator "++"
+ 
+failed    "ccsc -C22 examples\error\Step2_redefineargument.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_redefineargument.txt-step2" (line 1, column 20):
+cannot redefine an argument "a"
+ 
+failed    "ccsc -C22 examples\error\Step2_singlefuncdefinedvar.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_singlefuncdefinedvar.txt-step2" (line 2, column 1):
+cannot use variable "func" because it is already defined as a function
+ 
+failed    "ccsc -C22 examples\error\Step2_singleundefinedvar.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_singleundefinedvar.txt-step2-2" (line 1, column 1):
+identifier "a" is not defined
+ 
+failed    "ccsc -C22 examples\error\Step2_smallerfixity.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_smallerfixity.txt-step2" (line 7, column 1):
+operator "+" has smaller fixity than its outer operator "*"
+ 
+failed    "ccsc -C22 examples\error\Step2_twoinstancesfunc.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_twoinstancesfunc.txt-step2" (line 2, column 1):
+type-overlapping definition of function"func"
+ 
+failed    "ccsc -C22 examples\error\Step2_twoinstancesop.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_twoinstancesop.txt-step2" (line 3, column 1):
+type-overlapping definition of operator "%"
+ 
+failed    "ccsc -C22 examples\error\Step2_vardoubledefinition.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_vardoubledefinition.txt-step2" (line 1, column 9):
+identifier "a" is already defined
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidchar.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidchar.txt--step3_II" (line 1, column 5):
+unexpected ";"
+expecting space, block comment, "//" or identifier
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidchar2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidchar2.txt--step3_II" (line 1, column 8):
+unexpected "b"
+expecting space, block comment, "//" or ";"
+ 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invaliddelete.txt--step3_II" (line 1, column 7):
+unexpected ";"
+expecting space, block comment, "//" or identifier
+ 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invaliddelete2.txt--step3_II" (line 1, column 10):
+unexpected "b"
+expecting space, block comment, "//" or ";"
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidread.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidread.txt--step3_II" (line 1, column 6):
+unexpected "1"
+expecting space, block comment, "//" or identifier
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidread2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidread2.txt--step3_II" (line 1, column 5):
+unexpected ","
+expecting letter, digit or "_", space, block comment, "//", "+", "-" or "("
+ 
+failed    "ccsc -C44 examples\error\Step4_undeletedinblock.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_undeletedinblock.txt--step3_II'" (line 0, column 0):
+identifier a is not deleted
+ 
+failed    "ccsc -C44 examples\error\Step4_undeletedinwhile.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_undeletedinwhile.txt--step3_II'" (line 0, column 0):
+identifier a is not deleted
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_command.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_command.txt--step7" (line 1, column 1):
+unexpected 'b'
+expecting "inc", "dec", "loop", "pool", "mov", "assert_zero", "output", "_input", space, "/*" or end of input
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_comment.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_comment.txt--step7" (line 1, column 3):
+unexpected end of input
+expecting "*/"
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_inc.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_inc.txt--step7" (line 1, column 5):
+unexpected "$"
+expecting space, unsigned integer, character literal, white space or ";"
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_loop.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_loop.txt--step7" (line 1, column 6):
+unexpected "3"
+expecting space or ";"
+ 
+failed    "ccsc -C78 examples\error\Step7_null_mov.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_null_mov.txt--step7" (line 1, column 4):
+unexpected ";"
+expecting white space, unsigned integer or character literal
+ 
+failed    "ccsc -C78 examples\error\Step7_rand.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_rand.txt--step7" (line 1, column 1):
+unexpected 'g'
+expecting "inc", "dec", "loop", "pool", "mov", "assert_zero", "output", "_input", space, "/*" or end of input
+ 
+ 
+terrresult2014-07-19_00-56-14: 
+failed    "ccsc -E examples\error\Step1_commented_endif.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_commented_endif.txt--step1'" (line 4, column 1):
+expecting #endif
+ 
+failed    "ccsc -E examples\error\Step1_defnum.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_defnum.txt--step1" (line 1, column 9):
+unexpected "1"
+expecting non-breaking space, block comment or identifier
+ 
+failed    "ccsc -E examples\error\Step1_defnum_in_if0.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_defnum_in_if0.txt--step1" (line 2, column 9):
+unexpected "1"
+expecting non-breaking space, block comment or identifier
+ 
+failed    "ccsc -E examples\error\Step1_doubledef.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_doubledef.txtstep1'" (line 1, column 1):
+C macro "abc" is already defined
+ 
+failed    "ccsc -E examples\error\Step1_endif.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_endif.txtstep1'" (line 0, column 1):
+unexpected #endif
+ 
+failed    "ccsc -E examples\error\Step1_loneelse.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_loneelse.txtstep1'" (line 0, column 1):
+unexpected #else
+ 
+failed    "ccsc -E examples\error\Step1_loneelse2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_loneelse2.txtstep1'" (line 0, column 1):
+unexpected #else
+ 
+failed    "ccsc -E examples\error\Step1_loneifdef.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_loneifdef.txt--step1" (line 1, column 9):
+unexpected "\n"
+expecting non-breaking space, block comment or identifier
+ 
+failed    "ccsc -E examples\error\Step1_noendif.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_noendif.txt--step1'" (line 1, column 1):
+expecting #endif
+ 
+failed    "ccsc -E examples\error\Step1_noexistinclude.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_noexistinclude.txtstep1'" (line 0, column 1):
+library "doesnotexist__btjztlfoyvechyofuhjj.txt" is not found
+ 
+failed    "ccsc -E examples\error\Step1_undef.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_undef.txtstep1'" (line 0, column 1):
+C macro "abc" is not defined
+ 
+failed    "ccsc -C22 examples\error\Step2_callvar.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_callvar.txt-step2" (line 1, column 20):
+cannot call Ident2 {unId = "func"} because it is defined as a variable
+ 
+failed    "ccsc -C22 examples\error\Step2_conflictiongfixity.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_conflictiongfixity.txt-step2" (line 1, column 15):
+conflicting fixity definitions of operator +
+ 
+failed    "ccsc -C22 examples\error\Step2_fixitydefinitioninfunc.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_fixitydefinitioninfunc.txt-step2" (line 1, column 20):
+cannot declare fixity inside function/operator definition 
+ 
+failed    "ccsc -C22 examples\error\Step2_funcdefinedasvar.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_funcdefinedasvar.txt-step2" (line 2, column 1):
+cannot define function Ident2 {unId = "ttt"} because it is already defined as a variable
+ 
+failed    "ccsc -C22 examples\error\Step2_newvardeletion.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_newvardeletion.txt-step2-2" (line 1, column 1):
+identifier Ident2 {unId = "a"} is not defined
+ 
+failed    "ccsc -C22 examples\error\Step2_nofixity.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_nofixity.txt-step2-2" (line 1, column 1):
+fixity of operator %% is not defined
+ 
+failed    "ccsc -C22 examples\error\Step2_noinstancefunc.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_noinstancefunc.txt-step2" (line 2, column 9):
+no type-matching instance of Ident2 {unId = "ddd"} defined
+ 
+failed    "ccsc -C22 examples\error\Step2_noinstanceop.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_noinstanceop.txt-step2" (line 3, column 17):
+no type-matching instance of %% defined
+ 
+failed    "ccsc -C22 examples\error\Step2_notdefinedfunc.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_notdefinedfunc.txt-step2" (line 1, column 9):
+function Ident2 {unId = "ddd"} is not defined
+ 
+failed    "ccsc -C22 examples\error\Step2_notdefinedop.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_notdefinedop.txt-step2" (line 1, column 32):
+no type-matching instance of %% defined
+ 
+failed    "ccsc -C22 examples\error\Step2_notdeleteidentinfunc.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_notdeleteidentinfunc.txt-step2" (line 1, column 36):
+identifiers not deleted
+ 
+failed    "ccsc -C22 examples\error\Step2_nulldeclarecall.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_nulldeclarecall.txt-step2" (line 1, column 47):
+cannot call operator += because it is defined as null
+ 
+failed    "ccsc -C22 examples\error\Step2_oppositefixity.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_oppositefixity.txt-step2" (line 6, column 1):
+cannot mix >[infixl 10] and <[infixr 10] in the same infix expression
+ 
+failed    "ccsc -C22 examples\error\Step2_overlapargumentfunc.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_overlapargumentfunc.txt-step2" (line 1, column 58):
+overlapping arguments of function Ident2 {unId = "func"}
+ 
+failed    "ccsc -C22 examples\error\Step2_overlapargumentop.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_overlapargumentop.txt-step2" (line 1, column 58):
+overlapping arguments of operator +=
+ 
+failed    "ccsc -C22 examples\error\Step2_overlapparameterfunc.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_overlapparameterfunc.txt-step2-2" (line 1, column 1):
+overlapping parameters of function Ident2 {unId = "func"}
+ 
+failed    "ccsc -C22 examples\error\Step2_overlapparameterop.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_overlapparameterop.txt-step2" (line 1, column 16):
+overlapping parameters of operator ++
+ 
+failed    "ccsc -C22 examples\error\Step2_redefineargument.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_redefineargument.txt-step2" (line 1, column 20):
+cannot redefine an argument Ident2 {unId = "a"}
+ 
+failed    "ccsc -C22 examples\error\Step2_singlefuncdefinedvar.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_singlefuncdefinedvar.txt-step2" (line 2, column 1):
+cannot use variable Ident2 {unId = "func"} because it is already defined as a function
+ 
+failed    "ccsc -C22 examples\error\Step2_singleundefinedvar.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_singleundefinedvar.txt-step2-2" (line 1, column 1):
+identifier Ident2 {unId = "a"} is not defined
+ 
+failed    "ccsc -C22 examples\error\Step2_smallerfixity.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_smallerfixity.txt-step2" (line 7, column 1):
+operator "+" has smaller fixity than its outer operator "*"
+ 
+failed    "ccsc -C22 examples\error\Step2_twoinstancesfunc.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_twoinstancesfunc.txt-step2" (line 2, column 1):
+type-overlapping definition of functionIdent2 {unId = "func"}
+ 
+failed    "ccsc -C22 examples\error\Step2_twoinstancesop.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_twoinstancesop.txt-step2" (line 3, column 1):
+type-overlapping definition of operator %
+ 
+failed    "ccsc -C22 examples\error\Step2_vardoubledefinition.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_vardoubledefinition.txt-step2" (line 1, column 9):
+identifier Ident2 {unId = "a"} is already defined
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidchar.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidchar.txt--step3_II" (line 1, column 5):
+unexpected ";"
+expecting space, block comment, "//" or identifier
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidchar2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidchar2.txt--step3_II" (line 1, column 8):
+unexpected "b"
+expecting space, block comment, "//" or ";"
+ 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invaliddelete.txt--step3_II" (line 1, column 7):
+unexpected ";"
+expecting space, block comment, "//" or identifier
+ 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invaliddelete2.txt--step3_II" (line 1, column 10):
+unexpected "b"
+expecting space, block comment, "//" or ";"
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidread.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidread.txt--step3_II" (line 1, column 6):
+unexpected "1"
+expecting space, block comment, "//" or identifier
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidread2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidread2.txt--step3_II" (line 1, column 5):
+unexpected ","
+expecting letter, digit or "_", space, block comment, "//", "+", "-" or "("
+ 
+failed    "ccsc -C44 examples\error\Step4_undeletedinblock.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_undeletedinblock.txt--step3_II'" (line 0, column 0):
+identifier a is not deleted
+ 
+failed    "ccsc -C44 examples\error\Step4_undeletedinwhile.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_undeletedinwhile.txt--step3_II'" (line 0, column 0):
+identifier a is not deleted
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_command.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_command.txt--step7" (line 1, column 1):
+unexpected 'b'
+expecting "inc", "dec", "loop", "pool", "mov", "assert_zero", "output", "_input", space, "/*" or end of input
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_comment.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_comment.txt--step7" (line 1, column 3):
+unexpected end of input
+expecting "*/"
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_inc.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_inc.txt--step7" (line 1, column 5):
+unexpected "$"
+expecting space, unsigned integer, character literal, white space or ";"
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_loop.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_loop.txt--step7" (line 1, column 6):
+unexpected "3"
+expecting space or ";"
+ 
+failed    "ccsc -C78 examples\error\Step7_null_mov.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_null_mov.txt--step7" (line 1, column 4):
+unexpected ";"
+expecting white space, unsigned integer or character literal
+ 
+failed    "ccsc -C78 examples\error\Step7_rand.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_rand.txt--step7" (line 1, column 1):
+unexpected 'g'
+expecting "inc", "dec", "loop", "pool", "mov", "assert_zero", "output", "_input", space, "/*" or end of input
+ 
+ 
 terrresult2014-07-18_20-35-58: 
 failed    "ccsc -E examples\error\Step1_commented_endif.txt  -o bat\k.tmp" 
 failed    "ccsc -E examples\error\Step1_defnum.txt  -o bat\k.tmp" 

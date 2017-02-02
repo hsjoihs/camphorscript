@@ -75,7 +75,7 @@ uint' = uint1 <|> _uint2
    do{char '9';return 9} ) <?> "digit"
 
 byte :: Stream s m Char => ParsecT s u m String
-byte = many1 digit <|> (show <$> _uint2)
+byte = many1 digit <|> (showNum <$> _uint2)
   
 _uint2 :: Stream s m Char => ParsecT s u m Integer
 _uint2 = try(do{char '\'';

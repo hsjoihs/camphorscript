@@ -10,7 +10,7 @@ module Camphor.IO
 ,splitFileName
 )where
 import Camphor.SafePrelude
-import Prelude(error)
+import Prelude(error,show)
 import Camphor.Global.Synonyms
 import Text.Parsec
 import System.FilePath

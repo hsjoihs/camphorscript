@@ -8,6 +8,7 @@ module Camphor.Base.Base_Step3_II
 ) where
 
 import Camphor.SafePrelude 
+import Camphor.Show
 import Camphor.NonEmpty
 import Camphor.Global.Parsers
 import Camphor.Global.Operators

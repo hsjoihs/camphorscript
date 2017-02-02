@@ -31,8 +31,6 @@ for /F "usebackq eol=; delims=" %%i in (`type bat\R88list.txt`)  do ( call :test
 for /F "usebackq eol=; delims=" %%i in (`type bat\R87list.txt`)  do ( call :tester ccsrc -C87 BF_c     ND_rev  R87test  %%i )
 for /F "usebackq eol=; delims=" %%i in (`type bat\R84list.txt`)  do ( call :tester ccsrc -C84 BF_c     CCS_rev R84test  %%i )
 
-
-
 echo %LOG2%: > bat\testresult.tmp
 type %LOG% >>  bat\testresult.tmp
 echo. >>  bat\testresult.tmp

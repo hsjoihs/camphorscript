@@ -1,7 +1,7 @@
 {-# OPTIONS -Wall #-}
 
 import System.Environment
-import Control.Monad
+import Control.Monad    
 import Text.Parsec
 import Camphor.Global.Synonyms
 import Camphor.IO

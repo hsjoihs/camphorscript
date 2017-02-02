@@ -19,14 +19,14 @@ import Control.Monad.State
 import Control.Monad.Reader
 import Camphor.TupleTrans
 
-unwrapAllMay :: [Value] -> Maybe [Ident]
+unwrapAllMay :: [Value] -> Maybe [Ident2]
 unwrapAllMay vs = mapM unwrap vs
  where 
   unwrap (Var i) = Just i; unwrap _ = Nothing 
 
-makeNewIdent :: Ident -> UserState -> SourcePos -> Either ParseError Ident  
+makeNewIdent :: Ident2 -> UserState -> SourcePos -> Either ParseError Ident2  
 makeNewIdent ident stat pos = do
- let identEggs = [ new | n <- [1..] :: [Integer], let new = ident ++ "__TMP_" ++ show n, not (stat `containsAnyIdent` new)]
+ let identEggs = [ new | n <- [1..] :: [Integer], let new = tmpIdent ident n, not (stat `containsAnyIdent` new)]
  maybeToEither (newErrorMessage(Message$"FIXME: fatal error")pos)(listToMaybe identEggs) -- FIXME: fatal error
  
 type RCMEP = ReaderT (CollisionTable,Maybe TmpStat) (Either ParseError)
@@ -43,13 +43,17 @@ replacer3 ::
 replacer3 _ _ _ Scolon     _     = return[Scolon]
 replacer3 _ _ _ (Sp x)     _     = return[Sp x]
 replacer3 _ _ _ (Comm x)   _     = return[Comm x]
-replacer3 _ _ _ (Pragma x) table = toState $ case x of
+replacer3 _ _ pos (Pragma x) table = toState $ case x of
  ("MEMORY":"using":vars) -> do -- replaces the ARGUMENT of `using' pragma ...*1
-  replaced <- replaceSingles table (map Var vars)
-  let censored = unwrapAllMay replaced
-  case censored of 
-   Nothing  -> return[Comm$"invalid pragma: "++show(unwords x)]
-   Just res -> return[Pragma$"MEMORY":"using":res] 
+  let vars' = forM vars toIdent2
+  case vars' of 
+   Left e -> err $ newErrorMessage(Message$showStr e++" used in a `MEMORY using' pragma is not an identifier")pos
+   Right vars_ -> do
+    replaced <- replaceSingles table (map Var vars_)
+    let censored = unwrapAllMay replaced
+    case censored of 
+     Nothing  -> err $ newErrorMessage(Message$"something used in a `MEMORY using' pragma is not a variable")pos
+     Just res -> return[Pragma$"MEMORY":"using":map unId res] 
  _                       -> return[Pragma x] 
 
 {- 
@@ -61,30 +65,30 @@ replacer3 _ _ _ (Pragma x) table = toState $ case x of
 -- errors --
 replacer3 _ _ pos (Infl _ _         ) _  = err$newErrorMessage(Message "cannot declare fixity inside function/operator definition ")pos  
 replacer3 _ _ pos (Infr _ _         ) _  = err$newErrorMessage(Message "cannot declare fixity inside function/operator definition ")pos  
-replacer3 _ _ pos (Func1 ident _ _  ) _  = err$cantdefine("function " ++ show ident)pos
-replacer3 _ _ pos (Func1Nul ident _ ) _  = err$cantdefine("function " ++ show ident)pos 
-replacer3 _ _ pos (Func2 oper _ _ _ ) _  = err$cantdefine("operator " ++ show oper )pos 
-replacer3 _ _ pos (Func2Nul oper _ _) _  = err$cantdefine("operator " ++ show oper )pos 
+replacer3 _ _ pos (Func1 ident _ _  ) _  = err$cantdefine("function " ++ showStr(unId ident))pos
+replacer3 _ _ pos (Func1Nul ident _ ) _  = err$cantdefine("function " ++ showStr(unId ident))pos 
+replacer3 _ _ pos (Func2 oper _ _ _ ) _  = err$cantdefine("operator " ++ showStr(unOp oper ))pos 
+replacer3 _ _ pos (Func2Nul oper _ _) _  = err$cantdefine("operator " ++ showStr(unOp oper ))pos 
  
 -- char & delete -- 
 replacer3 stat _ pos (Char ident) table  = case M.lookup ident table of
- Just _  -> err$newErrorMessage(Message$"cannot redefine an argument "++show ident)pos 
+ Just _  -> err$newErrorMessage(Message$"cannot redefine an argument "++showStr(unId ident))pos 
  Nothing -> do
   (clTable,using) <- get
-  if ident `M.member` clTable then err$newErrorMessage(Message$"dual definition of variable "++show ident)pos else return()
+  if ident `M.member` clTable then err$newErrorMessage(Message$"dual definition of variable "++showStr(unId ident))pos else return()
   case using of {
    Nothing     -> do{newIdent <- lift(makeNewIdent ident stat pos); modifyFst (M.insert ident (newIdent,False)); return [Char newIdent]};
    Just []     -> do{newIdent <- lift(makeNewIdent ident stat pos); modifyFst (M.insert ident (newIdent,False)); return [Char newIdent]};
-   Just (u:us) -> do{putSnd(Just us); newIdent <- return u;         modifyFst (M.insert ident (newIdent,True )); return [Comm$"char "++u++";"]};
+   Just (u:us) -> do{putSnd(Just us); newIdent <- return u;         modifyFst (M.insert ident (newIdent,True )); return [Comm$"char "++unId u++";"]};
   }
   
 replacer3 _ _ pos (Del ident) table  = case M.lookup ident table of 
- Just _  -> err$newErrorMessage(Message$"cannot delete an argument"++show ident)pos 
+ Just _  -> err$newErrorMessage(Message$"cannot delete an argument"++showStr(unId ident))pos 
  Nothing -> do
   clTable <- getFst
-  (newIdent,isUsing) <- lift $ maybeToEither (newErrorMessage(Message$"variable "++show ident++" is not defined")pos) (M.lookup ident clTable)
+  (newIdent,isUsing) <- lift $ maybeToEither (newErrorMessage(Message$"variable "++showStr(unId ident)++" is not defined")pos) (M.lookup ident clTable)
   modifyFst (M.delete ident)
-  return [if isUsing then Comm$"delete " ++ newIdent ++ ";" else Del newIdent] --can't delete the one passed by `using' pragma
+  return [if isUsing then Comm$"delete " ++ unId newIdent ++ ";" else Del newIdent] --can't delete the one passed by `using' pragma
 
 -- calls --  
 replacer3 stat (n:|ns) pos (Call1 ident valuelist) table = toState $ call1 stat (n:|ns) pos (ident,valuelist) table
@@ -129,40 +133,40 @@ replacer3 stat narr pos (Call5 (SepList(x,ov:ovs))) table = toState $ do
 replacer3 _ _ pos (Pleq (Var v1) (Constant v2)) table  = toState $ case M.lookup v1 table of
  Nothing        -> do{clt <- askFst; return[Pleq (newIdentIP clt v1)(Constant v2)]}
  Just v@(Var _) -> return[Pleq v (Constant v2)]
- Just _         -> err$cantbeleft v1 "+=" pos 
+ Just _         -> err$cantbeleft (unId v1) "+=" pos 
 
 replacer3 _ _ pos (Mneq (Var v1) (Constant v2)) table  = toState $ case M.lookup v1 table of
  Nothing        -> do{clt <- askFst; return[Mneq (newIdentIP clt v1)(Constant v2)]}
  Just v@(Var _) -> return[Mneq v (Constant v2)]
- Just _         -> err$cantbeleft v1 "-=" pos  
+ Just _         -> err$cantbeleft (unId v1) "-=" pos  
 
-replacer3 _ _ pos (Pleq (Constant c) _) _ = err$(cantbeleft c "+=")pos  
-replacer3 _ _ pos (Mneq (Constant c) _) _ = err$(cantbeleft c "-=")pos  
+replacer3 _ _ pos (Pleq (Constant c) _) _ = err$(cantbeleft_ c "+=")pos  
+replacer3 _ _ pos (Mneq (Constant c) _) _ = err$(cantbeleft_ c "-=")pos  
 replacer3 stat ns pos (Pleq (Var v1) (Var v2)) table = toState $ basis Pleq "+=" (stat,ns,pos,v1,v2,table)
 replacer3 stat ns pos (Mneq (Var v1) (Var v2)) table = toState $ basis Mneq "-=" (stat,ns,pos,v1,v2,table)
 
 --- built-in read() & write() ---
-replacer3 stat ns pos (Rd  c@(Constant _)) table = replacer3 stat ns pos (Call1 "read"  (SepList (c,[]))) table
-replacer3 stat ns pos (Wrt c@(Constant _)) table = replacer3 stat ns pos (Call1 "write" (SepList (c,[]))) table
+replacer3 stat ns pos (Rd  c@(Constant _)) table = replacer3 stat ns pos (Call1 readI  (SepList (c,[]))) table
+replacer3 stat ns pos (Wrt c@(Constant _)) table = replacer3 stat ns pos (Call1 writeI (SepList (c,[]))) table
 
 replacer3 stat ns pos (Rd (Var ident)) table = toState $ case M.lookup ident table of
  Nothing        -> do{clt <- askFst; return[Rd (newIdentIP clt ident)]}
  Just v@(Var _) -> return[Rd v] 
- Just c         -> call1 stat ns pos ("read",(SepList (c,[]))) table 
+ Just c         -> call1 stat ns pos (readI,(SepList (c,[]))) table 
 
 replacer3 stat ns pos (Wrt (Var ident)) table = toState $ case M.lookup ident table of
  Nothing        -> do{clt <- askFst; return[Wrt (newIdentIP clt ident)]}
  Just v@(Var _) -> return[Wrt v] 
- Just c         -> call1 stat ns pos ("write",(SepList (c,[]))) table 
+ Just c         -> call1 stat ns pos (writeI,(SepList (c,[]))) table 
  
 {-  -------------------------------------------------------------------------------
    ********************
    * end of replacer3 *
    ********************
 ----------------------------------------------------------------------------------}
-call1 :: UserState -> NonEmpty MacroId -> SourcePos -> (Ident, ValueList) -> ReplTable -> RCMEP [SimpleSent]
+call1 :: UserState -> NonEmpty MacroId -> SourcePos -> (Ident2, ValueList) -> ReplTable -> RCMEP [SimpleSent]
 call1 stat (n:|ns) pos (ident,valuelist) table
- | isJust$ M.lookup ident table = err$newErrorMessage(Message$"cannot call an argument "++show ident)pos 
+ | isJust$ M.lookup ident table = err$newErrorMessage(Message$"cannot call an argument "++showStr(unId ident))pos 
  | otherwise = do
   let matchingInstance = [ a | a@(Func name (typelist,_)) <- (n:ns), name == ident , valuelist `matches` typelist]
   case matchingInstance of
@@ -178,11 +182,11 @@ call2 stat (n:|ns) pos (oper,valuelist1,valuelist2) table = do
  
 -- replaces `variable += variable' or `variable -= variable' 
 basis :: (Value -> Value -> SimpleSent) -> String -> 
- (UserState, NonEmpty MacroId, SourcePos, Ident, Ident, M.Map Ident Value) -> RCMEP [SimpleSent]
+ (UserState, NonEmpty MacroId, SourcePos, Ident2, Ident2, M.Map Ident2 Value) -> RCMEP [SimpleSent]
 basis constr op (stat,ns,pos,v1,v2,table) = case M.lookup v1 table of
  Nothing        -> do{clt <- askFst; res(newIdentIP clt v1)} 
  Just v@(Var _) -> res v 
- Just _         -> err$cantbeleft v1 op pos 
+ Just _         -> err$cantbeleft (unId v1) op pos 
  where
  res :: Value -> RCMEP [SimpleSent]
  res v = case M.lookup v2 table of
@@ -194,12 +198,12 @@ basis constr op (stat,ns,pos,v1,v2,table) = case M.lookup v1 table of
 
 --- First, replace valuelist by the collision table. Then, replace valuelist by the replacement table. Then, expand the macro.
 --       outermacros         position    name     valuelist    replacement table                          collision table
-rpl3 :: NonEmpty MacroId -> SourcePos -> Ident -> ValueList -> ReplTable -> UserState -> RCMEP [SimpleSent]
+rpl3 :: NonEmpty MacroId -> SourcePos -> Ident2 -> ValueList -> ReplTable -> UserState -> RCMEP [SimpleSent]
 rpl3 ms pos ident valuelist table stat = do
  newValuelist <- replaceSingles table valuelist -- replacement of valuelist
  (typelist,sent') <- lift $ getInstanceOfCall1 pos ident newValuelist stat 
  case sent' of 
-  Nothing -> err$newErrorMessage(Message$"cannot call function "++show ident++" because it is defined as null")pos ;
+  Nothing -> err$newErrorMessage(Message$"cannot call function "++showStr(unId ident)++" because it is defined as null")pos ;
   Just sent -> do -- obtain what's in the function
    let mname = Func ident (typelist,Just sent) 
    let table2 = makeReplacerTable typelist newValuelist -- replace the parameters using the arguments
@@ -248,12 +252,15 @@ replaceSingle :: ReplTable -> Value -> Value
 replaceSingle _     m@(Constant _) = m
 replaceSingle table v@(Var idn)    = case M.lookup idn table of Nothing -> v; Just val -> val  
 
-newIdentIP :: CollisionTable -> Ident -> Value --newIdentIfpossible 
+newIdentIP :: CollisionTable -> Ident2 -> Value --newIdentIfpossible 
 newIdentIP clt ident = case M.lookup ident clt of Nothing -> Var ident; Just (x,_) -> Var x 
  
 -- messages --
 cantdefine :: String -> SourcePos -> ParseError
 cantdefine d = newErrorMessage(Message$"cannot define "++d++"inside function/operator definition ")
 
-cantbeleft :: (Show a) => a -> String -> SourcePos -> ParseError
-cantbeleft c str = newErrorMessage(Message$show c++" is a constant and thus cannot be the left side of operator "++show str) 
+cantbeleft :: String -> String -> SourcePos -> ParseError
+cantbeleft c str = newErrorMessage(Message$showStr c++" is a constant and thus cannot be the left side of operator "++showStr str) 
+
+cantbeleft_ :: (Num a,Show a) => a -> String -> SourcePos -> ParseError
+cantbeleft_ c str = newErrorMessage(Message$showNum c++" is a constant and thus cannot be the left side of operator "++showStr str) 

@@ -18,7 +18,6 @@ import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import Camphor.NonEmpty as NE
 import Text.Parsec  
-import Text.Parsec.Pos(newPos)
 import qualified Data.Map as M
 import Control.Monad.State
 import Control.Monad.Reader
@@ -72,24 +71,28 @@ complex3 g f = do
 
 convert2_2 :: Sents -> StateT UserState (Either ParseError) Txt
 convert2_2 []                                                   = return "" 
-convert2_2 (Single _  (Comm comm):xs)                           = ("/*" ++ comm ++ "*/")                 <++?> convert2_3 xs 
-convert2_2 (Single _  (Sp   sp  ):xs)                           = sp                                     <++?> convert2_2 xs  -- convert2_2 INTENTIONAL
-convert2_2 (Single _  (Scolon   ):xs)                           = ";"                                    <++?> convert2_3 xs 
-convert2_2 (Single _  (Pleq (Var ident) (Constant integer)):xs) = (ident ++ "+=" ++ show integer ++ ";") <++?> convert2_3 xs 
-convert2_2 (Single _  (Mneq (Var ident) (Constant integer)):xs) = (ident ++ "-=" ++ show integer ++ ";") <++?> convert2_3 xs 
-convert2_2 (Single _  (Rd   (Var idnt)):xs)                     = ("read("  ++ idnt ++ ")" ++ ";")       <++?> convert2_3 xs 
-convert2_2 (Single _  (Wrt  (Var idnt)):xs)                     = ("write(" ++ idnt ++ ")" ++ ";")       <++?> convert2_3 xs 
-convert2_2 (Single _  (Pleq _ _) :_)                            = err$newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
-convert2_2 (Single _  (Mneq _ _) :_)                            = err$newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
-convert2_2 (Single _  (Rd   _  ) :_)                            = err$newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
-convert2_2 (Single _  (Wrt  _  ) :_)                            = err$newErrorMessage(Message$"FIXME:: code 0002")(newPos "__FIXME__" 0 0) 
+convert2_2 (Single _    (Comm comm):xs)                           = ("/*" ++ comm ++ "*/")                      <++?> convert2_3 xs 
+convert2_2 (Single _    (Sp   sp  ):xs)                           = sp                                          <++?> convert2_2 xs  -- convert2_2 INTENTIONAL
+convert2_2 (Single _    (Scolon   ):xs)                           = ";"                                         <++?> convert2_3 xs 
+convert2_2 (Single _    (Pleq (Var ident) (Constant integer)):xs) = (unId ident ++ "+=" ++ showNum integer ++ ";") <++?> convert2_3 xs 
+convert2_2 (Single _    (Mneq (Var ident) (Constant integer)):xs) = (unId ident ++ "-=" ++ showNum integer ++ ";") <++?> convert2_3 xs 
+convert2_2 (Single _    (Rd   (Var idnt)):xs)                     = ("read("  ++ unId idnt ++ ")" ++ ";")       <++?> convert2_3 xs 
+convert2_2 (Single _    (Wrt  (Var idnt)):xs)                     = ("write(" ++ unId idnt ++ ")" ++ ";")       <++?> convert2_3 xs 
+convert2_2 (Single pos  (Pleq _ _) :_)                            = err$newErrorMessage(Message$"FIXME:: code 0002")pos
+convert2_2 (Single pos  (Mneq _ _) :_)                            = err$newErrorMessage(Message$"FIXME:: code 0002")pos
+convert2_2 (Single pos  (Rd   _  ) :_)                            = err$newErrorMessage(Message$"FIXME:: code 0002")pos
+convert2_2 (Single pos  (Wrt  _  ) :_)                            = err$newErrorMessage(Message$"FIXME:: code 0002")pos
 
-convert2_2 (Single _  (Pragma prgm):xs) = case prgm of
- ("MEMORY":"using":vars) -> complex (convert2_2 xs) (return . setTmp vars) "" -- INTENTIONALLY LEFT AS convert2_2 
+convert2_2 (Single pos  (Pragma prgm):xs) = case prgm of
+ ("MEMORY":"using":vars) -> do
+  let vars' = forM vars toIdent2
+  case vars' of 
+   Left e -> err$newErrorMessage(Message$showStr e++" used in a `MEMORY using' pragma is not an identifier")pos 
+   Right vars_ -> complex (convert2_2 xs) (return . setTmp vars_) "" -- INTENTIONALLY LEFT AS convert2_2 
  _                       -> ("/*# " ++ unwords prgm ++ " #*/") <++?> convert2_3 xs
 
-convert2_2 (Single pos (Char iden)                        :xs) = complex (convert2_3 xs) (newC pos iden)                               ("char " ++ iden ++ ";")
-convert2_2 (Single pos (Del  iden)                        :xs) = complex (convert2_3 xs) (newD pos iden)                               ("delete " ++ iden ++ ";")
+convert2_2 (Single pos (Char iden)                        :xs) = complex (convert2_3 xs) (newC pos iden)                         ("char " ++ unId iden ++ ";")
+convert2_2 (Single pos (Del  iden)                        :xs) = complex (convert2_3 xs) (newD pos iden)                       ("delete " ++ unId iden ++ ";")
 convert2_2 (Single pos (Infl fixity op)                   :xs) = complex (convert2_3 xs) (newL pos fixity op)                           ""
 convert2_2 (Single pos (Infr fixity op)                   :xs) = complex (convert2_3 xs) (newR pos fixity op)                           ""
 convert2_2 (Single pos (Func1 name typelist sent)         :xs) = complex (convert2_3 xs) (newF1 pos name typelist (Just sent))          ""
@@ -106,8 +109,8 @@ convert2_2 (Single pos (Call5 valuelist)               :xs) = complex2 (convert2
 -- FIXME: does not replace a function call when it's followed by a block
 convert2_2 (Single _ (Call1WithBlock name valuelist pos2 block):xs) = showCall name valuelist <++?> convert2_3 (Block pos2 block:xs)
  where 
-  showCall :: Ident -> ValueList -> String
-  showCall nm (SepList(v,ovs)) = nm ++ "(" ++ show' v ++ concat[ (unOp o2) ++ show' v2 | (o2,v2) <- ovs ] ++ ")" 
+  showCall :: Ident2 -> ValueList -> String
+  showCall nm (SepList(v,ovs)) = unId nm ++ "(" ++ show' v ++ concat[ (unOp o2) ++ show' v2 | (o2,v2) <- ovs ] ++ ")" 
  
 convert2_2 (Block p ys:xs) = complex3 (convert2_3 xs) (newStat3getter p ys)
 {-----------------------------------------------------------
@@ -127,7 +130,7 @@ newStat3getter p ys = do
  
 
 -- Function call
-newK1 :: SourcePos -> Ident -> ValueList -> ReaderT UserState (Either ParseError) Txt
+newK1 :: SourcePos -> Ident2 -> ValueList -> ReaderT UserState (Either ParseError) Txt
 newK1 pos name valuelist = do
  result <- replaceFuncMacro pos name valuelist 
  return result -- stat is unchanged
@@ -162,9 +165,9 @@ newK5 _   (SepList(Constant _,[]))      = return "" -- 123; is a nullary sentenc
 newK5 pos (SepList(Var ident ,[]))      = do
  stat <- ask
  case getVFContents stat ident of
-  Nothing        -> err$newErrorMessage(Message$"identifier "++show ident++" is not defined")pos 
+  Nothing        -> err$newErrorMessage(Message$"identifier "++showStr(unId ident)++" is not defined")pos 
   Just(East ())  -> return ""
-  Just(West _ )  -> err$newErrorMessage(Message$"cannot use variable "++show ident++" because it is already defined as a function")pos  
+  Just(West _ )  -> err$newErrorMessage(Message$"cannot use variable "++showStr(unId ident)++" because it is already defined as a function")pos  
 
 newK5 pos (SepList(x,ov:ovs)) = do
  stat <- ask
@@ -175,7 +178,7 @@ newK5 pos (SepList(x,ov:ovs)) = do
 --- macro-replacing function for operator
 replaceOpMacro :: SourcePos -> Oper -> ValueList -> ValueList -> ReaderT UserState (Either ParseError) Txt
 replaceOpMacro pos op valuelist1 valuelist2 
- | conflict $ filter isVar $ (toList' valuelist1 ++ toList' valuelist2) = err$newErrorMessage(Message$"overlapping arguments of operator "++show op)pos 
+ | conflict $ filter isVar $ (toList' valuelist1 ++ toList' valuelist2) = err$newErrorMessage(Message$"overlapping arguments of operator "++showStr(unOp op))pos 
  | otherwise = do
   stat <- ask
   instnce <- lift $ getInstanceOfCall2 pos op valuelist1 valuelist2 stat
@@ -183,9 +186,9 @@ replaceOpMacro pos op valuelist1 valuelist2
   return result
    
 --- macro-replacing function for operator   
-replaceFuncMacro :: SourcePos -> Ident -> ValueList -> ReaderT UserState (Either ParseError) Txt   
+replaceFuncMacro :: SourcePos -> Ident2 -> ValueList -> ReaderT UserState (Either ParseError) Txt   
 replaceFuncMacro pos ident valuelist  
- | valuelistIdentConflict valuelist = err$newErrorMessage(Message$"overlapping arguments of function "++show ident)pos 
+ | valuelistIdentConflict valuelist = err$newErrorMessage(Message$"overlapping arguments of function "++showStr(unId ident))pos 
  | otherwise = do
   stat <- ask
   instnce <- lift $ getInstanceOfCall1 pos ident valuelist stat

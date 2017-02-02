@@ -25,13 +25,19 @@ Bool(..),(&&),(||),not,otherwise
 ,elem,notElem,lookup
 ,zip,zip3,zipWith,zipWith3,unzip,unzip3
 ,lines,words,unlines,unwords
-,ShowS,Show,showsPrec,show,showList,shows,showChar,showString,showParen
+,ShowS,Show,showsPrec,{-show,-}showList,shows,showChar,showString,showParen
 ,ReadS,Read,readsPrec,readList,reads,readParen,lex
 ,IO,putChar,putStr,putStrLn,print,getChar,getLine,getContents,interact
 ,FilePath,readFile,writeFile,appendFile,readIO,readLn
 ,Between(..)
 ,join,ap,pure,(<*>),(<$>)
+,showStr,showNum
 )where
 import Control.Monad(join,ap)
 import Control.Applicative((<*>),(<$>),pure)
 data Between a b = East a | West b deriving(Show, Eq, Ord)
+showStr :: String -> String
+showStr s = show s
+
+showNum :: (Num a,Show a) => a -> String
+showNum s = show s

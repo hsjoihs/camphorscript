@@ -16,48 +16,48 @@ import Camphor.Global.Utilities
 import Camphor.NonEmpty
 import Text.Parsec 
 
-newC :: SourcePos -> Ident -> UserState -> Either ParseError UserState
+newC :: SourcePos -> Ident2 -> UserState -> Either ParseError UserState
 newC pos ident stat 
- | stat `containsIdent` ident = Left $newErrorMessage(Message$"identifier "++show ident++" is already defined")pos
+ | stat `containsIdent` ident = Left $newErrorMessage(Message$"identifier "++showStr(unId ident)++" is already defined")pos
  | otherwise                  = Right$addIdent stat ident (East())
  
-newD :: SourcePos -> Ident -> UserState -> Either ParseError UserState
+newD :: SourcePos -> Ident2 -> UserState -> Either ParseError UserState
 newD pos ident stat 
  | stat `containsIdent` ident = Right$removeIdent stat ident -- functions can also be deleted
- | otherwise                  = Left $newErrorMessage(Message$"identifier "++show ident++" is not defined")pos
+ | otherwise                  = Left $newErrorMessage(Message$"identifier "++showStr(unId ident)++" is not defined")pos
 
 newL :: SourcePos -> Fix -> Oper -> UserState -> Either ParseError UserState
 newL pos fixity op stat = case getOpContents stat op of
  Nothing     -> Right$addOpFixity stat (InfixL fixity op)
  Just(fix,_) 
   | fix == InfixL fixity op -> Right stat 
-  | otherwise               -> Left$newErrorMessage(Message$"conflicting fixity definitions of operator "++show op)pos
+  | otherwise               -> Left$newErrorMessage(Message$"conflicting fixity definitions of operator "++showStr (unOp op))pos
  
 newR :: SourcePos -> Fix -> Oper -> UserState -> Either ParseError UserState
 newR pos fixity op stat = case getOpContents stat op of
  Nothing     -> Right$addOpFixity stat (InfixR fixity op)
  Just(fix,_) 
   | fix == InfixR fixity op -> Right stat
-  | otherwise               -> Left$newErrorMessage(Message$"conflicting fixity definitions of operator "++show op)pos
+  | otherwise               -> Left$newErrorMessage(Message$"conflicting fixity definitions of operator "++showStr (unOp op))pos
 
 -- Function definition
-newF1 :: SourcePos -> Ident -> TypeList -> Maybe Sent -> UserState -> Either ParseError UserState
+newF1 :: SourcePos -> Ident2 -> TypeList -> Maybe Sent -> UserState -> Either ParseError UserState
 newF1 pos name typelist sent stat
- | typelistIdentConflict typelist = Left $ newErrorMessage(Message$"overlapping parameters of function "++show name)pos
+ | typelistIdentConflict typelist = Left $ newErrorMessage(Message$"overlapping parameters of function "++showStr(unId name))pos
  | otherwise = case getVFContents stat name of
-  Just(East ())  -> Left $newErrorMessage(Message$"cannot define function "++show name++" because it is already defined as a variable")pos
+  Just(East ())  -> Left $newErrorMessage(Message$"cannot define function "++showStr(unId name)++" because it is already defined as a variable")pos
   Nothing        -> Right$addIdent stat name (West[(typelist,sent)])
   Just(West xs) 
-   | any (\(tlist,_) -> typelist `overlaps` tlist) xs   -> Left $ newErrorMessage(Message$"type-overlapping definition of function"++show name)pos
+   | any (\(tlist,_) -> typelist `overlaps` tlist) xs   -> Left $ newErrorMessage(Message$"type-overlapping definition of function"++showStr(unId name))pos
    | otherwise                                          -> return $ addIdent stat name (West$(typelist,sent):xs)
  
 -- Operator definition 
 newF2 :: SourcePos -> Oper -> TypeList -> TypeList -> Maybe Sent -> UserState -> Either ParseError UserState
 newF2 pos op typelist1 typelist2 sent stat = 
  addOpContents stat op (typelist1,typelist2,sent) $ 
-  (newErrorMessage(Message$"fixity of operator "++show op++" is not defined")pos,
-  newErrorMessage(Message$"type-overlapping definition of operator "++show op)pos,
-  newErrorMessage(Message$"overlapping parameters of operator "++show op)pos)
+  (newErrorMessage(Message$"fixity of operator "++showStr (unOp op)++" is not defined")pos,
+  newErrorMessage(Message$"type-overlapping definition of operator "++showStr (unOp op))pos,
+  newErrorMessage(Message$"overlapping parameters of operator "++showStr (unOp op))pos)
    
 getCall5Result :: SourcePos -> NonEmptyValue -> UserState -> Either ParseError (Oper,ValueList,ValueList)
 getCall5Result pos nEvaluelist stat = do

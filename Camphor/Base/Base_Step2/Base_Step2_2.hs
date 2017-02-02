@@ -110,7 +110,7 @@ op_def = do{
  }
 -- void(演算子)(型 識別子【演算子 型 識別子】;型 識別子【演算子 型 識別子】){【文】}
  
-func_call_without_semicolon :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity (Ident,ValueList)
+func_call_without_semicolon :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity (Ident2,ValueList)
 func_call_without_semicolon = do{
   
  name <- try(do{ n <- _ident; __; _paren; return n}); __; -- clear (

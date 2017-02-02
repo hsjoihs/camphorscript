@@ -14,6 +14,7 @@ module Camphor.Base.Base_Step1
 ) where
 
 import Camphor.SafePrelude
+import Camphor.Show
 import Camphor.Global.Parsers
 import Camphor.Global.Utilities
 import Camphor.Global.Operators

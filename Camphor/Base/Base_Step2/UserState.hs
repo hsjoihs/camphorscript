@@ -25,15 +25,15 @@ import Control.Monad.State hiding(fix)
 type VFInstance = (TypeList, Maybe Sent) -- Maybe Sent ::: block or `null function'
 type OpInstance = (TypeList,TypeList, Maybe Sent)
 type OpInfo = (Fixity,[OpInstance])
-data MacroId = Func Ident VFInstance | Operator Oper OpInstance deriving(Show,Eq)  
+data MacroId = Func Ident2 VFInstance | Operator Oper OpInstance deriving(Show,Eq)  
 -- private
-type VFList = NonEmpty(M.Map Ident VFInfo)
+type VFList = NonEmpty(M.Map Ident2 VFInfo)
 type OpList = M.Map Oper OpInfo
 data UserState = UserState VFList OpList (Maybe TmpStat) deriving(Show)
 type VFInfo = Between () [VFInstance]
 
 getName :: MacroId -> String
-getName (Func ident _) = show ident
+getName (Func ident _) = showStr(unId ident)
 getName (Operator oper _ ) = unOp oper
 
 overlaps :: TypeList -> TypeList -> Bool
@@ -41,7 +41,7 @@ overlaps (SepList ((typ,_),xs)) (SepList ((typ2,_),xs2))
  | typ `clashesWith` typ2 = length xs == length xs2 && all id (zipWith transform xs xs2)
  | otherwise              = False
  where
-  transform :: (Oper,(Type,Ident)) -> (Oper,(Type,Ident)) -> Bool
+  transform :: (Oper,(Type,Ident2)) -> (Oper,(Type,Ident2)) -> Bool
   transform (op3,(typ3,_)) (op4,(typ4,_)) = op3 == op4 && typ3 `clashesWith` typ4
   CNSTNT_CHAR `clashesWith` CHAR_AND      = False
   CHAR_AND    `clashesWith` CNSTNT_CHAR   = False 
@@ -64,16 +64,16 @@ class PrettyPrint a where
  show' :: a -> String
 
 instance PrettyPrint Fixity where
- show' (InfixL int op) = show op++"[infixl "++show int++"]"
- show' (InfixR int op) = show op++"[infixr "++show int++"]"
+ show' (InfixL int op) = showStr(unOp op)++"[infixl "++showNum int++"]"
+ show' (InfixR int op) = showStr(unOp op)++"[infixr "++showNum int++"]"
  
 instance PrettyPrint Value where
- show'(Var x) = x
- show'(Constant n) = show n
+ show'(Var x) = unId x
+ show'(Constant n) = showNum n
  
--- (Type, Ident, [(Oper, Type, Ident)]) 
+-- (Type, Ident2, [(Oper, Type, Ident2)]) 
 instance PrettyPrint TypeList where
- show' (SepList((typ, ident), xs)) = show' typ ++ " " ++ ident ++ " " ++ concatMap (\(o,(t,i)) -> unOp o ++ " " ++ show' t ++ " " ++ i ++ " ") xs
+ show' (SepList((typ, ident), xs)) = show' typ ++ " " ++ unId ident ++ " " ++ concatMap (\(o,(t,i)) -> unOp o ++ " " ++ show' t ++ " " ++ unId i ++ " ") xs
  
 instance PrettyPrint Type where
  show' CNSTNT_CHAR = "constant char"
@@ -81,7 +81,7 @@ instance PrettyPrint Type where
  show' CHAR_AND = "char&"
  
 instance PrettyPrint MacroId where
- show' (Func ident (typelist,_)) = "function "++ident++"("++show' typelist++"){ .. }"
+ show' (Func ident (typelist,_)) = "function "++unId ident++"("++show' typelist++"){ .. }"
  show' (Operator oper (typelist1,typelist2,_)) = "operator ("++unOp oper++")("++show' typelist1++";"++show' typelist2++"){ .. }"
 
 
@@ -98,28 +98,28 @@ emptyState = UserState deffun defop Nothing
  where
   deffun :: VFList
   deffun = nE(M.fromList[
-   ("read" ,West$[(single CHAR_AND "bbbb",Just$Single(newPos "__DEFAULT__" 0 0) $ Rd $Var "bbbb")]),
-   ("write",West$[(single CHAR_AND "bbbb",Just$Single(newPos "__DEFAULT__" 0 0) $ Wrt$Var "bbbb")])
+   (readI ,West$[(single CHAR_AND bbbb,Just$Single(newPos "__DEFAULT__" 0 0) $ Rd $Var bbbb)]),
+   (writeI,West$[(single CHAR_AND bbbb,Just$Single(newPos "__DEFAULT__" 0 0) $ Wrt$Var bbbb)])
    ])
   defop :: OpList
-  defop = M.fromList[defau "+="$Pleq (Var "aaaa") (Var "NNNN"), defau "-="$Mneq(Var "aaaa")(Var "NNNN")]
+  defop = M.fromList[defau "+="$Pleq (Var aaaa) (Var nnnn), defau "-="$Mneq(Var aaaa)(Var nnnn)]
   defau :: String -> SimpleSent -> (Oper,OpInfo)
-  defau a s = (wrap a,(InfixR 5 (wrap a),[(single CHAR_AND "aaaa", single CNSTNT_CHAR "NNNN", Just$Single(newPos "__DEFAULT__" 0 0)s)]))
-  single :: Type -> Ident -> TypeList
+  defau a s = (wrap a,(InfixR 5 (wrap a),[(single CHAR_AND aaaa, single CNSTNT_CHAR nnnn, Just$Single(newPos "__DEFAULT__" 0 0)s)]))
+  single :: Type -> Ident2 -> TypeList
   single a b = SepList ((a,b),[])
 
 -- checks if the current scope has already defined the variable; thus it does not search deeply  
-containsIdent :: UserState -> Ident -> Bool
+containsIdent :: UserState -> Ident2 -> Bool
 containsIdent (UserState (vf:|_) _ _) ident = ident `M.member` vf 
 
 -- checks if any scope has already defined the variable; thus it DOES search deeply
-containsAnyIdent :: UserState -> Ident -> Bool
+containsAnyIdent :: UserState -> Ident2 -> Bool
 containsAnyIdent (UserState vfs _ _) ident = any (ident `M.member`) (toList' vfs)
 
 addVFBlock :: UserState -> UserState
 addVFBlock (UserState vflist oplist tmp) = UserState (M.empty `cons` vflist) oplist tmp
 
-getTopVFBlock :: UserState -> M.Map Ident VFInfo
+getTopVFBlock :: UserState -> M.Map Ident2 VFInfo
 getTopVFBlock (UserState (vf:|_) _ _) = vf
 
 getTmp :: UserState -> Maybe TmpStat
@@ -140,13 +140,13 @@ deleteTopVFBlock_ e = StateT $ \s -> do
  s' <- deleteTopVFBlock s e
  return((),s')
 
-addIdent :: UserState -> Ident -> VFInfo -> UserState
+addIdent :: UserState -> Ident2 -> VFInfo -> UserState
 addIdent      (UserState (vf:|vfs) oplist tmp) ident dat = UserState ((M.insert ident dat vf):|vfs) oplist tmp
 
-getVFContents :: UserState -> Ident -> Maybe VFInfo
+getVFContents :: UserState -> Ident2 -> Maybe VFInfo
 getVFContents (UserState vflist _ _) ident = searchBy (M.lookup ident) vflist
 
-removeIdent :: UserState -> Ident -> UserState
+removeIdent :: UserState -> Ident2 -> UserState
 removeIdent (UserState vflist oplist tmp) ident = case vflist of 
  vf:|[]        -> UserState (nE $ M.delete ident vf) oplist tmp
  vf:|(vf2:vfs) -> case M.lookup ident vf of
