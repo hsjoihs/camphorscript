@@ -6,24 +6,21 @@ module Camphor.Warn
 ,Warnings
 ,warn
 ,pretty
-,toList',fromList
+,toList
 ,tellOne
 )where
 import Camphor.SafePrelude
 import Text.Parsec(SourcePos)
-import Camphor.Listlike
 import Camphor.Show
 import Camphor.Transformer
+import Data.Sequence
 
 data Warning = Warn String WarnLevel SourcePos
-newtype DList a = DL{unDL :: [a] -> [a]}
-type Warnings = DList Warning
 
-tellOne :: (Monad m) => a -> WriterT (DList a) m ()
-tellOne a = tell(fromList[a])
+type Warnings = Seq Warning
 
-fromList :: [a] -> DList a
-fromList xs = DL(++xs)
+tellOne :: (Monad m) => a -> WriterT (Seq a) m ()
+tellOne = tell . singleton 
 
 warn :: String -> WarnLevel -> SourcePos -> Warning
 warn = Warn
@@ -38,11 +35,5 @@ pretty limit (Warn str level pos)
   p Helpful = "helpful"
   p Verbose = "verbose"
 
-instance Monoid(DList a) where
- mempty = DL id
- mappend a b = DL (unDL b . unDL a) -- I don't know why, but this somehow works
- 
-instance Listlike DList where
- toList' = ($[]) . unDL
 
 data WarnLevel = Verbose | Helpful | Important | Crucial deriving(Show,Eq,Ord)

@@ -18,7 +18,7 @@ putO o = VirtualIO (lift $ tell [o])
 
 getI :: VirtualIO i o (Maybe i)
 getI = VirtualIO $ do
- is <- lift $ lift $ get
+ is <- lift $ lift get
  case is of
   [] -> return Nothing
   (x:xs) -> do{lift $ lift $ put xs; return (Just x)}

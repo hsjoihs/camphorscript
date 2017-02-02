@@ -1,0 +1,18 @@
+#ifndef __STD_LIB_STD_CALC2_DEFINED__
+#define __STD_LIB_STD_CALC2_DEFINED__
+#include <stdcalc>
+void (+=)(char&a; constant char M * constant char N)
+{
+	char c2;
+	c2+=M;
+	a +=~ c2 * N;
+	delete c2;
+}
+void (-=)(char&a; constant char M * constant char N)
+{
+	char c2;
+	c2+=M;
+	a -=~ c2 * N;
+	delete c2;
+}
+#endif

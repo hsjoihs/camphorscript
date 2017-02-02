@@ -2,7 +2,7 @@
 {-# OPTIONS -Wall #-}
 
 module Test.TestSingle
-(testSingle,info
+(testSingle,info,testSingle'
 )where
 import Camphor.SafePrelude
 import Camphor.IO
@@ -12,8 +12,8 @@ import Camphor.BF_interpreter
 import Camphor.Show
 
 data Info = String :-> String deriving(Show,Eq,Ord,Read)
-unInfo :: Info -> (String,String)
-unInfo(a :-> b) = (a,b)
+-- unInfo :: Info -> (String,String)
+-- unInfo(a :-> b) = (a,b)
 
 info :: [String]
 info = [
@@ -21,8 +21,12 @@ info = [
  ]
 
 testSingle :: Options -> IO ()
-testSingle [opts,tFile] = d4 (words opts) tFile
+testSingle [opts,tFile] = testSingle'  opts tFile
 testSingle _            = mapM_ putStrLn info
+
+testSingle' :: String -> FilePath -> IO ()
+testSingle' opts tFile = d4 (words opts) tFile
+
 
 d4 :: Options -> FilePath -> IO ()
 d4 opts tFile = do
@@ -37,14 +41,19 @@ d4 opts tFile = do
 d5 :: (String -> Maybe String) -> FilePath -> IO ()
 d5 judgeFunc tFile = do
  is <- filter (not . ignored) . lines <$> getContentsFrom tFile 
+ mapM_ (test judgeFunc) is
+ putStrLn "all succeeded" 
+
+test :: (String -> Maybe String) -> String -> IO () 
+test judgeFunc inf = do
+ putStr "."
  let res = do{
-  infos <- liftErr invalidCase $ mapM (liftE readMay) is;
-  _     <- liftErr failed$forM (map unInfo infos) $ \(i,o) -> liftE (\j -> do{o2 <- judgeFunc j; guard(o2 == o); return o} ) i;
+  (i :-> o) <- liftErr invalidCase (liftE readMay inf);
+  _     <- liftErr failed$ liftE (\j -> do{o2 <- judgeFunc j; guard(o2 == o); return o} ) i;
   return ()
   }
- case res of Left e -> abort e; Right _ -> putStrLn "succeeded" >> return ()
-
-
+ case res of Left e -> abort e; Right _ -> return ()
+  
  
 invalidCase :: String -> String
 invalidCase = ("the syntax of the following test case is invalid: "++)

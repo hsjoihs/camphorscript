@@ -2,7 +2,7 @@
 {-# OPTIONS -Wall #-}
 module Camphor.NonEmpty
 (NonEmpty(..)
-,toList'
+
 ,cons
 -- ,snoc
 ,snoc2
@@ -14,18 +14,29 @@ module Camphor.NonEmpty
 ,init'
 )where
 import Camphor.SafePrelude 
-import Camphor.Listlike
+import qualified Data.Traversable as T
+import qualified Data.Foldable as T
+
 
 data NonEmpty a = (:|)a [a] deriving(Show,Eq,Ord)
 
-instance Listlike NonEmpty where
- toList' (x :| xs) = x:xs
+
+ 
+instance T.Traversable NonEmpty where
+ traverse up (x :| []    ) = (:|[]) <$> up x
+ traverse up (x :| (y:ys)) = cons <$> up x <*> T.traverse up (y :| ys)
+
+instance T.Foldable NonEmpty where
+ foldMap = T.foldMapDefault 
+
 
 infixr 5 :|
 infixr 5 `cons`
 infixr 5 `append`
 -- infixl 5 `snoc`
 infixl 5 `snoc2`
+
+
 
 searchBy :: (a -> Maybe b) -> NonEmpty a -> Maybe b
 searchBy f (x :| []     ) = f x

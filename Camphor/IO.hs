@@ -10,6 +10,7 @@ module Camphor.IO
 ,splitFileName
 ,outputErr
 ,outputWarn
+,getDirectoryFiles
 )where
 import Camphor.SafePrelude
 import Prelude(error)
@@ -22,9 +23,14 @@ import System.Environment(getArgs)
 import System.IO(hPutStrLn,stderr)
 import Camphor.Warn
 
+getDirectoryFiles :: FilePath -> IO [(FilePath,FilePath)]
+getDirectoryFiles dir = do
+ conts'    <- getDirectoryContents dir  
+ filterM (doesFileExist . snd) [ (file,dir </> file) | file <- conts', not("." `isPrefixOf` file)]
+
 outputWarn :: Maybe Int -> WarnLevel -> Warnings -> IO ()
 outputWarn wnum lv ws = do
- let res = map (pretty lv) $ toList' ws
+ let res = map (pretty lv) $ toList ws
  let res2 = case wnum of Nothing -> res; Just n -> take n res
  mapM_ (hPutStrLn stderr) res2
 
@@ -36,7 +42,7 @@ outputParsed path (Right x)
  | map toLower path == "con" = putStrLn x >> return(Just x)
  | map toLower path == "nul" = return(Just x)
  | otherwise                 = writeFile path x >> return(Just x)
-outputParsed _    (Left  e)  = outputErr e >> return(Nothing)
+outputParsed _    (Left  e)  = outputErr e >> return Nothing 
 
 getContentsFrom :: FilePath -> IO Txt
 getContentsFrom file 

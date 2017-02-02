@@ -1,4 +1,0 @@
-#warning def
-#error abc
-#warning ghc
-

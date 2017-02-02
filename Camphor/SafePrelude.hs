@@ -51,10 +51,12 @@ Bool(..),(&&),(||),not,otherwise
 ,isPrefixOf,isInfixOf,isSuffixOf
 ,maybeToEither,liftE
 ,readMay
+,Foldable(),fold,foldMap,foldr',foldl',foldrM,foldlM,traverse_,for_,sequenceA_,asum,msum,toList,sum,product,maximum,maximumBy,minimum,minimumBy,find
+,_MtoList
 )where
-import Prelude hiding(fst,snd)
+import Prelude hiding(fst,snd,foldr,foldl,mapM_,sequence_,concat,concatMap,and,or,any,all,sum,product,maximum,minimum,elem,notElem)
 import Camphor.Tuple
-import Control.Monad(join,guard,when,ap,liftM,(>=>),(<=<),unless,forM,forM_,filterM)
+import Control.Monad(join,guard,when,ap,liftM,(>=>),(<=<),unless,forM,filterM)
 import Control.Applicative((<*>),(<$>),pure,Applicative,ZipList(..))
 import Data.List(genericLength,genericReplicate,genericTake,genericDrop,genericSplitAt,isPrefixOf,isInfixOf,isSuffixOf)
 import Data.Maybe(catMaybes,fromMaybe,isJust,isNothing,listToMaybe,mapMaybe,maybeToList)
@@ -64,6 +66,12 @@ import Data.Monoid(mappend,mempty,mconcat,Monoid)
 import Data.Ord(comparing)
 import Control.Arrow(first,second)
 import System.FilePath((</>))
+import Data.Foldable(Foldable(),fold,foldMap,foldr,foldr',foldl,foldl',foldrM,foldlM,traverse_,for_,sequenceA_,asum,mapM_,forM_,sequence_,msum,toList,concat,concatMap,and,or,any,all,sum,product,maximum,maximumBy,minimum,minimumBy,elem,notElem,find)
+import qualified Data.Map as M
+
+_MtoList :: M.Map a b -> [(a,b)]
+_MtoList = M.toList
+
 infixr 5 <++>
 (<++>) :: Applicative f => f [a] -> f [a] -> f [a]
 (<++>) a b = (++) <$> a <*> b
@@ -88,7 +96,7 @@ maybeToEither :: e -> Maybe a -> Either e a
 maybeToEither _   (Just x) = Right x
 maybeToEither err Nothing  = Left err
 
-liftE :: (e -> Maybe a) -> (e -> Either e a)
+liftE :: (e -> Maybe a) -> e -> Either e a
 liftE f = maybeToEither <*> f
 
 readMay :: Read a => String -> Maybe a

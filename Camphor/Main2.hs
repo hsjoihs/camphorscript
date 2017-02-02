@@ -27,8 +27,7 @@ import Text.Parsec
 
 getLibs :: FilePath -> IO FileToTxt 
 getLibs dir = do
- conts'    <- getDirectoryContents dir  
- libs <- filterM (doesFileExist . snd) [ (file,dir </> file) | file <- conts', not("." `isPrefixOf` file)]
+ libs <- getDirectoryFiles dir 
  let libs1 = map fst libs; libs2 = map snd libs
  texts <- mapM getContentsFrom libs2
  return (M.fromList $ zip libs1 (zip libs2 texts))
@@ -58,7 +57,7 @@ defaultStat = S{
  incDecToMult = False,
  memoryShred  = False,
  optim        = Naive,
- warnTill     = Nothing,
+ warnTill     = Just Important,
  run          = False,
  warnNum      = Nothing
  }
@@ -71,7 +70,7 @@ dispatch4 xs = case mapMaybe toDoubleOption xs of
   Help    -> outputInfo
  []     -> do
   (res,b,rn) <- dispatch5 xs
-  when (rn && ( b == 7 || b == 8)) $ case res of Nothing -> return(); Just r -> interpreterIO r
+  when (rn && ( b == 7 || b == 8)) $ forM_ res interpreterIO -- res is Maybe
    
 dispatch5 :: Options -> IO (Maybe Txt,Int,Bool)
 dispatch5 xs = case optionParse xs defaultStat of
@@ -92,8 +91,8 @@ dispatch5 xs = case optionParse xs defaultStat of
 
 
 
-lft :: (Monoid s,Monad m) => (a -> b -> m c) -> (a -> b -> WriterT s m c)
-lft f = \a b -> lift$f a b
+lft :: (Monoid s,Monad m) => (a -> b -> m c) -> a -> b -> WriterT s m c
+lft f a b = lift(f a b)
    
 step :: FilePath -> Maybe MemSize -> Includers -> [Txt -> WriterT Warnings (Either ParseError) Txt]   
 step file mem includers  = map ($file) [step1 includers,step2,lft$step3_I,lft$step3_II mem,lft$step5,lft$step6,lft$step7,lft$step8]

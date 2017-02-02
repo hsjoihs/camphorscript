@@ -80,7 +80,7 @@ callK1 pos ident valuelist
 -- normalized operator call
 callK2 :: SourcePos -> Oper -> ValueList -> ValueList -> ReaderT (UserState,Cnv2) (Either ParseError) Txt
 callK2 pos op valuelist1 valuelist2
- | conflict $ filter isVar (toList' valuelist1 ++ toList' valuelist2) = err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Argoverlap <!> Operat op
+ | conflict $ filter isVar (toList valuelist1 ++ toList valuelist2) = err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Argoverlap <!> Operat op
  | otherwise = do
   stat <- askFst
   instnce <- lift $ getInstanceOfCall2 pos op valuelist1 valuelist2 stat

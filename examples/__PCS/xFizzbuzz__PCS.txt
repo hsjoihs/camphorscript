@@ -1,3 +1,11 @@
+/*# LINE start "lib\\conditional.txt" #*/
+
+
+
+/*# LINE start "lib\\stdcalc2.txt" #*/
+
+
+
 /*# LINE start "lib\\stdcalc.txt" #*/
 
 
@@ -170,14 +178,6 @@ void (-|=~)(char&a;char&b){
 
 
 /*# LINE end   "lib\\stdcalc.txt" #*/
-infixr  5 (+==);
-void (+==)(char&a;char&b){ /* to make it completely same*/
-	char c2;
-	(c2,a)+=~b;/*flipped*/
-	b+=~c2;
-	delete c2;
-}
-
 void (+=)(char&a; constant char M *constant char N)
 {
 	char c2;
@@ -185,7 +185,6 @@ void (+=)(char&a; constant char M *constant char N)
 	a +=~c2 *N;
 	delete c2;
 }
-
 void (-=)(char&a; constant char M *constant char N)
 {
 	char c2;
@@ -194,11 +193,9 @@ void (-=)(char&a; constant char M *constant char N)
 	delete c2;
 }
 
-void writeNum(char&a)
-{
-	a +='0'; write(a); a -='0';
-}
 
+
+/*# LINE end   "lib\\stdcalc2.txt" #*/
 syntax unless(~char&flag1){block}
 {
 	char flag2 =1;
@@ -212,7 +209,6 @@ syntax unless(~char&flag1){block}
 	}
 	delete flag2;
 }
-
 syntax unless(char&a){block}
 {
 	char t1,t2,t3;	
@@ -223,7 +219,6 @@ syntax unless(char&a){block}
 		block;
 	}
 }
-
 syntax unless2(char&a){block}
 {
 	char t2,t1,t3;	
@@ -234,7 +229,6 @@ syntax unless2(char&a){block}
 		block;
 	}
 }
-
 syntax unless(constant char N -char&a){block}
 {
 	char v1,v2,v3;	
@@ -249,6 +243,21 @@ syntax unless(constant char N -char&a){block}
 	delete v1;delete v2;delete v3;
 }
 
+
+
+/*# LINE end   "lib\\conditional.txt" #*/
+infixr  5 (+==);
+void (+==)(char&a;char&b){ /* to make it completely same*/
+	char c2;
+	(c2,a)+=~b;/*flipped*/
+	b+=~c2;
+	delete c2;
+}
+
+void writeNum(char&a)
+{
+	a +='0'; write(a); a -='0';
+}
 
 
 

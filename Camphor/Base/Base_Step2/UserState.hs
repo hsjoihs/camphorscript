@@ -58,7 +58,7 @@ containsIdent UserState{stVF = (vf:|_)} ident = ident `M.member` vf
 
 -- checks if any scope has already defined the variable; thus it DOES search deeply
 containsAnyIdent :: UserState -> Ident2 -> Bool
-containsAnyIdent UserState{stVF = vfs} ident = any (ident `M.member`) (toList' vfs)
+containsAnyIdent UserState{stVF = vfs} ident = any (ident `M.member`) (toList vfs)
 
 -- containsOp :: UserState -> Oper -> Bool
 -- containsOp (UserState _ oplist _) oper = oper `M.member` oplist
@@ -107,7 +107,7 @@ addOpContents :: UserState -> Oper -> OpInstance -> Either AddOpErr UserState
 addOpContents stat@UserState{stOp = oplist} op (typelist1,typelist2,sent) = case getOpContents stat op of
  Nothing -> Left Notfound
  Just(fix,list)
-  | conflict $ map snd $ toList' typelist1 ++ toList' typelist2 -> Left Doubleparam
+  | conflict $ map snd $ toList typelist1 ++ toList typelist2 -> Left Doubleparam
   | otherwise -> do
    newlist <- newlist' 
    return $ stat{stOp = M.insert op (fix,newlist) oplist}

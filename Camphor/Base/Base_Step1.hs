@@ -108,7 +108,7 @@ type Table = M.Map Ident String
 type CurrentState = (Table,Integer,Int,Bool,Integer){-defined macro, how deep 'if's are, line num, whether to read a line,depth of skipping  -}
 
 makeErr' :: Message -> String -> Int -> Int -> WriterT Warnings (Either ParseError) a
-makeErr' a b c d = lift$makeErr a b c d
+makeErr' a b c d = lift(makeErr a b c d)
 
 convert1 :: FilePath -> Includers -> [Pre7] -> WriterT Warnings (Either ParseError) String
 convert1 file includers@(_,_,t) xs = snd <$> convert1' file includers ((t,0,1,True,-1) ,xs) 

@@ -3,15 +3,22 @@
 module Camphor.SepList
 (SepList(..)
 ,reverse
--- ,toList'
 ,toSeparatorList
--- ,isSingle
 ) where
 import Camphor.SafePrelude hiding(reverse)
 import qualified Camphor.SafePrelude as P
-import Camphor.Listlike
+import qualified Data.Traversable as T
+import qualified Data.Foldable as T
 
 data SepList s a = SepList a [(s,a)] deriving(Show,Eq,Ord)
+
+
+instance T.Traversable (SepList s) where
+ traverse up (SepList a []         ) = (\x -> SepList x []) <$> up a
+ traverse up (SepList a ((s,a2):xs)) = cons <$> fmap (\m -> (m,s)) (up a) <*> T.traverse up (SepList a2 xs)
+
+instance T.Foldable (SepList s) where
+ foldMap = T.foldMapDefault 
 
 reverse :: SepList b a -> SepList b a
 reverse (SepList t ts) = uncurry SepList(reverse' (t,ts)) 
@@ -24,9 +31,6 @@ reverse (SepList t ts) = uncurry SepList(reverse' (t,ts))
  tmp (a,(b,a2):xs) = (q,(b,a):w) where (q,w) = reverse' (a2,xs)
    }
    
-instance Listlike(SepList b) where
- toList' (SepList v xs) = v:map snd xs 
-
 -- isSingle :: SepList a b -> Bool
 -- isSingle (SepList _ []) = True
 -- isSingle _ = False 
@@ -39,6 +43,9 @@ nazo f (s,a1) = (s,a2):zs where SepList a2 zs = f a1
 
 append :: SepList s a -> [(s,a)] -> SepList s a
 SepList t ts `append` us = SepList t (ts++us)
+
+cons :: (a,s) -> SepList s a -> SepList s a
+cons (a,s) (SepList a2 sas) = SepList a ((s,a2):sas)
  
 instance Monad (SepList c) where
  return a = SepList a []

@@ -121,37 +121,37 @@ convert3' m f((n ,s:|st ,ls),Top(DEL ide     ):xs) = case M.lookup ide s of
    Just  k                                      -> (("assert_zero "++show k++"; ")++)<$$>convert3' m f((n, M.delete ide s :| st,filter (/=k) ls),xs)
    Nothing                                      -> makeErr(msgIde ide "is not defined or is already deleted in this scope")(f++"--step3_II'") 0 0
    
-convert3' m f((n ,st    ,ls),Top(AS0 ide     ):xs) = case lookup' ide (toList' st) of
+convert3' m f((n ,st    ,ls),Top(AS0 ide     ):xs) = case lookup' ide (toList st) of
    Just  k                                      -> (("assert_zero "++show k++"; ")++)<$$>convert3' m f((n, st,ls),xs)
    Nothing                                      -> makeErr(msgIde ide "is not defined or is already deleted")(f++"--step3_II'") 0 0
 
 convert3' m f(state         ,Top(NUL sp      ):xs) = (sp++) <$$> convert3' m f(state,xs) 
 
 
-convert3' m f((n ,st    ,ls),Top(ADD ide   nm):xs) = case lookup' ide (toList' st) of
+convert3' m f((n ,st    ,ls),Top(ADD ide   nm):xs) = case lookup' ide (toList st) of
    Just  k                                      -> (("mov "++show k++"; inc "++nm++"; ")++) <$$> convert3' m  f((n,st,ls),xs)
    Nothing                                      -> makeErr(msgIde ide "is not defined")(f++"--step3_II'") 0 0
    
-convert3' m f((n ,st    ,ls),Top(SUB ide   nm):xs) = case lookup' ide (toList' st) of
+convert3' m f((n ,st    ,ls),Top(SUB ide   nm):xs) = case lookup' ide (toList st) of
    Just  k                                      -> (("mov "++show k++"; dec "++nm++"; ")++) <$$> convert3' m  f((n,st,ls),xs)
    Nothing                                      -> makeErr(msgIde ide "is not defined")(f++"--step3_II'") 0 0
 
-convert3' m f((n ,st    ,ls),Top(REA ide     ):xs) = case lookup' ide (toList' st) of
+convert3' m f((n ,st    ,ls),Top(REA ide     ):xs) = case lookup' ide (toList st) of
    Just  k                                      -> (("mov "++show k++"; _input; ")++) <$$> convert3'  m f((n,st,ls),xs)
    Nothing                                      -> makeErr(msgIde ide "is not defined")(f++"--step3_II'") 0 0
 
-convert3' m f((n ,st    ,ls),Top(WRI ide     ):xs) = case lookup' ide (toList' st) of
+convert3' m f((n ,st    ,ls),Top(WRI ide     ):xs) = case lookup' ide (toList st) of
    Just  k                                      -> (("mov "++show k++"; output; ")++) <$$> convert3'  m f((n,st,ls),xs)
    Nothing                                      -> makeErr(msgIde ide "is not defined")(f++"--step3_II'") 0 0
 
 convert3' m f(state         ,Null             :xs) = (' ':) <$$> convert3' m f(state,xs)
 convert3' m f(state         ,Top(COM cm)      :xs) = (cm++) <$$> convert3' m f(state,xs)
 
-convert3' m f((n ,st    ,ls),Bot(WHI ide,Ns v):xs) = case lookup' ide (toList' st) of
+convert3' m f((n ,st    ,ls),Bot(WHI ide,Ns v):xs) = case lookup' ide (toList st) of
    Just k                                       -> do
     (table1,res1) <- convert3'  m f((n+1,M.empty `cons` st,ls),v ) -- inside the loop
     if not(M.null table1) 
-     then let leftList = map fst $ M.toList table1 in 
+     then let leftList = map fst $ _MtoList table1 in 
      makeErr(Message$identMsg leftList)(f ++ "--step3_II'") 0 0
      else do
     (table2,res2) <- convert3'  m f((n  ,st               ,ls),xs) -- left
@@ -161,7 +161,7 @@ convert3' m f((n ,st    ,ls),Bot(WHI ide,Ns v):xs) = case lookup' ide (toList' s
 convert3' m f((n ,st    ,ls),Bot(BLO ,Ns v):xs) =  do
     (table1,res1) <- convert3'  m f((n+1,M.empty `cons` st,ls),v ) -- inside the loop
     if not(M.null table1) 
-     then let leftList = map fst $ M.toList table1 in 
+     then let leftList = map fst $ _MtoList table1 in 
      makeErr(Message$identMsg leftList)(f++"--step3_II'") 0 0
      else do
     (table2,res2) <- convert3'  m f((n  ,st               ,ls),xs) -- left

@@ -31,8 +31,7 @@ import Camphor.Base.Base_Step2.UserState
 import Camphor.Base.Base_Step2.Auxilary2
 import Camphor.Base.Base_Step2.ErrList
 import qualified Data.Map as M
-import Control.Monad.State
-import Control.Monad.Reader
+import Camphor.Transformer
 import Text.Parsec 
 
 getLastPos :: Sent -> SourcePos
@@ -156,13 +155,13 @@ getOpsFixities' pos stat (_,(op,_):|ovs) = do
   return(fx:|fxs)
 
 makeReplacerTable :: TypeList -> ValueList -> ReplTable
-makeReplacerTable tlist vlist = M.fromList$zip(toIdentList tlist)(toList' vlist) 
+makeReplacerTable tlist vlist = M.fromList$zip(toIdentList tlist)(toList vlist) 
 
 makeReplacerTable2 :: (TypeList,TypeList) -> (ValueList,ValueList) -> ReplTable
-makeReplacerTable2 (t1,t2)(v1,v2) = M.fromList$zip(toIdentList t1++toIdentList t2)(toList' v1++toList' v2)
+makeReplacerTable2 (t1,t2)(v1,v2) = M.fromList$zip(toIdentList t1++toIdentList t2)(toList v1++toList v2)
 
 makeReplacerTable3 :: TailTypeList -> TailValueList -> ReplTable
-makeReplacerTable3 ttl tvl = M.fromList$zip(map snd $ toList' ttl)(toList' tvl)
+makeReplacerTable3 ttl tvl = M.fromList$zip(map snd $ toList ttl)(toList tvl)
 
 -- isConsistent :: [Fixity] -> Bool
 -- isConsistent xs = all isInfixL xs || all isInfixR xs

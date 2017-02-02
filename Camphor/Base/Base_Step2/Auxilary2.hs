@@ -16,8 +16,6 @@ import Camphor.SafePrelude
 import Camphor.SepList as Sep
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
-import Camphor.NonEmpty as NE
-import Camphor.Listlike
 import Camphor.TailSepList
 import Camphor.Base.Base_Step2.Type
 
@@ -35,11 +33,11 @@ isInfixL (InfixR _ _) = False
 isInfixR :: Fixity -> Bool
 isInfixR = not . isInfixL
 
-typelistIdentConflict :: (Listlike f) => f (Type,Ident2) -> Bool
-typelistIdentConflict = conflict . map snd . toList'
+typelistIdentConflict :: (Foldable f) => f (Type,Ident2) -> Bool
+typelistIdentConflict = conflict . map snd . toList
 
-valuelistIdentConflict :: (Listlike f) => f Value -> Bool
-valuelistIdentConflict = conflict . filter isVar . toList'
+valuelistIdentConflict :: (Foldable f) => f Value -> Bool
+valuelistIdentConflict = conflict . filter isVar . toList
   
 
 getName :: MacroId -> String
@@ -65,7 +63,7 @@ matches (SepList val ovs) (SepList (typ,_) otis)
   
 matches2 :: TailValueList -> TailTypeList -> Bool
 matches2 tvl ttl
- | length' tvl /= length' ttl                = False -- wrong length
+ | (length . toList) tvl /= (length . toList) ttl                = False -- wrong length
  | and $ zipMatch (unTSL tvl) (unTSL ttl) = True
  | otherwise                                 = False 
  
@@ -93,7 +91,7 @@ overlaps (SepList (typ,_) xs) (SepList (typ2,_) xs2)
  | otherwise              = False
   
 overlaps' :: TailTypeList -> TailTypeList -> Bool
-overlaps' xs xs2 = length' xs == length' xs2 && and (zipWith transform (unTSL xs) (unTSL xs2))
+overlaps' (TSL xs) (TSL xs2) = length xs == length xs2 && and (zipWith transform xs xs2)
 
 
 
