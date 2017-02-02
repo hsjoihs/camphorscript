@@ -1,19 +1,19 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
 {- Functional macro expansion -}
-module Camphor.Base_Step2.Base_Step2
+module Camphor.Base.Base_Step2.Base_Step2
 (step2
 ) where 
 
 import Camphor.SafePrelude
 import Camphor.SepList as Sep
-import Camphor.Base_Step2.Type
-import Camphor.Base_Step2.UserState
-import Camphor.Base_Step2.New 
-import Camphor.Base_Step2.Auxilary
-import Camphor.Base_Step2.Base_Step2_2(parser2_2)
-import Camphor.Base_Step2.PCS_Parser(parser2')
-import Camphor.Base_Step2.Replacer2(replacer2)
+import Camphor.Base.Base_Step2.Type
+import Camphor.Base.Base_Step2.UserState
+import Camphor.Base.Base_Step2.New 
+import Camphor.Base.Base_Step2.Auxilary
+import Camphor.Base.Base_Step2.Base_Step2_2(parser2_2)
+import Camphor.Base.Base_Step2.PCS_Parser(parser2')
+import Camphor.Base.Base_Step2.Replacer2(replacer2)
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import Camphor.Global.Operators
@@ -210,7 +210,6 @@ simplyReplace :: MacroId -> Sent -> UserState -> ReplTable -> Either ParseError 
 simplyReplace mname (Single pos2 ssent) stat table = do
  newSents <- replacer2 stat (nE mname) pos2 ssent table
  return $ map (Single pos2)(toList' newSents)
- 
 simplyReplace mname (Block p xs) stat table = do
  results <- sequence [ simplyReplace mname ssent stat table | ssent <- xs ]
  return [Block p $ concat results]

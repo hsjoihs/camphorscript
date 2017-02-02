@@ -1,12 +1,12 @@
 {-# LANGUAGE FlexibleContexts , NoImplicitPrelude #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
-module Camphor.Base_Step2.PCS_Parser
+module Camphor.Base.Base_Step2.PCS_Parser
 (parser2'
 ,Tok(..)
 ,showTok
 
 )where
-import Camphor.Base_Step2.Type
+import Camphor.Base.Base_Step2.Type
 import Camphor.SafePrelude 
 import Camphor.Global.Parsers
 import Text.Parsec hiding(token)

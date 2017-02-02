@@ -19,10 +19,10 @@ void (=)(char& a;c_ N){
 
 
 void (+=)(char& a;char& b){
-	char c;
-	(a,c)+= ~b;
-	b+= ~c;
-	delete c;
+	char c2;
+	(a,c2)+= ~b;
+	b+= ~c2;
+	delete c2;
 }
 
 void (+=)(char& a;constant char N *~ char& z){
@@ -31,18 +31,18 @@ void (+=)(char& a;constant char N *~ char& z){
 
 void (-|=~)(char& a;char& b){
 	/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
-	char c;char d;
+	char c2;char d2;
 	while(b)
 	{
-		(c,d)+= ~a;
-		   a += ~d;
-		while(c){
-			clear(c);
+		(c2,d2)+= ~a;
+		   a += ~d2;
+		while(c2){
+			clear(c2);
 			a-=1;
 		}
 		b-=1;
 	}
-	delete c;delete d;
+	delete c2;delete d2;
 }
 
 

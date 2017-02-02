@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
-module Camphor.Base_Step2.Auxilary
+module Camphor.Base.Base_Step2.Auxilary
 (getOpContents2
 ,canBeRightOf
 ,canBeLeftOf
@@ -14,8 +14,8 @@ module Camphor.Base_Step2.Auxilary
 ) where
 import Camphor.SafePrelude
 import qualified Camphor.SepList as S
-import Camphor.Base_Step2.Type
-import Camphor.Base_Step2.UserState
+import Camphor.Base.Base_Step2.Type
+import Camphor.Base.Base_Step2.UserState
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import Text.Parsec 

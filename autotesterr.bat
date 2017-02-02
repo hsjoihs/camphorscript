@@ -76,7 +76,7 @@ exit /b
 setlocal
 set /p out=testing %3: < nul
 endlocal
-%1 %2 examples\error\%3  -o bat\k.tmp > bat\%~n3.tmp
+%1 %2 examples\error\%3  -o bat\k.tmp > bat\%~n3.tmp 2>&1
 
 call :output2 "%1 %2 examples\error\%3  -o bat\k.tmp" bat\%~n3.tmp
 exit /b

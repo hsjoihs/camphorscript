@@ -8,21 +8,12 @@ import Camphor.IO
 import CamphorR.R_Step8
 import CamphorR.R_Step7
 import CamphorR.R_Step4
-
-
-info :: [String]
-info = [
- "CHAtsFtD CamphorScript Reverse Compiler - Copyright (c) 2014- CHAtsFtD ",
- "Usage: ccsrc [options] [-o outfilepath] infile",
- "options: ",
- "-Cnum[num]  reverse compile from step 'num' to step 'num'"
--- ,"-X debug"
- ]
+import CamphorR.CmdOptions
 
 step :: FilePath -> [String -> Either ParseError String]
 step file=[step8_R,step7_R file,Right,Right,step4_R]
 
-fromTo'::Monad m=>Int->Int->[a->m a]->a->m a
+fromTo' :: Monad m => Int -> Int -> [a -> m a] -> a -> m a
 fromTo' x y xs
  | x<y       = abort "first number of option -C must not be smaller than the second"
  | x>8       = abort$"step "++show x++"does not exist"
@@ -36,21 +27,8 @@ main = do
 
 dispatch4 :: Options -> IO ()
 dispatch4 []     = mapM_ putStrLn info
-dispatch4 xs     = dispatch5 xs (Nothing,Nothing,(8,8))
-
-type Stat = (Maybe FilePath,Maybe FilePath,(Int,Int)) -- in,out,from,to
-
-dispatch5 :: Options -> Stat -> IO () 
-dispatch5 ("-o":outf:xs)    (inf        ,_   ,frmTo     ) = dispatch5 xs (inf,Just outf,frmTo)
-dispatch5 ["-o"]             _                            = abort("argument to '-o' is missing")
-dispatch5 (['-','C',x,y]:xs)(inf        ,outf,_         ) = dispatch5 xs (inf,outf      ,(read[x],read[y]))
-dispatch5 (['-','C',x]  :xs)(inf        ,outf,_         ) = dispatch5 xs (inf,outf      ,(read[x],read[x]))
-{-dispatch5 ("-X":_)          (Just inf   ,_   ,_         ) = do
-   contents <- getContentsFrom inf
-   print $ map tokenizeBf $ lines contents -}
-dispatch5 (inf:xs)          (_          ,outf,frmTo     ) = dispatch5 xs (Just inf,outf      ,frmTo)
-dispatch5 []                (Just infile,outf,(a,b)     ) = do
-   contents <- getContentsFrom infile
-   outputParsed (maybe (replaceExtension infile "bf") id outf) (fromTo' a  b (step infile) contents)
-
-dispatch5 []                (Nothing    ,_   ,_        )  = abort "no input files"
+dispatch4 xs     = case optionParse xs (Nothing,Nothing,(8,8)) of
+ Left e -> abort e
+ Right (infile,outf,(a,b)) -> do
+  contents <- getContentsFrom infile
+  outputParsed outf (fromTo' a  b (step infile) contents)

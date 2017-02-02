@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude , FlexibleContexts #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
 {- C macro expansion -}
-module Camphor.Base_Step1
+module Camphor.Base.Base_Step1
 (step1
 ,parser1
 ,Pre7(..)
@@ -154,14 +154,14 @@ convert1' f i((table,depth,n,True ,_),OTHER t   :xs) = do
  replaced            <- replaceBy table t
  (newtable,result)   <- convert1' f i((table,depth,n+1,True ,(-1) ),xs)
  return (newtable,replaced++"\n"++result)
-convert1' f i@(j,_,_)       ((table,depth,n,True ,_),INCLU  fil:xs) = inclus fil j lib_dir (table,depth,n,f,i,xs)
-convert1' f i@(_,j,file_dir)((table,depth,n,True ,_),INCLU2 fil:xs) = inclus fil j file_dir (table,depth,n,f,i,xs)
+convert1' f i@(j,_)((table,depth,n,True ,_),INCLU  fil:xs) = inclus fil j (table,depth,n,f,i,xs) 
+convert1' f i@(_,j)((table,depth,n,True ,_),INCLU2 fil:xs) = inclus fil j (table,depth,n,f,i,xs)
  
-inclus :: FilePath -> FileToTxt -> FilePath -> (Table, Integer, Line, FilePath, Includers, [Pre7]) -> Either ParseError (Table,String) 
-inclus fil j file_dir (table,depth,n,f,i,xs) = case M.lookup fil j of 
+inclus :: FilePath -> FileToTxt ->  (Table, Integer, Line, FilePath, Includers, [Pre7]) -> Either ParseError (Table,String) 
+inclus fil j (table,depth,n,f,i,xs) = case M.lookup fil j of 
  Nothing  -> makeErr(Message$"library "++show fil++" is not found")(f++"step1'") n 1
- Just txt -> do
-  let inclfile = file_dir </> fil
+ Just (dirf,txt) -> do
+  let inclfile = dirf
   sets   <- parse parser1 (inclfile ++ "--step1") (txt ++ "\n")
   -- sets :: [Pre7]
   (newtable,text)      <- convert1' inclfile i ((table,0,0,True,(-1)) ,sets)

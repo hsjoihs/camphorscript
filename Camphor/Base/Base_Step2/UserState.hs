@@ -1,9 +1,9 @@
-{-# LANGUAGE FlexibleContexts , TypeSynonymInstances , FlexibleInstances, NoImplicitPrelude #-}
+{-# LANGUAGE FlexibleContexts, TypeSynonymInstances, FlexibleInstances, NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
-module Camphor.Base_Step2.UserState
+module Camphor.Base.Base_Step2.UserState
 (OpInfo,MacroId(..),VFInstance,OpInstance
 ,emptyState,UserState()
-,containsIdent,addIdent,removeIdent,getVFContents,addOpContents
+,containsIdent,addIdent,removeIdent,getVFContents,addOpContents,containsAnyIdent
 ,addOpFixity,getOpName,containsOp,getOpContents,matches,getFixValue
 ,isInfixL,isInfixR
 ,show',PrettyPrint
@@ -13,7 +13,7 @@ module Camphor.Base_Step2.UserState
 )where
 import Camphor.SafePrelude
 import Camphor.SepList as Sep
-import Camphor.Base_Step2.Type
+import Camphor.Base.Base_Step2.Type
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import qualified Data.Map as M
@@ -106,9 +106,13 @@ emptyState = UserState deffun defop
   single :: Type -> Ident -> TypeList
   single a b = SepList ((a,b),[])
 
--- checks if the current scope already defines the variable; thus it does not search deeply  
+-- checks if the current scope has already defined the variable; thus it does not search deeply  
 containsIdent :: UserState -> Ident -> Bool
 containsIdent (UserState (vf:|_) _) ident = ident `M.member` vf 
+
+-- checks if any scope has already defined the variable; thus it DOES search deeply
+containsAnyIdent :: UserState -> Ident -> Bool
+containsAnyIdent (UserState vfs _) ident = any (ident `M.member`) (toList' vfs)
 
 addVFBlock :: UserState -> UserState
 addVFBlock (UserState vflist oplist) = UserState (M.empty `cons` vflist) oplist

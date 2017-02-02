@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall  #-}
 {- symbolization -}
-module Camphor.Step7
+module Camphor.Step.Step7
 (step7
 ) where
-import Camphor.Base_Step7
+import Camphor.Base.Base_Step7

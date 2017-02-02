@@ -13,5 +13,5 @@ type Address = Integer
 type Fix = Integer
 type PragmaData = [String]
 type Options = [String]
-type FileToTxt = M.Map FilePath Txt
-type Includers = (FileToTxt,FileToTxt,FilePath)
+type FileToTxt = M.Map FilePath (FilePath,Txt)
+type Includers = (FileToTxt,FileToTxt)

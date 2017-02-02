@@ -1,16 +1,16 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall  #-}
 {- Functional macro expansion -}
-module Camphor.Base_Step2.New
+module Camphor.Base.Base_Step2.New
 (newC,newD,newL,newR,newF1,newF2,getCall5Result
 ) where 
 
 import qualified Camphor.SepList as S
-import Camphor.Base_Step2.Type
+import Camphor.Base.Base_Step2.Type
 import Camphor.SafePrelude
 import Data.Ord(comparing)
-import Camphor.Base_Step2.Auxilary
-import Camphor.Base_Step2.UserState
+import Camphor.Base.Base_Step2.Auxilary
+import Camphor.Base.Base_Step2.UserState
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import Camphor.NonEmpty

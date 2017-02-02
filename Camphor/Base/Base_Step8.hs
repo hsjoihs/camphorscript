@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts , NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
 {- comment deletion -}
-module Camphor.Base_Step8
+module Camphor.Base.Base_Step8
 (step8
 
 ,parser8

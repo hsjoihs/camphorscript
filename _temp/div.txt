@@ -1,5 +1,19 @@
 #include <stdcalc>
-infixr 5 (+<-~); infixr 5 (<-~); infixl 40 (/);
+infixr 5 (+<-~); infixr 5 (<-~); infixl 40 (/); infixr 5 (-|=);
+
+void (-|=) (char& a; const char N)
+{
+	char b; b+=N;
+	a -|=~ b;
+	delete b;
+}
+
+void (+=)(char&a,char&b;char&c){
+	char d; 
+	d += c;
+	(a,b) +=~ d;
+	delete d;
+}
 
 void (+<-~) (char& quot, char& rem; char& a / const char N)
 {

@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall  #-}
 {- comment deletion -}
-module Camphor.Step8
+module Camphor.Step.Step8
 (step8
 )where
-import Camphor.Base_Step8
+import Camphor.Base.Base_Step8

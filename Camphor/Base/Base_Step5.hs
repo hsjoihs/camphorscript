@@ -1,8 +1,8 @@
-{-# LANGUAGE FlexibleContexts , NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts , NoImplicitPrelude #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  -fno-warn-unused-imports #-}
-{- (in|de)crement optimization -}
-module Camphor.Base_Step6
-(step6
+{- memory allocation -}
+module Camphor.Base.Base_Step5
+(step5
 ) where
 
 import Camphor.SafePrelude 
@@ -10,5 +10,5 @@ import Camphor.Global.Synonyms
 import Text.Parsec hiding(token)
 import Control.Applicative hiding ((<|>),many)
 
-step6 :: FilePath -> Txt -> Either s Txt
-step6 _ = Right
+step5 :: FilePath -> Txt -> Either s Txt
+step5 _ = Right

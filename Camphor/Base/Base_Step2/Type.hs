@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
-module Camphor.Base_Step2.Type
+module Camphor.Base.Base_Step2.Type
 (Type(..),Value(..),Ident
 ,NonEmptyValue,ReplTable
 ,Tok(..),PragmaData,ParserState

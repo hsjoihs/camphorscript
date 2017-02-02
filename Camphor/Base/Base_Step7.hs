@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts, NoImplicitPrelude #-}
 {-# OPTIONS -Wall  #-}
 {- symbolization -}
-module Camphor.Base_Step7
+module Camphor.Base.Base_Step7
 (step7
 ,parserND'
 ,convert7

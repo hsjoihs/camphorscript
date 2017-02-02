@@ -3,7 +3,6 @@
 module Camphor.IO
 (outputParsed
 ,getContentsFrom
-,readFile'
 ,abort
 ,replaceExtension
 ,getDirectoryContents,doesFileExist
@@ -18,20 +17,16 @@ import System.FilePath
 import System.Directory(getDirectoryContents,doesFileExist)
 import System.Environment(getArgs)
 import Data.Char(toLower)
+import System.IO(hPutStrLn,stderr)
 
 outputParsed :: FilePath -> Either ParseError Txt -> IO()
 outputParsed path (Right x) 
  | map toLower path == "con" = putStrLn x
  | otherwise                 = writeFile path x
-outputParsed _    (Left  e)  = putStrLn $ "parse error at " ++ show e
+outputParsed _    (Left  e)  = hPutStrLn stderr $ "parse error at " ++ show e
 
 getContentsFrom :: FilePath -> IO Txt
-getContentsFrom file = do
- contents <- readFile' file
- return contents
- 
-readFile' :: FilePath -> IO String
-readFile' file 
+getContentsFrom file 
  | map toLower file == "con" = getContents
  | otherwise                 = readFile file  
  

@@ -1,6 +1,6 @@
 {-# LANGUAGE NoMonomorphismRestriction, FlexibleContexts , NoImplicitPrelude #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind -fno-warn-unused-imports #-}
-module Camphor.Base_Step3_I
+module Camphor.Base.Base_Step3_I
 (step3_I
 )where
 import Camphor.SafePrelude

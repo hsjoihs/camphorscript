@@ -1,14 +1,14 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
-module Camphor.Base_Step2.Replacer2
+module Camphor.Base.Base_Step2.Replacer2
 (replacer2
 )where
 import Camphor.SafePrelude 
 import Camphor.SepList(SepList(..)) 
-import Camphor.Base_Step2.Type
-import Camphor.Base_Step2.UserState
-import Camphor.Base_Step2.New 
-import Camphor.Base_Step2.Auxilary
+import Camphor.Base.Base_Step2.Type
+import Camphor.Base.Base_Step2.UserState
+import Camphor.Base.Base_Step2.New 
+import Camphor.Base.Base_Step2.Auxilary
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import Camphor.NonEmpty
@@ -23,19 +23,39 @@ import qualified Data.Map as M
 ----------------------------------------------------------------------------------}   
 replacer2 :: UserState -> NonEmpty MacroId -> SourcePos -> SimpleSent -> ReplTable ->  Either ParseError [SimpleSent]
 
+
+-- simple ones --
 replacer2 _ _ _ Scolon   _     = return[Scolon]
 replacer2 _ _ _ (Sp x)   _     = return[Sp x]
 replacer2 _ _ _ (Comm x) _     = return[Comm x]
 replacer2 _ _ _ (Pragma x) _   = return[Pragma x]
+
+-- errors --
 replacer2 _ _ pos (Infl _ _) _ = Left$newErrorMessage(Message "cannot declare fixity inside function/operator definition ")pos  
 replacer2 _ _ pos (Infr _ _) _ = Left$newErrorMessage(Message "cannot declare fixity inside function/operator definition ")pos  
+replacer2 _ _ pos (Func1 ident _ _) _ = 
+ Left$newErrorMessage(Message$"cannot define function "++show ident++"inside function/operator definition ")pos
+ 
+replacer2 _ _ pos (Func1Null ident _) _ = 
+ Left$newErrorMessage(Message$"cannot define function "++show ident++"inside function/operator definition ")pos 
+ 
+replacer2 _ _ pos (Func2 oper _ _ _) _ = 
+ Left$newErrorMessage(Message$"cannot define operator "++show oper ++"inside function/operator definition ")pos 
 
-replacer2 _ _ pos (Char ident) table = case M.lookup ident table of
- Nothing -> return[Char ident]
+replacer2 _ _ pos (Func2Null oper _ _) _ = 
+ Left$newErrorMessage(Message$"cannot define operator "++show oper ++"inside function/operator definition ")pos 
+
+ 
+-- complex ones -- 
+replacer2 stat _ pos (Char ident) table = case M.lookup ident table of
+ Nothing
+  | stat `containsAnyIdent` ident -> Left$newErrorMessage(Message$"variable "++show ident++msg_clash)pos -- FIXME: should be solved  
+  | otherwise -> return[Char ident] 
+  where msg_clash = " defined in a function/operator clashes with outer variable with a same name"
  Just _  -> Left$newErrorMessage(Message$"cannot redefine an argument "++show ident)pos 
  
 replacer2 _ _ pos (Del ident) table = case M.lookup ident table of
- Nothing -> return[Del ident]
+ Nothing -> return[Del ident] -- FIXME: doesn't check overlapping
  Just _  -> Left$newErrorMessage(Message$"cannot delete an argument"++show ident)pos 
 
 replacer2 _ _ pos (Pleq (Var v1) (Constant v2)) table = case M.lookup v1 table of
@@ -80,17 +100,7 @@ replacer2 stat ns pos (Wrt (Var ident)) table = case M.lookup ident table of
  Just c      -> replacer2 stat ns pos (Call1 "write" (SepList (c,[]))) table 
 replacer2 stat ns pos (Wrt c) table = replacer2 stat ns pos (Call1 "write" (SepList (c,[]))) table 
 
-replacer2 _ _ pos (Func1 ident _ _) _ = 
- Left$newErrorMessage(Message$"cannot define function "++show ident++"inside function/operator definition ")pos
- 
-replacer2 _ _ pos (Func1Null ident _) _ = 
- Left$newErrorMessage(Message$"cannot define function "++show ident++"inside function/operator definition ")pos 
- 
-replacer2 _ _ pos (Func2 oper _ _ _) _ = 
- Left$newErrorMessage(Message$"cannot define operator "++show oper ++"inside function/operator definition ")pos 
 
-replacer2 _ _ pos (Func2Null oper _ _) _ = 
- Left$newErrorMessage(Message$"cannot define operator "++show oper ++"inside function/operator definition ")pos 
  
 replacer2 stat (n:|ns) pos (Call1 ident valuelist) table 
  | isJust$ M.lookup ident table = Left$newErrorMessage(Message$"cannot call an argument "++show ident)pos 

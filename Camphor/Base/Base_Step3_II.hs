@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts ,NoImplicitPrelude #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
 {- Desugaring -}
-module Camphor.Base_Step3_II
+module Camphor.Base.Base_Step3_II
 (step3_II
 ,parser3
 ,convert3

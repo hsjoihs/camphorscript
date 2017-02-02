@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts ,NoImplicitPrelude #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
-module Camphor.Base_Step2.PCS_Parser2
+module Camphor.Base.Base_Step2.PCS_Parser2
 (Tok(..)
 ,showTok
 --,tok
@@ -13,7 +13,7 @@ module Camphor.Base_Step2.PCS_Parser2
 
 import Camphor.SafePrelude
 import Text.Parsec 
-import Camphor.Base_Step2.PCS_Parser
+import Camphor.Base.Base_Step2.PCS_Parser
 import Data.Functor.Identity
 import Camphor.Global.Synonyms
 

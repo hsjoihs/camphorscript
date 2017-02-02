@@ -1,0 +1,354 @@
+/*# LINE start "lib\\stdcalc.txt" #*/
+
+
+
+/*# LINE start "lib\\fixdecl.txt" #*/
+
+
+
+
+       
+    
+   
+   
+   
+/* infixl 40 (/) ; infixl 40 (/~) ; */   
+
+
+
+/*# LINE end "lib\\fixdecl.txt" #*/
+
+
+/* a=0; */
+
+
+
+
+
+/*# LINE start "lib\\eq_til.txt" #*/
+
+
+
+/*# LINE start "lib\\fixdecl.txt" #*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*# LINE end "lib\\fixdecl.txt" #*/
+	/* a+= ~z */
+
+	/* (a,b)+= ~z*/
+
+	/* a+= ~z_star_N */
+
+
+	/* a-= ~z */
+
+	/* (a,b)-= ~z*/
+
+	/* a-= ~z_star_N */
+
+
+	/* a= ~z */
+
+	/* (a,b)= ~z*/
+
+	/* a= ~z_star_N */
+
+
+
+/*# LINE end "lib\\eq_til.txt" #*/
+
+/*# LINE start "lib\\eq_bang_til.txt" #*/
+
+
+
+/*# LINE start "lib\\fixdecl.txt" #*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*# LINE end "lib\\fixdecl.txt" #*/
+	/* a+= !~z*/
+
+	/* (a,b)+= !~z*/
+
+	/* a= !~z*/
+
+	/* (a,b)= !~z*/
+
+
+
+/*# LINE end "lib\\eq_bang_til.txt" #*/
+
+
+
+
+	/* a+= ~z_star_N */
+
+
+
+
+
+
+
+
+
+
+/*# LINE end "lib\\stdcalc.txt" #*/
+/*# LINE start "_temp\\div.txt" #*/
+
+/*# LINE start "lib\\stdcalc.txt" #*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*# LINE end "lib\\stdcalc.txt" #*/
+   
+
+
+
+
+
+
+
+
+
+
+/*# LINE end "_temp\\div.txt" #*/
+char a;char b; char c; char d;
+read(a);
+b+=48; c+=48; d+=48;
+{
+	char k;
+	
+	char orig; char new_; char not_; char tmp; char tmp2;
+	while(a){
+		
+	char c;
+	
+	while(a){orig+=1;c+=1;a-=1;}
+
+	
+	while(c){a+=1;c-=1;}
+
+	delete c;
+ /* using tmp */ /*copy the current `a` to `orig`*/
+		
+	char b; b+=10;
+	
+	/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
+	char c;char d;
+	while(b){
+		
+	while(a){c+=1;d+=1;a-=1;}
+
+		   
+	while(d){a+=1;d-=1;}
+
+		while(c){
+			
+	while(c){c-=1;}
+
+			a-=1;
+		}
+		b-=1;
+	}
+	delete c;delete d;
+
+	delete b;
+ /* using tmp */ /* subtract `N` from `a`*/
+		
+	char d; 
+	
+	char c;
+	
+	while(a){d+=1;c+=1;a-=1;}
+
+	
+	while(c){a+=1;c-=1;}
+
+	delete c;
+
+	
+	while(d){tmp2+=1;new_+=1;d-=1;}
+
+	delete d;
+ /* using tmp */ /* make two copies of `a`*/
+		
+	not_+=1;
+	while(tmp2){
+	while(tmp2){tmp2-=1;}
+not_-=1;}
+  /* `not = !a`*/
+		
+		while(new_){
+	while(new_){new_-=1;}
+ k+=1;} /* `if(a){quot+=1;}`*/
+		while(not_){not_-=1; 
+	char c;
+	
+	while(orig){d+=1;c+=1;orig-=1;}
+
+	
+	while(c){orig+=1;c-=1;}
+
+	delete c;
+} /* `else{rem += orig;}*/
+		
+	while(orig){orig-=1;}
+
+	}
+	delete orig; delete new_; delete not_; delete tmp; delete tmp2;
+
+	
+	char orig; char new_; char not_; char tmp; char tmp2;
+	while(k){
+		
+	char c;
+	
+	while(k){orig+=1;c+=1;k-=1;}
+
+	
+	while(c){k+=1;c-=1;}
+
+	delete c;
+ /* using tmp */ /*copy the current `a` to `orig`*/
+		
+	char b; b+=10;
+	
+	/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
+	char c;char d;
+	while(b){
+		
+	while(k){c+=1;d+=1;k-=1;}
+
+		   
+	while(d){k+=1;d-=1;}
+
+		while(c){
+			
+	while(c){c-=1;}
+
+			k-=1;
+		}
+		b-=1;
+	}
+	delete c;delete d;
+
+	delete b;
+ /* using tmp */ /* subtract `N` from `a`*/
+		
+	char d; 
+	
+	char c;
+	
+	while(k){d+=1;c+=1;k-=1;}
+
+	
+	while(c){k+=1;c-=1;}
+
+	delete c;
+
+	
+	while(d){tmp2+=1;new_+=1;d-=1;}
+
+	delete d;
+ /* using tmp */ /* make two copies of `a`*/
+		
+	not_+=1;
+	while(tmp2){
+	while(tmp2){tmp2-=1;}
+not_-=1;}
+  /* `not = !a`*/
+		
+		while(new_){
+	while(new_){new_-=1;}
+ b+=1;} /* `if(a){quot+=1;}`*/
+		while(not_){not_-=1; 
+	char c;
+	
+	while(orig){c+=1;c+=1;orig-=1;}
+
+	
+	while(c){orig+=1;c-=1;}
+
+	delete c;
+} /* `else{rem += orig;}*/
+		
+	while(orig){orig-=1;}
+
+	}
+	delete orig; delete new_; delete not_; delete tmp; delete tmp2;
+
+	delete k;
+}
