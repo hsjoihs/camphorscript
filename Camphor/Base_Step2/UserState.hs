@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts , TypeSynonymInstances , FlexibleInstances #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
 module Camphor.Base_Step2.UserState
 (Fixity(..)
@@ -7,7 +7,7 @@ module Camphor.Base_Step2.UserState
 ,containsIdent,addIdent,removeIdent,getVFContents
 ,addOpFixity,getOpName,containsOp,getOpContents,matches,getFixValue
 ,isInfixL,isInfixR
-,show',PrettyPrint
+,show',PrettyPrint,MacroId(..)
 )where
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Camphor.Base_Step2.Base_Step2_2
@@ -32,11 +32,26 @@ instance PrettyPrint Fixity where
 instance PrettyPrint Value where
  show'(Var x) = x
  show'(Constant n) = show n
+ 
+-- (Type, Ident, [(Oper, Type, Ident)]) 
+instance PrettyPrint TypeList where
+ show' (typ, ident, xs) = show' typ ++ " " ++ ident ++ " " ++ concatMap (\(o,t,i) -> o ++ " " ++ show' t ++ " " ++ i ++ " ") xs
+ 
+instance PrettyPrint Type where
+ show' CNSTNT_CHAR = "constant char"
+ show' CONST_CHAR = "const char"
+ show' CHAR_AND = "char&"
+ 
+instance PrettyPrint MacroId where
+ show' (Func ident (typelist,_)) = "function "++ident++"("++show' typelist++"){ .. }"
+ show' (Operator oper (typelist1,typelist2,_)) = "operator ("++oper++")("++show' typelist1++";"++show' typelist2++"){ .. }"
 
 data Fixity = InfixL Integer Oper | InfixR Integer Oper deriving(Show,Eq) 
 
 type VFInfo = Either () [(TypeList, Sent)]
 type OpInfo = (Fixity,[(TypeList,TypeList, Sent)])
+
+data MacroId = Func Ident (TypeList,Sent) | Operator Oper (TypeList,TypeList, Sent) deriving(Show,Eq)  
 
 type VFList = M.Map Ident VFInfo
 type OpList = M.Map Oper OpInfo

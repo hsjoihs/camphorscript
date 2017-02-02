@@ -19,7 +19,7 @@ import Camphor.Global.Operators
 import Camphor.NonEmpty
 import Text.Parsec 
 import qualified Data.Map as M
-
+ 
 step2 ::  FilePath -> Txt -> Either ParseError Txt
 step2 file txt = do
  xs <- parse parser2'  (file ++ "-step2"  ) txt
@@ -134,16 +134,12 @@ convert2 stat (Single(pos,Call5 valuelist):xs) = do
  result <- newK5 pos valuelist stat
  left <- convert2 stat xs
  return(result ++ left)
- 
-
 {-----------------------------------------------------------
  -                   *******************                   -
  -                   * end of convert2 *                   -
  -                   *******************                   -
  -----------------------------------------------------------}
-
-
-
+ 
 newC :: SourcePos -> Ident -> UserState -> Either ParseError UserState
 newC pos ident stat 
  | stat `containsIdent` ident = Left $newErrorMessage(Message$"identifier "++show ident++" is already defined")pos
@@ -161,8 +157,6 @@ newL pos fixity op stat = case getOpContents stat op of
   then Right stat 
   else Left$newErrorMessage(Message$"conflicting fixity definitions of operator "++show op)pos
  Nothing     -> Right$addOpFixity stat (InfixL fixity op)
-
- 
  
 newB :: UserState -> Sents -> Either ParseError (UserState,Txt)
 newB stat ys = do
@@ -173,7 +167,6 @@ newB2 :: UserState -> Sents -> Either ParseError (UserState,Txt)
 newB2 stat ys = do
  txt <- convert2 stat ys -- FIXME : state is not passed
  return(stat,txt)
-
 
 newR :: SourcePos -> Fix -> Oper -> UserState -> Either ParseError UserState
 newR pos fixity op stat = case getOpContents stat op of
@@ -189,7 +182,6 @@ newF1 pos name typelist sent stat = case getVFContents stat name of
  Just(Left ())  -> Left $newErrorMessage(Message$"cannot define function"++show name++" because it is already defined as a variable")pos
  Nothing        -> Right$addIdent stat name (Right[(typelist,sent)])
  Just(Right xs) -> Right$addIdent stat name (Right$(typelist,sent):xs)
-   
 
 -- Operator definition 
 newF2 :: SourcePos -> Oper -> TypeList -> TypeList -> Sent -> UserState -> Either ParseError UserState
@@ -206,13 +198,11 @@ newK1 pos name valuelist stat = do
  result <- replaceFuncMacro pos name valuelist stat
  return result -- stat is unchanged
    
-   
 -- normalized operator call
 newK2 :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError Txt 
 newK2 pos op valuelist1 valuelist2 stat = do
  result <- replaceOpMacro pos op valuelist1 valuelist2 stat
  return result -- stat is unchanged
- 
  
 -- left-parenthesized operator call
 newK3 :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError Txt 
@@ -253,7 +243,6 @@ newK5 pos (x,ov:ovs) stat = do
  (y:|ys) <- getOpsFixities' pos stat (x,ov:|ovs)
  newK5' pos (x,ov:|ovs) stat (y:|ys)
  
-
 newK5' :: SourcePos -> NonEmptyValue -> UserState -> NonEmpty Fixity -> Either ParseError Txt
 newK5' pos nEvaluelist stat fixes = do
  let minOps = minimumsBy (comparing getFixValue) fixes
@@ -276,7 +265,6 @@ newK5_3 pos nEvaluelist oper stat = newK2 pos oper vlist1 vlist2 stat
   (vlist2',vlist1') = breakBy' oper (reverse'' nEvaluelist)
   (vlist1,vlist2) = (reverse' vlist1',reverse' vlist2')
 
-
 --- macro-replacing function for operator
 replaceOpMacro :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError Txt
 replaceOpMacro pos op valuelist1 valuelist2 stat = do
@@ -284,7 +272,7 @@ replaceOpMacro pos op valuelist1 valuelist2 stat = do
  let matchingOpInstance = [ a | a@(typelist1,typelist2,_) <- opinfo, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ] 
  case matchingOpInstance of 
   []        -> Left $newErrorMessage(Message$"no type-matching instance of "++show op++" defined")pos 
-  [instnce] -> replacerOfOp (show op) instnce valuelist1 valuelist2 stat
+  [instnce] -> replacerOfOp (Operator op instnce) instnce valuelist1 valuelist2 stat
   xs        -> Left $newErrorMessage(Message$show(length xs)++" type-matching instances of "++show op++" defined")pos 
  where
   opinfo' :: Either ParseError [(TypeList,TypeList, Sent)]
@@ -297,7 +285,7 @@ replaceFuncMacro pos ident valuelist stat = do
  let matchingFuncInstance = [ a | a@(typelist,_) <- finfo, valuelist `matches` typelist ]
  case matchingFuncInstance of
   []        -> Left $newErrorMessage(Message$"no type-matching instance of "++show ident++" defined")pos  
-  [instnce] -> replacerOfFunc (show ident) instnce valuelist stat
+  [instnce] -> replacerOfFunc (Func ident instnce) instnce valuelist stat
   xs        -> Left $newErrorMessage(Message$show(length xs)++" type-matching instances of "++show ident++" defined")pos   
  where
   finfo' :: Either ParseError [(TypeList, Sent)]
@@ -306,8 +294,6 @@ replaceFuncMacro pos ident valuelist stat = do
    Just(Left())     -> Left $newErrorMessage(Message$"cannot call"++show ident++" because it is defined as a variable")pos
    Just(Right info) -> Right $ info
 
-type MacroId = String   
-   
 replacerOfOp :: MacroId -> (TypeList,TypeList, Sent) -> ValueList -> ValueList -> UserState -> Either ParseError Txt
 replacerOfOp opname (typelist1,typelist2,sent) valuelist1 valuelist2 stat = 
  replacer opname sent stat $ makeReplacerTable2 (typelist1,typelist2) (valuelist1,valuelist2)
@@ -323,7 +309,6 @@ replacer mname (Single(pos2,ssent)) stat table = do
 replacer mname (Block xs) stat table = do
  result <- sequence [replacer mname ssent stat table | ssent <- xs]
  return$concat(["{"]++result++["}"])
-
 
 {-  -------------------------------------------------------------------------------
    ***************************
@@ -346,15 +331,30 @@ replacer2 _ pos (Del ident) table = case M.lookup ident table of
  Nothing -> return(Del ident)
  Just _  -> Left$newErrorMessage(Message$"cannot delete an argument"++show ident)pos 
 
-replacer2 _ pos (Func1 ident _ _) table = 
+replacer2 _ pos (Func1 ident _ _) _ = 
  Left$newErrorMessage(Message$"cannot define function "++show ident++"inside function/operator definition ")pos
  
-replacer2 _ pos (Func2 oper _ _ _) table = 
+replacer2 _ pos (Func2 oper _ _ _) _ = 
  Left$newErrorMessage(Message$"cannot define operator "++show oper ++"inside function/operator definition ")pos 
+  
+replacer2 (n:|ns) pos (Call1 ident valuelist) table = do
+ let matchingInstance = [ a | a@(Func name (typelist,_)) <- (n:ns), name == ident , valuelist `matches` typelist]
+ case matchingInstance of
+  []     -> undefined
+  (x:xs) -> Left$newErrorMessage(Message$"cannot recursively call "++show' x++" inside "++show' n)pos
  
-replacer2 narr pos (Call1 ident valuelist            ) table = undefined
-replacer2 narr pos (Call2 oper  valuelist1 valuelist2) table = undefined
-replacer2 narr pos (Call3 oper  valuelist1 valuelist2) table = undefined
+replacer2 (n:|ns) pos (Call2 oper valuelist1 valuelist2) table = do
+ let matchingInstance = [ a | a@(Operator o (typelist1,typelist2,_)) <- (n:ns), o == oper, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ]
+ case matchingInstance of
+   [] -> undefined
+   (x:xs) -> Left$newErrorMessage(Message$"cannot recursively call "++show' x++" inside "++show' n)pos
+   
+replacer2 (n:|ns) pos (Call3 oper valuelist1 valuelist2) table = do
+ let matchingInstance = [ a | a@(Operator o (typelist1,typelist2,_)) <- (n:ns), o == oper, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ]
+ case matchingInstance of
+   [] -> undefined
+   (x:xs) -> Left$newErrorMessage(Message$"cannot recursively call "++show' x++" inside "++show' n)pos
+   
 replacer2 narr pos (Call4 []  valuelist              ) table = undefined
 replacer2 narr pos (Call4 (x:xs)  valuelist          ) table = undefined
 replacer2 narr pos (Call5 valuelist                  ) table = undefined
