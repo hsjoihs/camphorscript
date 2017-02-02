@@ -1,3 +1,0 @@
-parse error at "examples\error\Step1_defnum.txt--step1" (line 1, column 9):
-unexpected "1"
-expecting non-breaking space or identifier

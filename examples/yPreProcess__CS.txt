@@ -1,7 +1,7 @@
 #ifndef ABC
 #define ABC
 
-#define windows 1
+#define /*vfdsjkgesdffkl;sddzx*/windows 1
 
 /**a+= ~b**/
 #def(+=~)(char& a;char& b)
@@ -19,12 +19,12 @@ a+=C;
 
 char C;
 
-#ifdef windows
+#ifdef windows //fdsjkxlcgb,svedfjkxla
 char b;
 b+=7;
 #endif
 
-#ifndef windows
+#ifndef /* ccccccccc*/windows//gefiodsgjhweasld;gfjsdlk;ser
 char x;
 x+=8;
 #endif

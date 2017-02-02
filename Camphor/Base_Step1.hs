@@ -39,38 +39,38 @@ parser1 = many line
 line :: Stream s m Char => ParsecT s u m Set
 line = ifdef <|> ifndef <|> endif <|> define <|> undef <|> include {-<|> line_dir-} <|> other
  where
-  ifdef    = (do{ try(do{nbsps;char '#';nbsps;string "ifdef" ;nbsp});nbsps;x<-identifier;nbsps;newline;return(IFDEF ,x,"") })
-  ifndef   = (do{ try(do{nbsps;char '#';nbsps;string "ifndef";nbsp});nbsps;x<-identifier;nbsps;newline;return(IFNDEF,x,"") })
-  undef    = (do{ try(do{nbsps;char '#';nbsps;string "undef" ;nbsp});nbsps;x<-identifier;nbsps;newline;return(UNDEF ,x,"") })
-  endif    = (do{ try(do{nbsps;char '#';nbsps;string "endif" });nbsps;newline;return(ENDIF,"","") })
-  other    = (do{ xs<-many(noneOf "\n");newline;return(OTHER,"",xs) })
-  {-line_dir = (do{ try(do{nbsps;char '#';nbsps;string "line"  ;nbsp});nbsps;n<-uint;  
-   file' <- option "" (do{nbsp; nbsps; char '"'; file <- many(noneOf "\""); char '"'; return file});
+  ifdef    = (do{ try(do{nbnls;char '#';nbnls;string "ifdef" ;nbsp});nbnls;x<-identifier;nbnls;newline';return(IFDEF ,x,"") })
+  ifndef   = (do{ try(do{nbnls;char '#';nbnls;string "ifndef";nbsp});nbnls;x<-identifier;nbnls;newline';return(IFNDEF,x,"") })
+  undef    = (do{ try(do{nbnls;char '#';nbnls;string "undef" ;nbsp});nbnls;x<-identifier;nbnls;newline';return(UNDEF ,x,"") })
+  endif    = (do{ try(do{nbnls;char '#';nbnls;string "endif" });nbnls;newline';return(ENDIF,"","") })
+  other    = (do{ xs<-many(noneOf "\n");newline';return(OTHER,"",xs) })
+  {-line_dir = (do{ try(do{nbnls;char '#';nbnls;string "line"  ;nbsp});nbnls;n<-uint;  
+   file' <- option "" (do{nbsp; nbnls; char '"'; file <- many(noneOf "\""); char '"'; return file});
    return(LINE,n,file')})-}
   
   
 {-functional not yet-}
 define :: Stream s m Char => ParsecT s u m Set
 define = do
-  try(do{nbsps;char '#';nbsps;string "define";nbsp})
-  nbsps
+  try(do{nbnls;char '#';nbnls;string "define";nbsp})
+  nbnls
   xs <- identifier'
-  ys <- do{newline;return $ Right ""} <|> do{nbsp;nbsps;m<-many(noneOf "\n");newline;return $ Right m} <|> do{ks<-many(noneOf "\n");newline;return $ Left ks}
+  ys <- do{newline';return $ Right ""} <|> do{nbsp;nbnls;m<-many(noneOf "\n");newline';return $ Right m} <|> do{ks<-many(noneOf "\n");newline';return $ Left ks}
   case ys of
    Right ys' -> return (DEFINE,xs,ys')
    Left  ys' -> return (OTHER ,"","#define "++xs++ys')
 
 include :: Stream s m Char => ParsecT s u m Set
 include  = do
- try(do{nbsps;char '#';nbsps;string "include"})
- nbsps
+ try(do{nbnls;char '#';nbnls;string "include"})
+ nbnls
  char '<'
- nbsps
+ nbnls
  fi <- many (noneOf "\\/:*?\"<>|")
- nbsps
+ nbnls
  char '>'
- nbsps
- newline
+ nbnls
+ newline'
  return(INCLU,"",fi) 
   
   

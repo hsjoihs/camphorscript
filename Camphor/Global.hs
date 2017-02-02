@@ -5,6 +5,8 @@ module Camphor.Global
 ,identifier'
 ,nbsp
 ,nbsps
+,nbnls
+,newline'
 ,(<++>)
 ,(<:>)
 ,strP
@@ -40,16 +42,23 @@ isJust (Just _) = True
 isJust Nothing = False
 
 identifier :: Stream s m Char => ParsecT s u m Ident
-identifier=try((letter<|>char '_') <:> many(alphaNum<|>char '_') )<?>"identifier"
+identifier=try((letter <|> char '_') <:> many(alphaNum <|> char '_') )<?>"identifier"
 
 identifier' :: Stream s m Char => ParsecT s u m Ident
-identifier'=((letter<|>char '_') <:> many(alphaNum<|>char '_') )<?>"identifier"
+identifier' = ((letter <|> char '_') <:> many(alphaNum <|> char '_') )<?>"identifier"
  
 nbsp :: Stream s m Char => ParsecT s u m Char
-nbsp =satisfy (\x->isSpace x && x/='\n')<?>"non-breaking space"
+nbsp = satisfy (\x->isSpace x && x/='\n')<?>"non-breaking space"
 
 nbsps :: Stream s m Char => ParsecT s u m ()
-nbsps=skipMany nbsp
+nbsps = skipMany nbsp
+
+-- non-breaking space or comment
+nbnls :: Stream s m Char => ParsecT s u m ()
+nbnls=skipMany nbnl
+ where 
+  nbnl = nbsp <|> try(do{string "/*"; manyTill anyChar(try(string "*/"));return ' ';}) <?> "non-breaking space or block comment"
+
 
 strP :: Stream s m Char => ParsecT s u m Char -> ParsecT s u m String
 strP = fmap (\x -> [x])
@@ -66,5 +75,8 @@ byte = many1 digit <|>
   return . show . ord $ y
   })
 
+newline' :: Stream s m Char => ParsecT s u m ()
+newline' = do{newline;return()} <|> do{string "//";many(noneOf "\n");newline;return()} <?> "new line or line comment"
+  
 type Ident=String
 type Txt=String

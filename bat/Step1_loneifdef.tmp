@@ -1,3 +1,0 @@
-parse error at "examples\error\Step1_loneifdef.txt--step1" (line 1, column 9):
-unexpected "\n"
-expecting non-breaking space or identifier
