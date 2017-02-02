@@ -50,48 +50,47 @@ lookup' i (t:ts) = case M.lookup i t of
   Just _  -> True
   Nothing -> lookup' i ts
 
-convert4' :: Maybe MemSize -> FilePath -> (CurrState,[Set4]) -> Either ParseError (Table4,String) -- variables left undeleted 
+convert4' :: Maybe MemSize -> FilePath -> (CurrState,[Set4]) -> Either ParseError (Table4,Txt) -- variables left undeleted 
 
 
-convert4' _ _((_ ,s:|_  ),[]           ) = Right (s,"")
+convert4' _ _((_ ,s:|_  ),[]           ) = Right (s,pack "")
 
 
 convert4' m f((n ,s:|st ),DEF ide   :xs) 
- | M.member ide s                           = makeErr(msgIde ide "is already defined")(f++"--step4'") 0 0
- | otherwise                                        = do
-  (("char "++unId ide++"; ")++)<$$> convert4' m f((n, M.insert ide () s :| st),xs)
+ | M.member ide s = makeErr(msgIde ide "is already defined")(f++"--step4'") 0 0
+ | otherwise      = ("char "++unId ide++"; ")<+++$$> convert4' m f((n, M.insert ide () s :| st),xs)
 
 
-convert4' m f((n ,s:|st ),DEL ide   :xs) = case M.member ide s of
- True  -> ("delete "++unId ide++"; ") <++$$> convert4' m f((n, M.delete ide s :| st),xs)
- False -> makeErr(msgIde ide "is not defined or is already deleted in this scope")(f++"--step4'") 0 0
+convert4' m f((n ,s:|st ),DEL ide   :xs)
+ | M.member ide s = ("delete "++unId ide++"; ") <+++$$> convert4' m f((n, M.delete ide s :| st),xs)
+ | otherwise      = makeErr(msgIde ide "is not defined or is already deleted in this scope")(f++"--step4'") 0 0
    
 convert4' m f((n ,st    ),AS0 ide   :xs) = case lookup' ide (toList st) of
- True  -> ("assert_zero "++unId ide++"; ") <++$$> convert4' m f((n, st),xs)
+ True  -> ("assert_zero "++unId ide++"; ") <+++$$> convert4' m f((n, st),xs)
  False -> makeErr(msgIde ide "is not defined or is already deleted")(f++"--step4'") 0 0
 
-convert4' m f(state      ,NUL sp    :xs) = (sp++) <$$> convert4' m f(state,xs) 
+convert4' m f(state      ,NUL sp    :xs) = sp <+++$$> convert4' m f(state,xs) 
 
 
 convert4' m f((n ,st    ),ADD ide nm:xs) = case lookup' ide (toList st) of
  True  
-  | nm > 0    -> (unId ide++"+="++showNum   nm ++";") <++$$> convert4' m  f((n,st),xs) 
-  | nm < 0    -> (unId ide++"-="++showNum (-nm)++";") <++$$> convert4' m  f((n,st),xs) 
+  | nm > 0    -> (unId ide++"+="++showNum   nm ++";") <+++$$> convert4' m  f((n,st),xs) 
+  | nm < 0    -> (unId ide++"-="++showNum (-nm)++";") <+++$$> convert4' m  f((n,st),xs) 
   | otherwise ->                                             convert4' m  f((n,st),xs) 
  False -> makeErr(msgIde ide "is not defined")(f++"--step4'") 0 0
    
 
 
 convert4' m f((n ,st    ),REA ide   :xs) = case lookup' ide (toList st) of
- True  -> ("read( "++unId ide++");") <++$$> convert4'  m f((n,st),xs)
+ True  -> ("read( "++unId ide++");") <+++$$> convert4'  m f((n,st),xs)
  False -> makeErr(msgIde ide "is not defined")(f++"--step4'") 0 0
 
 convert4' m f((n ,st    ),WRI ide   :xs) = case lookup' ide (toList st) of
- True  -> ("write("++unId ide++");") <++$$> convert4' m f((n,st),xs)
+ True  -> ("write("++unId ide++");") <+++$$> convert4' m f((n,st),xs)
  False -> makeErr(msgIde ide "is not defined")(f++"--step4'") 0 0
 
-convert4' m f(state      ,Null      :xs) = " " <++$$> convert4' m f(state,xs)
-convert4' m f(state      ,COM cm    :xs) = cm  <++$$> convert4' m f(state,xs)
+convert4' m f(state      ,Null      :xs) = " " <+++$$> convert4' m f(state,xs)
+convert4' m f(state      ,COM cm    :xs) = cm  <+++$$> convert4' m f(state,xs)
 
 convert4' m f((n ,st    ),WHI ide(Ns v):xs) = case lookup' ide (toList st) of
  True  -> do
@@ -101,7 +100,7 @@ convert4' m f((n ,st    ),WHI ide(Ns v):xs) = case lookup' ide (toList st) of
    makeErr(Message$identMsg leftList)(f ++ "--step4'") 0 0 
    else do
   (table2,res2) <- convert4'  m f((n  ,st               ),xs) -- left
-  return (table2,"while(" ++ unId  ide ++ "){ " ++ res1 ++ "} " ++ res2)
+  return (table2,"while(" <+> unId  ide <+> "){ " <+> res1 <+> "} " <+> res2)
  False -> makeErr(msgIde ide "is not defined")(f ++ "--step4'") 0 0
    
 convert4' m f((n ,st    ),BLO (Ns v):xs) =  do
@@ -111,7 +110,7 @@ convert4' m f((n ,st    ),BLO (Ns v):xs) =  do
   makeErr(Message$identMsg leftList)(f++"--step4'") 0 0
   else do
  (table2,res2) <- convert4'  m f((n  ,st               ),xs) -- left
- return (table2,"{"++res1++"}" ++ res2)
+ return (table2, "{" <+> res1 <+> "}" <+> res2)
 
 identMsg :: [Ident2] -> String
 identMsg qs = case map unId qs of 

@@ -98,7 +98,7 @@ byte = many1 digit <|> (showNum <$> _uint2)
   
 _uint2 :: Stream s m Char => ParsecT s u m Integer
 _uint2 = try(do{char '\'';
-   y <- noneOf "\\\n" <|> parseEsc;
+   y <- noneOf "'\\\n" <|> parseEsc;
    char '\'';
    return . fromIntegral . ord $ y
    } <?> "character literal")

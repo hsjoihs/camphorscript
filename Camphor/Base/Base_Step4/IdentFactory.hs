@@ -16,5 +16,5 @@ newtype Ident2 = Ident2{unId :: String} deriving(Show,Ord,Eq)
 
 parseId :: Stream s m Char =>  ParsecT s u m Ident2
 parseId = do
- x <- identifier -- fixme: doesn't check reversed
+ x <- identifier -- fixme: doesn't check reserved
  return(Ident2 x)

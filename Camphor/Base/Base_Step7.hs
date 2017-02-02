@@ -16,14 +16,14 @@ import Camphor.Transformer
 step7 :: Stream s Identity Char => FilePath -> s -> Either ParseError Txt
 step7 file str = convert7 <$> parse parserND' (file ++ "--step7") str
 
-convert7 :: [Chunk] -> String
+convert7 :: [Chunk] -> Txt
 convert7 x = convert7' x 0
 
-convert7' :: [Chunk] -> Integer -> String
-convert7' = map2 c7
+convert7' :: [Chunk] -> Integer -> Txt
+convert7' c i = map2 (fmap pack . c7) c i
 
-map2 :: (a -> StateT n Identity [b]) -> [a] -> n -> [b]
-map2 f xs = evalState $ concat <$> mapM f xs
+map2 :: (Monoid b) => (a -> StateT n Identity b) -> [a] -> n -> b
+map2 f xs = evalState $ mconcat <$> mapM f xs
 
 c7 :: Chunk -> StateT Integer Identity String
 c7 (A(INC ,num)) = return $ genericTake num(repeat '+')

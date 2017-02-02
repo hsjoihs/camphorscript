@@ -14,7 +14,7 @@ parser2' :: Stream s m Char => ParsecT s u m [(SourcePos,Tok)]
 parser2' = concat <$> many tok <* eof
 
 tok :: Stream s m Char => ParsecT s u m [(SourcePos,Tok)]
-tok = _char <|> _delete  <|> _num <|> _scolon <|> _syntax <|> _BLOCK <|>
+tok = _char <|> _delete  <|> _numB <|> _scolon <|> _syntax <|> _BLOCK <|>
  _paren <|> _nerap <|> _brace <|> _ecarb <|>
  _pragma <|> _comm <|> _op <|> -- _pragma -> _comm -> _op (IMPORTANT)
  _infixl <|> _infixr <|>
@@ -78,8 +78,8 @@ _BLOCK :: Stream s m Char => ParsecT s u m [(SourcePos,Tok)]
 _BLOCK   = do{p <- getPosition; try(do{string "block"    ; notFollowedBy alphaNumBar}); return [(p,BLOCK)]} 
 
 
-_num :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
-_num     = do{p <- getPosition; x <- uint';     return[(p,NUM x)]}
+_numB :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
+_numB     = do{p <- getPosition; x <- try uint'; return[(p,NUM x)]}
 
 _comm :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
 _comm    = do{p <- getPosition; x <- blockComm;return[(p,COMM x)]}
@@ -91,7 +91,17 @@ _sp :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
 _sp      = do{p <- getPosition; x <- many1 space;return[(p,SP x)]}
 
 _op :: Stream s m Char =>  ParsecT s u m [(SourcePos,Tok)]
-_op      = do{p <- getPosition; x <- operator;return[(p,OP x)]}
+_op      = do{p <- getPosition; x <- operator2 <|> operator;return[(p,OP x)]}
+
+operator2 :: Stream s m Char => ParsecT s u m Oper
+operator2 = try $ do
+ char '<';        spaces;
+ char '{';        spaces;
+ i <- identifier; spaces;
+ char '}';        spaces;
+ char '>';        spaces;
+ return $ wrap $ "<{"++i++"}>" -- fixme
+ 
 
 
 showTok :: Tok -> String

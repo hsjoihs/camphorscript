@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
-module Test.TestSingle
+module CamphorTest.TestSingle
 (testSingle,info,testSingle',getJudgeFunc,Info(..) 
 )where
 import Camphor.SafePrelude

@@ -28,7 +28,7 @@ import qualified Data.Map as M
 {- C macro -}
 step1 :: Includers -> FilePath -> Txt -> WriterT Warnings (Either ParseError) Txt
 step1 includers file str = do
- res <- lift $ parse parser1' (file ++ "--step1") (str ++ "\n") 
+ res <- lift $ parse parser1' (file ++ "--step1") (str <+> "\n") 
  convert1 file includers res
 
 -- PARSING
@@ -119,8 +119,8 @@ initial t f = CS{defMacro = t, ifDepth = 0,lineNum = 1,ok = True, skipDepth = -1
 makeErr' :: Message -> String -> Int -> Int -> WriterT Warnings (Either ParseError) a
 makeErr' a b c d = lift(makeErr a b c d)
 
-convert1 :: FilePath -> Includers -> [Pre7] -> WriterT Warnings (Either ParseError) String
-convert1 file includers@(_,_,t) xs = snd <$> conv1 includers (initial t file)xs
+convert1 :: FilePath -> Includers -> [Pre7] -> WriterT Warnings (Either ParseError) Txt
+convert1 file includers@(_,_,t) xs = pack <$> snd <$> conv1 includers (initial t file)xs -- fixme: txt
 
 
 map2 :: (Monad m,Functor m) => (s -> s) -> (s -> m s2) -> (r -> a -> StateT s m [b]) -> r -> s -> [a] -> m(s2,[b]) 
@@ -272,7 +272,7 @@ inclus2 fil j (CS{defMacro = table, ifDepth = depth,lineNum = n,path = f},i) = c
  Nothing  -> lift $ makeErr'(Message$"library "++show fil++" is not found")(f++"step1'") n 1 
  Just (dirf,txt) -> do
   let inclfile = dirf
-  sets   <- lift $ lift $ parse parser1 (inclfile ++ "--step1") (txt ++ "\n")
+  sets   <- lift $ lift $ parse parser1 (inclfile ++ "--step1") (txt <+> "\n")
   (newtable,text)      <- lift $ conv1 i (initial table inclfile)sets
   put (CS{defMacro = newtable,ifDepth = depth  ,lineNum = n+1,ok = True ,skipDepth = (-1),path = f})
   return("/*# LINE start "++show inclfile++" #*/\n\n"++text++"\n\n/*# LINE end   "++show inclfile++" #*/\n")  

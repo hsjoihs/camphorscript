@@ -1,0 +1,9 @@
+
+
+
+
+char q;q+=42; char r;r+=43;
+{
+	write(q);
+	write(r);
+}

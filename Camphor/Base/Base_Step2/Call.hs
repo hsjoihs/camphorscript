@@ -27,18 +27,18 @@ type Cnv2 = UserState -> Sents -> Either ParseError Txt
 type Cnv23 = Sents -> StateT UserState (Either ParseError) Txt
 
 --- syntax call 1
-callSC1 :: SourcePos -> Ident2 -> ValueList -> (SourcePos,Sents) -> Cnv23 -> ReaderT (UserState,Cnv2) (Either ParseError) String
+callSC1 :: SourcePos -> Ident2 -> ValueList -> (SourcePos,Sents) -> Cnv23 -> ReaderT (UserState,Cnv2) (Either ParseError) Txt
 callSC1 _   name (SepList (Var i) _) (pos2,block) cnv23
  | unId name == "while" = do
   res <- newStat3getter pos2 block cnv23
-  return $ "while(" ++ unId i ++ ")" ++ res
+  return $ "while(" <+> unId i <+> ")" <+> res
 callSC1 pos name vl (pos2,block) _ = callSC pos name (West vl) (pos2,block) 
   
 --- syntax call 2  
-callSC2 :: SourcePos -> Ident2 -> TailValueList -> (SourcePos,Sents) -> ReaderT (UserState,Cnv2) (Either ParseError) String
+callSC2 :: SourcePos -> Ident2 -> TailValueList -> (SourcePos,Sents) -> ReaderT (UserState,Cnv2) (Either ParseError) Txt
 callSC2 pos name tvl (pos2,block) = callSC pos name (East tvl) (pos2,block) 
 
-callSC :: SourcePos -> Ident2 -> Between TailValueList ValueList -> (SourcePos,Sents) -> ReaderT (UserState,Cnv2) (Either ParseError) String
+callSC :: SourcePos -> Ident2 -> Between TailValueList ValueList -> (SourcePos,Sents) -> ReaderT (UserState,Cnv2) (Either ParseError) Txt
 callSC pos name vl_tvl (pos2,block)  
  | vlic vl_tvl = err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Argoverlap <!> Synt name 
  | otherwise = do
@@ -63,7 +63,7 @@ newStat3getter p ys cnv23 = fromState $ do
   [] -> return ()
   (x:xs)  -> err$toPE pos$ Step2 <!> Finish <!> NotDel <!> Idns (x:|xs)
  putFst origStat 
- return $ "{" ++ res ++ "}"
+ return $ "{" <+> res <+> "}"
 
 -- Function call
 callK1 :: SourcePos -> Ident2 -> ValueList -> ReaderT (UserState,Cnv2) (Either ParseError) Txt
@@ -107,12 +107,12 @@ callK4 pos (x:xs) valuelist2 = do
 
 --- no-parenthesized operator call  
 callK5 :: SourcePos -> ValueList -> ReaderT (UserState,Cnv2) (Either ParseError) Txt
-callK5 _   (SepList(Constant _)[]) = return "" -- 123; is a nullary sentence
+callK5 _   (SepList(Constant _)[]) = return (pack "") -- 123; is a nullary sentence
 callK5 pos (SepList(Var ident )[]) = do
  stat <- askFst
  case getVFContents stat ident of
   Nothing           -> err$toPE pos$ Step2 <!> Access <!> WrongRef <!> Notdefined_3 <!> Idn ident
-  Just Variable     -> return ""
+  Just Variable     -> return (pack "")
   Just (FunSyn _ _) -> err$toPE pos$ Step2 <!> Access <!> WrongRef <!> Definedasfunsyn <!> Idn ident
 
 callK5 pos (SepList x(ov:ovs)) = do
@@ -121,7 +121,7 @@ callK5 pos (SepList x(ov:ovs)) = do
  callK2 pos oper vlist1 vlist2 
 
 
-syntaxer :: Ident2 -> SyntaxInstance -> ReplTable -> (SourcePos,Sents) -> ReaderT (UserState,Cnv2) (Either ParseError) String
+syntaxer :: Ident2 -> SyntaxInstance -> ReplTable -> (SourcePos,Sents) -> ReaderT (UserState,Cnv2) (Either ParseError) Txt
 syntaxer name instnce@(_, block1) table (_,block2) = do
  let mname = Syn name instnce
  result <- simplyReplace mname (toSent2 block1) table

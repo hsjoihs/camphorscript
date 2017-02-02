@@ -1,13 +1,13 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
 
-module Test.Random
+module CamphorTest.Random
 (makeRand
 )where
 import Camphor.SafePrelude
 import System.Random 
 import Data.Word (Word8)
-import Test.TestSingle
+import CamphorTest.TestSingle
 import Camphor.Global.Synonyms
 import Camphor.Show
 

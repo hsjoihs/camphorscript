@@ -3,8 +3,8 @@
 
 import Camphor.SafePrelude
 import Camphor.IO
-import Test.Random
-import Test.TestSingle
+import CamphorTest.Random
+import CamphorTest.TestSingle
 import qualified Data.Map as M 
 
 type TestId = String

@@ -22,4 +22,4 @@ sentence :: Stream s m Char => ParsecT s u m Chunk
 sentence = (:[]) <$> anyChar
 
 convert6 :: [Chunk] -> Txt
-convert6 = concat
+convert6 = pack . concat

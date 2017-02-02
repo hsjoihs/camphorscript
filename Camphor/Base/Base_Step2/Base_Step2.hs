@@ -41,24 +41,24 @@ convert2_3 sents = do
  convert2_2 sents
 
 infixl 4 <++?>
-(<++?>) :: (Monad m,Monoid a) => a -> StateT s m a -> StateT s m a
+(<++?>) :: (Monad m, AddTxt a b) => a -> m b -> m Txt
 a <++?> f = do
  b <- f 
- return(a `mappend` b)
-
-define :: (Monoid a,Monad m) => StateT s m a -> StateT s m () -> a -> StateT s m a
+ return(a <+> b)
+ 
+define :: Monad m => StateT s m Txt -> StateT s m a -> String -> StateT s m Txt
 define g f result = f >> result <++?> g
  
-call :: (Monoid a,Monad m) => StateT s m a -> ReaderT (s,Cnv2) m a -> StateT s m a
+call :: Monad m => StateT t m Txt -> ReaderT (t,Cnv2) m Txt -> StateT t m Txt
 call g f = changeState fst (\x -> (x,convert2)) (toState f) >>= (<++?> g)
 
 
 {------------------------------------------------------------------------------------- 
- -                              * definition of convert2_2 *                           -
+ -                              * definition of convert2_2 *                         -
  -------------------------------------------------------------------------------------}
 
 convert2_2 :: Sents -> StateT UserState (Either ParseError) Txt
-convert2_2 []                                    = return "" 
+convert2_2 []                                    = return (pack "")
 convert2_2 (Single _    (Comm comm):xs)          = ("/*" ++ comm ++ "*/")                         <++?> convert2_3 xs 
 convert2_2 (Single _     SynBlock  :xs)          = "/*block*/"                                    <++?> convert2_3 xs 
 convert2_2 (Single _    (Sp   sp  ):xs)          = sp                                             <++?> convert2_2 xs  -- convert2_2 INTENTIONAL
