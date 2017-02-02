@@ -27,9 +27,9 @@ step7 file str=convert7 <$> (parse parser7 (file++"--step7") str)
 data Com7 = INC | DEC | MOV | LOOP | POOL | IN | OUT | NUL deriving(Show)
 
 parser7 :: Stream s m Char => ParsecT s u m [(Com7,String)]
-parser7 = many sentences
+parser7 = do{sents<-many sentences;eof;return sents}
  where
-  sentences = inc<|>dec<|>loop<|>pool<|>mov<|>output<|>input<|>nul<|>comm
+  sentences = inc <|> dec <|> loop <|> pool <|> mov <|> output <|> input <|> nul <|> comm
   inc    = do{string "inc";spaces;num<-option "1" uint;spaces;char ';'; return (INC,num)}
   dec    = do{string "dec";spaces;num<-option "1" uint;spaces;char ';'; return (DEC,num)}
   mov    = do{string "mov";spaces;num<-uint;spaces;char ';'; return (MOV,num)}

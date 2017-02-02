@@ -43,6 +43,9 @@ type Set4 = Node Com4_bot Ident (Com4_top,String) (Com4_mid,[Char],[Char])
 parser4 :: Stream s m Char => ParsecT s u m [Set4]
 parser4 = many sentences_
 
+parser4TillLast :: Stream s m Char => ParsecT s u m [Set4]
+parser4TillLast = do{sents <- parser4; eof; return sents}
+
 
 sentences_:: Stream s m Char => ParsecT s u m Set4
 
@@ -66,7 +69,7 @@ type CurrState = (Int,NonEmpty Table4,[VarNum]) -- block num, defined variables(
 {- Table4 must not be empty -}
 
 step4 :: FilePath -> Txt -> Either ParseError Txt
-step4 file str = do{sets<-parse parser4 (file++"--step4") str;convert4 file sets}
+step4 file str = do{sets<-parse parser4TillLast (file++"--step4") str;convert4 file sets}
 
 convert4 :: FilePath -> [Set4] -> Either ParseError Txt
 convert4 file xs = convert4' file ((1,M.empty :| [],[]),xs)
