@@ -8,7 +8,7 @@ module Camphor.Base_Step3_II
 
 ) where
 
-
+import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,(!!))
 import Camphor.Global
 import Text.Parsec hiding(token)
 import Control.Applicative hiding ((<|>),many)
@@ -75,8 +75,12 @@ type CurrState = (Int,NonEmpty Table3,[VarNum]) -- block num, defined variables(
 convert3 :: FilePath -> [Set3] -> Either ParseError Txt
 convert3 file xs = snd <$> convert3' file ((1,M.empty :| [],[]),xs)
 
-minUnused :: [VarNum] -> VarNum
-minUnused xs = head$filter(`notElem` xs) [0..]
+minUnused :: [VarNum] -> FilePath -> Either ParseError VarNum
+minUnused xs f= let filtered = filter(`notElem` xs) [0..] in
+ case filtered of 
+  [] -> Left$newErrorMessage (Message$ "memory ran out" )(newPos (f++"--step3_II'") 0 0)
+  x:_ -> Right x
+
 
 remove :: VarNum->[VarNum]->[VarNum]
 remove x xs = filter (/=x) xs
@@ -93,8 +97,10 @@ convert3' _((_ ,s:|_  ,_ ),[]                    ) = Right (s,"")
 
 convert3' f((n ,s:|st ,ls),(Top(DEF,ide     ):xs)) 
  | isJust(M.lookup ide s)                        = Left $newErrorMessage (Message$"identifier "++show ide++"is already defined")(newPos (f++"--step3_II'") 0 0)
- | otherwise                                     = convert3' f((n, M.insert ide new s :| st,new:ls),xs)
-  where new　=　minUnused ls
+ | otherwise                                     = do
+  new <- minUnused ls f
+  convert3' f((n, M.insert ide new s :| st,new:ls),xs)
+
 
 convert3' f((n ,s:|st ,ls),(Top(DEL,ide     ):xs)) = case (M.lookup ide s) of
    Just  k                                      -> convert3' f((n, M.delete ide s :| st,remove k ls),xs)

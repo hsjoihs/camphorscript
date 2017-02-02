@@ -8,6 +8,7 @@ module Camphor.IO
 ,getDirectoryContents
 ,getArgs
 )where
+import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,(!!))
 import Camphor.Global
 import Text.Parsec
 import System.IO
