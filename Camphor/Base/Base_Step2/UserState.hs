@@ -2,7 +2,8 @@
 {-# OPTIONS -Wall #-}
 module Camphor.Base.Base_Step2.UserState
 (OpInfo,MacroId(..),VFInstance,OpInstance
-,emptyState,UserState()
+,emptyState,UserState(),TmpStat
+,getTmp,setTmp,clearTmp
 ,containsIdent,addIdent,removeIdent,getVFContents,addOpContents,containsAnyIdent
 ,addOpFixity,getOpName,containsOp,getOpContents,matches,getFixValue
 ,isInfixL,isInfixR
@@ -27,7 +28,7 @@ data MacroId = Func Ident VFInstance | Operator Oper OpInstance deriving(Show,Eq
 -- private
 type VFList = NonEmpty(M.Map Ident VFInfo)
 type OpList = M.Map Oper OpInfo
-data UserState = UserState VFList OpList deriving(Show)
+data UserState = UserState VFList OpList (Maybe TmpStat) deriving(Show)
 type VFInfo = Between () [VFInstance]
 
 getName :: MacroId -> String
@@ -92,7 +93,7 @@ getOpName :: Fixity -> Oper
 getOpName (InfixL _ op) = op
 getOpName (InfixR _ op) = op
 emptyState :: UserState
-emptyState = UserState deffun defop
+emptyState = UserState deffun defop Nothing
  where
   deffun :: VFList
   deffun = nE(M.fromList[
@@ -108,47 +109,56 @@ emptyState = UserState deffun defop
 
 -- checks if the current scope has already defined the variable; thus it does not search deeply  
 containsIdent :: UserState -> Ident -> Bool
-containsIdent (UserState (vf:|_) _) ident = ident `M.member` vf 
+containsIdent (UserState (vf:|_) _ _) ident = ident `M.member` vf 
 
 -- checks if any scope has already defined the variable; thus it DOES search deeply
 containsAnyIdent :: UserState -> Ident -> Bool
-containsAnyIdent (UserState vfs _) ident = any (ident `M.member`) (toList' vfs)
+containsAnyIdent (UserState vfs _ _) ident = any (ident `M.member`) (toList' vfs)
 
 addVFBlock :: UserState -> UserState
-addVFBlock (UserState vflist oplist) = UserState (M.empty `cons` vflist) oplist
+addVFBlock (UserState vflist oplist tmp) = UserState (M.empty `cons` vflist) oplist tmp
 
 getTopVFBlock :: UserState -> M.Map Ident VFInfo
-getTopVFBlock (UserState (vf:|_) _) = vf
+getTopVFBlock (UserState (vf:|_) _ _) = vf
+
+getTmp :: UserState -> Maybe TmpStat
+getTmp (UserState _ _ tmp) = tmp
+
+setTmp :: TmpStat -> UserState -> UserState
+setTmp tmp (UserState a b _) = UserState a b (Just tmp)
+
+clearTmp :: UserState -> UserState
+clearTmp (UserState a b _) = UserState a b Nothing
 
 deleteTopVFBlock :: UserState -> e -> Either e UserState
-deleteTopVFBlock (UserState (_:|[]) _) e = Left e
-deleteTopVFBlock (UserState (_:|(vf2:vfs)) oplist) _ = Right$(UserState (vf2:|vfs) oplist)
+deleteTopVFBlock (UserState (_:|[]) _ _) e = Left e
+deleteTopVFBlock (UserState (_:|(vf2:vfs)) oplist tmp) _ = Right$(UserState (vf2:|vfs) oplist tmp)
 
 addIdent :: UserState -> Ident -> VFInfo -> UserState
-addIdent      (UserState (vf:|vfs) oplist) ident dat = UserState ((M.insert ident dat vf):|vfs) oplist 
+addIdent      (UserState (vf:|vfs) oplist tmp) ident dat = UserState ((M.insert ident dat vf):|vfs) oplist tmp
 
 getVFContents :: UserState -> Ident -> Maybe VFInfo
-getVFContents (UserState vflist _) ident = searchBy (M.lookup ident) vflist
+getVFContents (UserState vflist _ _) ident = searchBy (M.lookup ident) vflist
 
 removeIdent :: UserState -> Ident -> UserState
-removeIdent (UserState vflist oplist) ident = case vflist of 
- vf:|[]        -> UserState (nE $ M.delete ident vf) oplist
+removeIdent (UserState vflist oplist tmp) ident = case vflist of 
+ vf:|[]        -> UserState (nE $ M.delete ident vf) oplist tmp
  vf:|(vf2:vfs) -> case M.lookup ident vf of
-  Nothing -> removeIdent (UserState (vf2:|vfs) oplist) ident
-  _       -> UserState (M.delete ident vf :| (vf2:vfs)) oplist
+  Nothing -> removeIdent (UserState (vf2:|vfs) oplist tmp) ident
+  _       -> UserState (M.delete ident vf :| (vf2:vfs)) oplist tmp
 
 addOpFixity :: UserState -> Fixity -> UserState
-addOpFixity (UserState vflist oplist) fixity = 
- UserState vflist (M.insert (getOpName fixity) (fixity,[]) oplist)
+addOpFixity (UserState vflist oplist tmp) fixity = 
+ UserState vflist (M.insert (getOpName fixity) (fixity,[]) oplist) tmp
  
 addOpContents :: UserState -> Oper -> OpInstance -> (e,e,e) -> Either e UserState
-addOpContents stat@(UserState vflist oplist) op (typelist1,typelist2,sent) (notfound,doubledefine,doubleparam) = case getOpContents stat op of
+addOpContents stat@(UserState vflist oplist tmp) op (typelist1,typelist2,sent) (notfound,doubledefine,doubleparam) = case getOpContents stat op of
  Nothing -> Left notfound
  Just(fix,list)
   | conflict $ map snd $ toList' typelist1 ++ toList' typelist2 -> Left doubleparam
   | otherwise -> do
    newlist <- newlist' doubledefine
-   return $ UserState vflist (M.insert op (fix,newlist) oplist)
+   return $ UserState vflist (M.insert op (fix,newlist) oplist) tmp
    where 
     newlist' :: e -> Either e [OpInstance]
     newlist' e  
@@ -157,10 +167,10 @@ addOpContents stat@(UserState vflist oplist) op (typelist1,typelist2,sent) (notf
 
  
 containsOp :: UserState -> Oper -> Bool
-containsOp (UserState _ oplist) oper = oper `M.member` oplist
+containsOp (UserState _ oplist _) oper = oper `M.member` oplist
 
 getOpContents :: UserState -> Oper -> Maybe OpInfo
-getOpContents (UserState _ oplist) oper = M.lookup oper oplist
+getOpContents (UserState _ oplist _) oper = M.lookup oper oplist
 
 
 matches :: ValueList -> TypeList -> Bool

@@ -28,7 +28,11 @@ outputParsed _    (Left  e)  = hPutStrLn stderr $ "parse error at " ++ show e
 getContentsFrom :: FilePath -> IO Txt
 getContentsFrom file 
  | map toLower file == "con" = getContents
- | otherwise                 = readFile file  
+ | otherwise                 = do
+  b <- doesFileExist file
+  if b 
+   then readFile file 
+   else abort(file++": No such file")
  
 abort :: String -> a
 abort = error

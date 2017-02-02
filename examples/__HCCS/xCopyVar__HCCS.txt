@@ -8,8 +8,8 @@
 
 char a;char b;char C;
 {
-	char c;
-	 while(b){a+=1;c+=1;b-=1;} 
-	 while(c){b+=1;c-=1;} 
-	delete c;
+	char c__TMP_1;
+	 while(b){a+=1;c__TMP_1+=1;b-=1;} 
+	 while(c__TMP_1){b+=1;c__TMP_1-=1;} 
+	delete c__TMP_1;
 }

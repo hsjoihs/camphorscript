@@ -21,9 +21,6 @@ import qualified Data.Map as M
 import Data.Maybe
 import Control.Monad
 
--- getLibs2 :: [FilePath] -> IO FileToTxt
--- getLibs2 dirs = 
-
 getLibs :: FilePath -> IO FileToTxt 
 getLibs dir = do
  conts'    <- getDirectoryContents dir
@@ -35,6 +32,11 @@ getLibs dir = do
  texts <- mapM getContentsFrom libs2
  return (M.fromList $ zip libs1 (zip libs2 texts))
 
+getManyLibs :: [FilePath] -> IO FileToTxt
+getManyLibs dirs = do
+ libs's <- mapM getLibs dirs 
+ return(M.unions libs's)
+ 
 main :: IO()
 main = do
  args <- getArgs
@@ -42,13 +44,13 @@ main = do
  
 dispatch4 :: Options -> IO ()
 dispatch4 [] = mapM_ putStrLn info
-dispatch4 xs = case optionParse xs (Nothing,Nothing,(4,8),Nothing) of
+dispatch4 xs = case optionParse xs (Nothing,Nothing,(4,8),Nothing,[],[]) of
  Left e -> abort e
- Right (infile,outf,a,b,mem) -> do
+ Right (infile,outf,(a,b),mem,fds,lds) -> do
   let file_dir = fst $ splitFileName infile
-  contents <- getContentsFrom infile
-  includer <- getLibs lib_dir
-  includer2 <- getLibs file_dir
+  contents  <- getContentsFrom infile
+  includer  <- getManyLibs (lib_dir:lds)
+  includer2 <- getManyLibs (file_dir:fds)
   outputParsed outf (fromTo' a b (step infile (includer,includer2) mem) contents) 
 
 step :: FilePath -> Includers -> Maybe MemSize -> [Txt -> Either ParseError Txt]   

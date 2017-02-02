@@ -11,5 +11,6 @@ void (+=)(char&a;char&b){
 	delete c;
 }
 
-char a;char b;char c;
+char a; char b; char c;
 a += b ;
+b += c ;

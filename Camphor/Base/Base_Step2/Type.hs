@@ -4,7 +4,7 @@ module Camphor.Base.Base_Step2.Type
 (Type(..),Value(..),Ident
 ,NonEmptyValue,ReplTable,CollisionTable
 ,Tok(..),PragmaData,ParserState
-,Upgrade(..),Extra,Sent,Sents,TypeList,ValueList,SimpleSent(..),Fixity(..),isVar
+,Upgrade(..),Extra,Sent,Sents,TypeList,ValueList,SimpleSent(..),Fixity(..),isVar,TmpStat
 )where
 import Camphor.SepList
 import Camphor.SafePrelude
@@ -24,7 +24,6 @@ data Tok =
  PAREN | NERAP  | BRACE | ECARB | SCOLON | CNSTNT |
  COMM String    |    OP Oper    | INFIXL | INFIXR |
  VOID  | CONST  |   SP String   | PRAGMA PragmaData         deriving(Show,Eq)
-
  
 -- Base_Step2_2
 data Upgrade a b = Single a b | Block a [Upgrade a b] deriving(Show,Eq)
@@ -50,6 +49,7 @@ type ParserState = [SourcePos]
 
 -- UserState
 data Fixity = InfixL Integer Oper | InfixR Integer Oper deriving(Show,Eq) 
+type TmpStat = [Ident]
 
 isVar :: Value -> Bool
 isVar (Var _) = True; isVar _ = False

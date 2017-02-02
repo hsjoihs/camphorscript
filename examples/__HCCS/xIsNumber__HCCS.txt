@@ -126,34 +126,34 @@ read(c);
 
 {
 	/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
-	char c2;char d2;
+	char c2__TMP_1;char d2__TMP_1;
 	while(b){
 		
-	while(c){c2+=1;d2+=1;c-=1;}
+	while(c){c2__TMP_1+=1;d2__TMP_1+=1;c-=1;}
 
 		   
-	while(d2){c+=1;d2-=1;}
+	while(d2__TMP_1){c+=1;d2__TMP_1-=1;}
 
-		while(c2){
+		while(c2__TMP_1){
 			
-	while(c2){c2-=1;}
+	while(c2__TMP_1){c2__TMP_1-=1;}
 
 			c-=1;
 		}
 		b-=1;
 	}
-	delete c2;delete d2;
+	delete c2__TMP_1;delete d2__TMP_1;
 }/* using (d,e)*/
 delete b;
 {
-	char c2;
+	char c2__TMP_1;
 	
-	while(c){d+=1;c2+=1;c-=1;}
+	while(c){d+=1;c2__TMP_1+=1;c-=1;}
 
 	
-	while(c2){c+=1;c2-=1;}
+	while(c2__TMP_1){c+=1;c2__TMP_1-=1;}
 
-	delete c2;
+	delete c2__TMP_1;
 }  /* using e*/
 
 while(c){
@@ -166,23 +166,23 @@ delete c;
 
 {
 	/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
-	char c2;char d2;
+	char c2__TMP_1;char d2__TMP_1;
 	while(d){
 		
-	while(e){c2+=1;d2+=1;e-=1;}
+	while(e){c2__TMP_1+=1;d2__TMP_1+=1;e-=1;}
 
 		   
-	while(d2){e+=1;d2-=1;}
+	while(d2__TMP_1){e+=1;d2__TMP_1-=1;}
 
-		while(c2){
+		while(c2__TMP_1){
 			
-	while(c2){c2-=1;}
+	while(c2__TMP_1){c2__TMP_1-=1;}
 
 			e-=1;
 		}
 		d-=1;
 	}
-	delete c2;delete d2;
+	delete c2__TMP_1;delete d2__TMP_1;
 }/*using (f,g)*/
 delete d;
 
