@@ -10,7 +10,7 @@ import Camphor.IO
 import Camphor.InfList
 import Camphor.BF_parser
 import Text.Parsec
-import Control.Monad.State
+import Camphor.Transformer
 import Data.Word (Word8)
 import HiddenChar.HiddenChar
 import Camphor.VirtualIO
@@ -22,8 +22,8 @@ interpreterIO str = case parse parseBF' "" str of
  Left e -> outputErr e
  Right xs -> runBF xs
  
-pureInterpreter :: Txt -> Either ParseError (VIO ())
-pureInterpreter str = runBF <$> parse parseBF' "" str 
+pureInterpreter :: Txt -> Either ParseError (String -> Maybe String)
+pureInterpreter str = unwrapVIO <$> runBF <$> parse parseBF' "" str 
  
 data Stat = Stat {
   notyet :: [BFComm],

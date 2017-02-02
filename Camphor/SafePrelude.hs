@@ -17,7 +17,7 @@ Bool(..),(&&),(||),not,otherwise
 ,Integral,toInteger,fromIntegral
 ,Monad,(>>=),return,(>>),fail
 ,Functor,fmap
-,mapM,mapM_,sequence,sequence_,(=<<)
+,mapM,mapM_,forM,forM_,sequence,sequence_,(=<<)
 ,id,const,(.),flip,($),until,asTypeOf
 ,seq,($!)
 ,map,(++),filter,null,length
@@ -47,12 +47,16 @@ Bool(..),(&&),(||),not,otherwise
 ,(<++>),(<:>),(<$$>),(</>)
 ,ZipList(..)
 ,ord,chr
+,filterM
+,isPrefixOf,isInfixOf,isSuffixOf
+,maybeToEither,liftE
+,readMay
 )where
 import Prelude hiding(fst,snd)
 import Camphor.Tuple
-import Control.Monad(join,guard,when,ap,liftM,(>=>),(<=<),unless)
+import Control.Monad(join,guard,when,ap,liftM,(>=>),(<=<),unless,forM,forM_,filterM)
 import Control.Applicative((<*>),(<$>),pure,Applicative,ZipList(..))
-import Data.List(genericLength,genericReplicate,genericTake,genericDrop,genericSplitAt)
+import Data.List(genericLength,genericReplicate,genericTake,genericDrop,genericSplitAt,isPrefixOf,isInfixOf,isSuffixOf)
 import Data.Maybe(catMaybes,fromMaybe,isJust,isNothing,listToMaybe,mapMaybe,maybeToList)
 import Data.Char(isSpace,isAlpha,isAlphaNum,toLower,toUpper,ord,chr)
 import Data.Functor.Identity(Identity(..))
@@ -79,3 +83,13 @@ showStr = show
 
 showNum :: (Num a,Show a) => a -> String
 showNum = show 
+
+maybeToEither :: e -> Maybe a -> Either e a
+maybeToEither _   (Just x) = Right x
+maybeToEither err Nothing  = Left err
+
+liftE :: (e -> Maybe a) -> (e -> Either e a)
+liftE f = maybeToEither <*> f
+
+readMay :: Read a => String -> Maybe a
+readMay s      = case [x | (x,t) <- reads s, ("","") <- lex t] of [x] -> Just x ; _ -> Nothing 

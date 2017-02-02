@@ -1,15 +1,43 @@
 {-# LANGUAGE FlexibleContexts, NoImplicitPrelude, NoMonomorphismRestriction #-}
-{-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
-module Camphor.TupleTrans
-(getFst,getSnd,getTrd
+{-# OPTIONS -Wall #-}
+module Camphor.Transformer
+(lift,liftIO,MonadTrans
+
+,state,runState,evalState,execState,mapState,withState
+,StateT(..),evalStateT,execStateT,mapStateT,withStateT
+,get,put,modify
+
+,Reader,reader,runReader,mapReader,withReader
+,ReaderT(..),mapReaderT,withReaderT
+,ask,local
+
+,Writer,writer,runWriter,execWriter,mapWriter
+,WriterT(..),execWriterT,mapWriterT
+,tell,listen,pass,censor
+
+,MaybeT(..),mapMaybeT
+
+,IdentityT(..),mapIdentityT
+
+,Except,except,runExcept,mapExcept,withExcept
+,ExceptT(ExceptT),runExceptT,mapExceptT,withExceptT
+,throwE,catchE
+
+,getFst,getSnd,getTrd
 ,askFst,askSnd,askTrd
 ,putFst,putSnd,putTrd
 ,modifyFst,modifySnd,modifyTrd
-)where
+)
+where
 import Camphor.SafePrelude
 import Control.Monad.State
 import Control.Monad.Reader
+import Control.Monad.Writer
+import Control.Monad.Trans.Identity
+import Control.Monad.Trans.Maybe
+import Control.Monad.Trans.Except
 
+-- tuples
 getFst :: (Monad m, Fst t a) => StateT t m a
 getFst = do{k <- get; return (fst k)}
 

@@ -1,10 +1,9 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS -Wall #-}
 module Camphor.CmdOptions
-(Stat(..),optionParse,info,Overwriter(..),Optim(..)
+(Stat(..),optionParse,info,Overwriter(..),Optim(..),outputInfo
 )where
 import Camphor.SafePrelude
-import Camphor.Global.Utilities
 import Camphor.Global.Synonyms
 import qualified Data.Map as M
 import Camphor.Warn
@@ -30,10 +29,15 @@ info = [
  "-Wnormal        output normal warning",
  "-Wmore          output more warning",
  "-Wall           output all warning",
+ "-Wnum <num>     do not output more than 'num' warnings",
  "-f0.6           compile like 0.6",
  "nul             null device"
  ]
-data Overwriter = Version deriving(Show,Eq,Ord)
+ 
+outputInfo :: IO ()
+outputInfo = mapM_ putStrLn info
+
+data Overwriter = Version | Help deriving(Show,Eq,Ord)
 data Optim = Naive | HalfS deriving(Show,Eq,Ord)
 data Stat = S {
  inputFile    :: Maybe FilePath, 
@@ -50,18 +54,24 @@ data Stat = S {
  memoryShred  :: Bool,
  optim        :: Optim,
  warnTill     :: Maybe WarnLevel,
- run          :: Bool
+ run          :: Bool,
+ warnNum      :: Maybe Int
  } 
  
-optionParse :: 
- Options -> Stat -> Either String (FilePath,FilePath,(Int,Int),Maybe MemSize,[FilePath],[FilePath],Bool,Bool,M.Map Ident String,Bool,Bool,Bool,Optim,Maybe WarnLevel,Bool)
+optionParse :: Options -> Stat -> Either String Stat
 optionParse ["-o"]                       _    =  Left "argument to '-o' is missing"
 optionParse ["-m"]                       _    =  Left "argument to '-m' is missing"
 optionParse ["-I"]                       _    =  Left "argument to '-I' is missing"
 optionParse ["-L"]                       _    =  Left "argument to '-L' is missing"
+optionParse ["-D"]                       _    =  Left "argument to '-D' is missing"
+optionParse ["-Wnum"]                    _    =  Left "argument to '-Wnum' is missing"
 optionParse ("-m":mem               :xs) stat =  case readMay mem of
  Just mem'                                    -> optionParse xs stat{memSize = Just mem'}
  Nothing                                      -> Left "argument to '-m' is not an integer"
+optionParse ("-Wnum":n              :xs) stat =  case readMay n of 
+ Just m                                       -> optionParse xs stat{warnNum = Just m}
+ Nothing                                      -> Left "argument to '-Wnum' is not an integer"
+
 optionParse (o@['-','C',x,y]        :xs) stat =  case (readMay[x],readMay[y]) of
  (Just x',Just y')                            -> optionParse xs stat{fromTo = (x',y')}
  _                                            -> Left $ "incorrect format " ++ showStr o ++ " of option -Cnum[num]" 
@@ -96,10 +106,9 @@ optionParse ("-Wnormal"             :xs) stat =  optionParse xs stat{warnTill = 
 optionParse ("-Wmore"               :xs) stat =  optionParse xs stat{warnTill = Just Helpful}
 optionParse ("-Wall"                :xs) stat =  optionParse xs stat{warnTill = Just Verbose}
 
-optionParse ("-run"                 :xs) stat =  optionParse xs stat{run = True}
+
+optionParse ("-run"                 :xs) stat =  optionParse xs stat{run = True, outputFile = Just $ fromMaybe "nul" $ outputFile stat}
 optionParse (o@('-':_)              :_ ) _    =  
  Left $ "unknown option " ++ showStr o ++ ": use " ++ showStr("./" ++ o) ++ " to compile a file named " ++ showStr o 
 optionParse (inf                    :xs) stat =  optionParse xs stat{inputFile = Just inf}
-optionParse []           S{inputFile  = Nothing} = Left "no input file"
-optionParse []           S{outputFile = Nothing} = Left "no output file"
-optionParse []           (S (Just inf) (Just outf) (a,b) mem fd ld ni nl t c d e f g h) = Right(inf,outf,(a,b),mem,fd,ld,ni,nl,t,c,d,e,f,g,h)
+optionParse []                           stat = Right stat

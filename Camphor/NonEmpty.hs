@@ -15,7 +15,11 @@ module Camphor.NonEmpty
 )where
 import Camphor.SafePrelude 
 import Camphor.Listlike
+
 data NonEmpty a = (:|)a [a] deriving(Show,Eq,Ord)
+
+instance Listlike NonEmpty where
+ toList' (x :| xs) = x:xs
 
 infixr 5 :|
 infixr 5 `cons`
@@ -32,9 +36,7 @@ searchBy f (x :| (x2:xs)) = case f x of
 instance Functor NonEmpty where
  fmap f (y :| ys) = f y :| map f ys
 
-instance Listlike NonEmpty where
- toList' (x :| xs) = x:xs
- 
+
 instance Monad NonEmpty where
  return = nE
  m >>= f = concat'(fmap f m)

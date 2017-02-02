@@ -188,7 +188,7 @@ data Level =
 1. zero-ensureされていないところのdelete, #using#
    [Crucial]
 2. 未使用の変数 [Verbose]
-3. #WARNING deprecated#な関数の仕様 [Helpful]
+3. #WARNING deprecated#な関数の使用 [Helpful]
 4. コメント内コメント [Important]
 5. 不明なpragma [Helpful]
 6. pragmaのような何か ( /*# ～ */など) [Important]

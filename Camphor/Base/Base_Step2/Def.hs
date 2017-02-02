@@ -12,7 +12,7 @@ import Camphor.Base.Base_Step2.Auxilary
 import Camphor.Base.Base_Step2.Auxilary2
 import Camphor.Base.Base_Step2.ErrList
 import Text.Parsec 
-import Control.Monad.State hiding(fix)
+import Camphor.Transformer
 
 defC :: SourcePos -> Ident2 -> StateT UserState (Either ParseError) ()
 defC pos ident = do

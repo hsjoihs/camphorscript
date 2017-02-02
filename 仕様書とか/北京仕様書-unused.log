@@ -116,8 +116,6 @@ zero-checkerのメリット
   /*# MEMORY noshred #*/と書けば実現できる。
   さらに、 /*# MEMORY noshred a #*/と書けば、
   aはshredされない。
-  念のため書いておくと2-3, 2-5, 2-6は共存できず、
-  最後に指定したものが有効。
   現状ではdefaultは2-3だが、
   ゆくゆくは2-1 2-2 2-4 2-5にしたい
 
@@ -126,27 +124,8 @@ zero-checkerのメリット
 ---------------------Page 07---------------------
 |            warningについて語るページ          |
 -------------------------------------------------
-    今: Either ParseError Txt
-Writer: Writer [Warning] (Either ParseError Txt)
-              ↓       {エラー時にもWarning出す}
-        WriterT Warnings (Either ParseError) Txt
 
-newtype Warning = Warn String Level Pos
-newtype Warnings = W [Warning]
-どちらも抽象データ型として用いる
-
-data Level = 
-     Crucial | Important | Helpful | Verbose
-
--Wnone  : 表示しない
--Wless  : Crucialのみ表示
--Wnormal: Crucial, Importantを表示
--Wmore  : Crucial, Important, Helpfulを表示
--Wall   : 全て表示する
 -Werror : Warningをエラーに
--Wnum 30: 表示するwarningの数に上限
-
-
 
 ---------------------Page 08---------------------
 |        具体的なwarningについて語るページ      |
@@ -154,7 +133,7 @@ data Level =
 1. zero-ensureされていないところのdelete, #using#
    [Crucial]
 2. 未使用の変数 [Verbose]
-3. #WARNING deprecated#な関数の仕様 [Helpful]
+3. #WARNING deprecated#な関数の使用 [Helpful]
 4. コメント内コメント [Important]
 5. 不明なpragma [Helpful]
 6. pragmaのような何か ( /*# ～ */など) [Important]
@@ -166,33 +145,6 @@ data Level =
 今のところはこんな感じでいいだろう
 仕様増えればwarningも増えるはずで、
 そもそもErrorにすべき時のほうが多いわけだし
-
-
-
----------------------Page 09---------------------
-|           構文強化について語るページ          |
--------------------------------------------------
-if(~a){ ～ }            | if(a){ ～ } 
-   ↓                   |    ↓
-while(a){clear(a); ～ } | char b; b+=a;
-                        | while(b){clear(b); ～ }
-                        | delete b;
-                        | 
-unless(~a){ ～ }        | unless(a){ ～ }
-   ↓                   |    ↓
-char b; b+=1;           | char b; b+=1;
-if(~a){b-=1;}           | if(a){b-=1;}
-if(~b){ ～ }            | if(~b){ ～ } 
-
-                どう実装するか
-案:
-  syntax if(char& a){ block; } 
-   {char tmp; tmp += a; 
-    while(tmp){clear(tmp); block;} delete tmp; }
-  syntax if(~ char& a){ block; }
-   {while(a){clear(a);block;}}
-  もうこれでいいや(「構文マクロ」と命名)
-
 
 
 ---------------------Page 10---------------------

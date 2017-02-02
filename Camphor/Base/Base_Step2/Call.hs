@@ -8,7 +8,6 @@ module Camphor.Base.Base_Step2.Call
 ,replacer,syntaxer
 ) where
 import Camphor.SafePrelude
-import Camphor.TupleTrans
 import Camphor.SepList as Sep
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
@@ -22,8 +21,7 @@ import Camphor.Base.Base_Step2.ErrList
 import Camphor.Base.Base_Step2.Replacer2(replacer3)
 import Text.Parsec
 import qualified Data.Map as M
-import Control.Monad.State
-import Control.Monad.Reader
+import Camphor.Transformer
 
 type Cnv2 = UserState -> Sents -> Either ParseError Txt
 type Cnv23 = Sents -> StateT UserState (Either ParseError) Txt

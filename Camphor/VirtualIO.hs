@@ -4,9 +4,7 @@ module Camphor.VirtualIO
 (VirtualIO(),putO,getI,unwrapVIO
 )where
 import Camphor.SafePrelude 
-import Control.Monad.State
-import Control.Monad.Writer
-import Control.Monad.Trans.Maybe
+import Camphor.Transformer
 
 newtype VirtualIO i o a = VirtualIO {unVIO :: MaybeT (WriterT [o] (StateT [i] Identity)) a} deriving(Functor,Applicative,Monad) -- safe when failed
 

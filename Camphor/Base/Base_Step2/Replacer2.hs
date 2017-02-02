@@ -6,8 +6,6 @@ module Camphor.Base.Base_Step2.Replacer2
 import Camphor.SafePrelude 
 import Camphor.SepList(SepList(..)) 
 import Camphor.Global.Synonyms
-import Camphor.Global.Utilities
-import Camphor.TupleTrans
 import Camphor.TailSepList
 import Camphor.Base.Base_Step2.Type
 import Camphor.Base.Base_Step2.UserState
@@ -18,8 +16,7 @@ import Camphor.Base.Base_Step2.ErrList
 import Camphor.NonEmpty
 import Text.Parsec  
 import qualified Data.Map as M 
-import Control.Monad.State
-import Control.Monad.Reader
+import Camphor.Transformer
 
 
 unwrapAllMay :: [Value] -> Either (NonEmpty Integer) [Ident2]

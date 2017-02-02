@@ -9,6 +9,7 @@ module Camphor.IO
 ,getArgs
 ,splitFileName
 ,outputErr
+,outputWarn
 )where
 import Camphor.SafePrelude
 import Prelude(error)
@@ -19,6 +20,13 @@ import System.FilePath
 import System.Directory(getDirectoryContents,doesFileExist)
 import System.Environment(getArgs)
 import System.IO(hPutStrLn,stderr)
+import Camphor.Warn
+
+outputWarn :: Maybe Int -> WarnLevel -> Warnings -> IO ()
+outputWarn wnum lv ws = do
+ let res = map (pretty lv) $ toList' ws
+ let res2 = case wnum of Nothing -> res; Just n -> take n res
+ mapM_ (hPutStrLn stderr) res2
 
 outputErr :: ParseError -> IO ()
 outputErr e = hPutStrLn stderr $ "parse error at " ++ show e

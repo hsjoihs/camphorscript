@@ -13,7 +13,6 @@ module Camphor.Base.Base_Step2.Type
 import Camphor.Global.Synonyms
 import Camphor.SafePrelude 
 import Camphor.Global.Parsers
-import Camphor.Global.Utilities
 import Text.Parsec hiding(token)
 import Camphor.SepList
 import Camphor.TailSepList

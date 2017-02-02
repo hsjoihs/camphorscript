@@ -1,0 +1,4 @@
+#warning USER-DEFINED
+#warning crucial CRUCIAL
+#warning important IMPORTANT
+#warning verbose VERBOSE

@@ -4,11 +4,10 @@ module Camphor.Base.Base_Step3_I
 (step3_I
 )where
 import Camphor.SafePrelude
-import Camphor.TupleTrans
 import Camphor.Global.Parsers
 import Camphor.Global.Synonyms
 import Text.Parsec hiding(token,State)
-import Control.Monad.State
+import Camphor.Transformer
 {- 
 	For now, it will delete lines and automatically adds indentation. 
 	As character literals are already processed in Base_Step2,
@@ -47,8 +46,8 @@ blank (East x:xs)
  | otherwise     = False
 blank (West _:xs) = blank xs 
  
--- I wanna use State 
-process :: Data -> State Stat Txt
+
+process :: Data -> StateT Stat Identity Txt
 process [] = return ""
 process (East x:xs) = do
  rest <- process xs

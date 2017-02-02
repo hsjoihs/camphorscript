@@ -16,20 +16,20 @@ import Camphor.Base.Base_Step2.ErrList
 import Camphor.Base.Base_Step2.Base_Step2_2(parser2_2)
 import Camphor.Base.Base_Step2.PCS_Parser(parser2')
 import Text.Parsec
-import Control.Monad.State
-import Control.Monad.Reader
+import Camphor.Transformer
+import Camphor.Warn 
  
-step2 ::  FilePath -> Txt -> Either ParseError Txt
+step2 ::  FilePath -> Txt -> WriterT Warnings (Either ParseError) Txt
 step2 file txt = do
- xs <- parse parser2'  (file ++ "-step2") txt
- ys <- runParser parser2_2 [] (file ++ "-step2-2") xs
+ xs <- lift $ parse parser2'  (file ++ "-step2") txt
+ ys <- lift $ runParser parser2_2 [] (file ++ "-step2-2") xs
  convert ys
  
 defaultStat :: UserState 
 defaultStat = emptyState
 
-convert :: Sents -> Either ParseError Txt
-convert = convert2 defaultStat
+convert :: Sents -> WriterT Warnings (Either ParseError) Txt
+convert = lift . convert2 defaultStat
 
 
 convert2 :: UserState -> Sents -> Either ParseError Txt
