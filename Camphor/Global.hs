@@ -6,7 +6,7 @@ module Camphor.Global
 ,spaces',spaces1'
 ,(<++>),(<:>),(>=>),(</>)
 ,strP
-,uint,byte
+,uint,byte,uint'
 ,isJust,isNothing
 ,lib_dir
 ,Ident,Txt,MemSize
@@ -73,19 +73,48 @@ strP = fmap (:[])
 uint :: Stream s m Char => ParsecT s u m String
 uint = many1 digit <?> "unsigned integer"
 
+uint' :: Stream s m Char => ParsecT s u m Integer
+uint' = do{xs <- many1 (
+ do{char '0';return 0}<|>
+ do{char '1';return 1}<|>
+ do{char '2';return 2}<|>
+ do{char '3';return 3}<|>
+ do{char '4';return 4}<|>
+ do{char '5';return 5}<|>
+ do{char '6';return 6}<|>
+ do{char '7';return 7}<|>
+ do{char '8';return 8}<|>
+ do{char '9';return 9}
+ );
+ return(foldl(\a b -> 10*a+b)0 xs)
+ }<|> try(do{
+  char '\'';
+  y <- (noneOf "\\\n" <|> parseEsc);
+  char '\'';
+  return . fromIntegral . ord $ y
+  })
+
 byte :: Stream s m Char => ParsecT s u m String
 byte = many1 digit <|> 
  try(do{
   char '\'';
-  y <- (noneOf "\\\n" <|> do{char '\\';x<-oneOf "'\\nt";return(unesc x)});
+  y <- (noneOf "\\\n" <|> parseEsc);
   char '\'';
   return . show . ord $ y
   })
- where 
-  unesc :: Char -> Char
-  unesc 'n' = '\n'
-  unesc 't' = '\t'
-  unesc x   = x
+
+parseEsc :: Stream s m Char => ParsecT s u m Char
+parseEsc = do{char '\\';x<-oneOf "'\\abfnrtv\"?0";return(unesc x)}
+unesc :: Char -> Char
+unesc 'a' = '\a'
+unesc 'b' = '\b'
+unesc 'f' = '\f'
+unesc 'n' = '\n'
+unesc 'r' = '\r'
+unesc 't' = '\t'
+unesc 'v' = '\v'
+unesc '0' = '\0'
+unesc x   = x -- '\?"
   
 newline' :: Stream s m Char => ParsecT s u m ()
 newline' = do{newline;return()} <|> do{string "//";many(noneOf "\n");newline;return()} <?> "new line or line comment"

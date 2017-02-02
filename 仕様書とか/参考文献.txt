@@ -20,3 +20,5 @@ Hello worldプログラムの一覧 - Wikipedia
 
 http://pc2.2ch.net/test/read.cgi/tech/1036013915/
 
+http://www7b.biglobe.ne.jp/~robe/cpphtml/html01/cpp01078.html
+ロベールのＣ＋＋教室 - 第７８章 逃げの一手 -
