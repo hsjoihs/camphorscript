@@ -2,7 +2,7 @@
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
 module Camphor.Base_Step2.Type
 (Fixity(..),VFInfo,OpInfo,MacroId(..),VFList,OpList,UserState(..)
-,NonEmptyValue,ReplTable
+,NonEmptyValue,ReplTable,Ident
 ,Upgrade(..),Sent,Sents,Type(..),Value(..),TypeList,ValueList,Extra,SimpleSent(..)
 ,Tok(..)
 )where
@@ -41,7 +41,7 @@ type TypeList = SepList Oper (Type,Ident)
 type ValueList = SepList Oper Value
 data SimpleSent =
  Char Ident | Del Ident | Scolon | Infl Fix Oper | Infr Fix Oper | Sp String | Comm String | 
- Func1 Ident TypeList Sent | Func2 Oper TypeList TypeList Sent | Call1 Ident ValueList |
+ Func1 Ident TypeList Sent | Func2 Oper TypeList TypeList Sent | Call1 Ident ValueList | Call1WithBlock Ident ValueList Sents |
  Call2 Oper ValueList ValueList | Call3 Oper ValueList ValueList | Call4 [(Value,Oper)] ValueList | Call5 ValueList |
  Pleq Value Value | Mneq Value Value | Rd Value | Wrt Value
  deriving(Show,Eq)

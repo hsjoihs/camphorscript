@@ -20,7 +20,7 @@ simple p x = Single(p,x)
 sent :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 sent = def <|> del <|> scl <|>
  infl <|> infr <|> spac <|> block <|> comm <|> 
- func_def <|> op_def <|> func_call <|> 
+ func_def <|> op_def <|> func_call <|> func_call_with_block <|>
  op_call1 <|> op_call2 <|> op_call3 <|> op_call4 <|> op_call5
 
 def :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
@@ -79,16 +79,32 @@ op_def = do{
  }
 -- void(演算子)(型 識別子【演算子 型 識別子】;型 識別子【演算子 型 識別子】){【文】}
  
-func_call :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
-func_call = do{
- p <- getPosition; 
+func_call_without_semicolon :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity (Ident,ValueList)
+func_call_without_semicolon = do{
+  
  name <- try(do{ n <- _ident; __; _paren; return n}); __; -- clear (
  vs   <- getValueList;                                __; -- a , b
  _nerap;                                              __; -- )
  ----- Semicolon is not parsed in order to handle while(a){}. Things like that are done while the conversion.
- return(simple p$Call1 name vs);
+ return(name,vs);
  }
+ 
+func_call :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
+func_call = try(do{
+ p <- getPosition; 
+ (name,vs) <- func_call_without_semicolon; __;
+ _scolon; return(simple p$Call1 name vs)
+ }) 
 
+func_call_with_block ::  Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent 
+func_call_with_block = try(do{ 
+ p <- getPosition;
+ (name,vs) <- func_call_without_semicolon; __;
+ m <- block;
+ return(simple p$Call1WithBlock name vs [m])
+ })
+
+ 
 op_call1 :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 op_call1 = do{
  p <- getPosition; 

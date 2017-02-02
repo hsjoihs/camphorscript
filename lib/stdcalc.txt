@@ -25,6 +25,10 @@ void (+=)(char& a;char& b){
 	delete c;
 }
 
+void (+=)(char& a;constant char N *~ char& z){
+	while(z){a+=N;z-=1;}
+}	/* a+= ~z*N */
+
 void (-|=~)(char& a;char& b){
 	/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
 	char c;char d;
@@ -40,6 +44,8 @@ void (-|=~)(char& a;char& b){
 	}
 	delete c;delete d;
 }
+
+
 
 #undef c_
 

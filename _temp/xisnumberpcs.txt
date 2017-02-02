@@ -1,0 +1,6 @@
+infixr  5 (+=~); 
+void (+=~)(char&a;char&z){
+	while(z){a+=1;z-=1;}
+}	
+char a;char b;
+a  +=~ b;

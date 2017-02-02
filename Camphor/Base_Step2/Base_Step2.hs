@@ -20,6 +20,7 @@ import Camphor.Global.Operators
 import Camphor.NonEmpty
 import Text.Parsec  
 import Text.Parsec.Pos(newPos)
+
  
 step2 ::  FilePath -> Txt -> Either ParseError Txt
 step2 file txt = do
@@ -77,7 +78,7 @@ convert2 stat (Single(pos,Func1 name typelist sent):xs) = do
  left <- convert2 newStat xs
  return left
  
-convert2 stat (Single(pos,Call1 name valuelist):Single(_,Scolon):xs) = do
+convert2 stat (Single(pos,Call1 name valuelist):xs) = do
  result <- newK1 pos name valuelist stat
  left <- convert2 stat xs
  return $ result ++ left
@@ -92,28 +93,9 @@ convert2 stat (Block ys:xs) = do
  left <- convert2 newStat xs
  return$ result ++ left
 
-convert2 _    (Single(pos,Call1 _ _):[]) = Left$newErrorMessage(UnExpect$"end of input")pos
-convert2 _    (Single(pos,Call1 _ _):Single(_,Char v        ):_) = Left$newErrorMessage(UnExpect$"definition of variable "++show v)pos
-convert2 _    (Single(pos,Call1 _ _):Single(_,Del  v        ):_) = Left$newErrorMessage(UnExpect$"deletion of variable "  ++show v)pos
-convert2 _    (Single(pos,Call1 _ _):Single(_,Infl _ op     ):_) = Left$newErrorMessage(UnExpect$"fixity declaration of operator "++show op)pos
-convert2 _    (Single(pos,Call1 _ _):Single(_,Infr _ op     ):_) = Left$newErrorMessage(UnExpect$"fixity declaration of operator "++show op)pos
-convert2 _    (Single(pos,Call1 _ _):Single(_,Func1 name _ _):_) = Left$newErrorMessage(UnExpect$"definition of function "++show name)pos
-convert2 _    (Single(pos,Call1 _ _):Single(_,Func2 op _ _ _):_) = Left$newErrorMessage(UnExpect$"definition of operator "++show op)pos
-convert2 _    (Single(pos,Call1 _ _):Single(_,Call1 name _  ):_) = Left$newErrorMessage(UnExpect$"call of function "++show name)pos
-convert2 _    (Single(pos,Call1 _ _):Single(_,Call2 op _ _  ):_) = Left$newErrorMessage(UnExpect$"call of operator "++show op)pos
-convert2 _    (Single(pos,Call1 _ _):Single(_,Call3 op _ _  ):_) = Left$newErrorMessage(UnExpect$"call of operator "++show op)pos
-convert2 _    (Single(pos,Call1 _ _):Single(_,Call4 _ _     ):_) = Left$newErrorMessage(UnExpect$"call of operator ")pos
-convert2 _    (Single(pos,Call1 _ _):Single(_,Call5 _       ):_) = Left$newErrorMessage(UnExpect$"call of operator ")pos
-convert2 _    (Single(pos,Call1 _ _):Single(_,Pleq  _ _     ):_) = Left$newErrorMessage(UnExpect$"call of operator ")pos
-convert2 _    (Single(pos,Call1 _ _):Single(_,Mneq  _ _     ):_) = Left$newErrorMessage(UnExpect$"call of operator ")pos
-convert2 _    (Single(pos,Call1 _ _):Single(_,Rd  _         ):_) = Left$newErrorMessage(UnExpect$"call of function ")pos
-convert2 _    (Single(pos,Call1 _ _):Single(_,Wrt _         ):_) = Left$newErrorMessage(UnExpect$"call of function ")pos
 
-convert2 stat (c@(Single(_,Call1 _ _)):Single(_,Comm _):xs) = convert2 stat (c:xs) 
-convert2 stat (c@(Single(_,Call1 _ _)):Single(_,Sp   _):xs) = convert2 stat (c:xs) 
-
-convert2 stat (Single(_,Call1 name valuelist):Block ys:xs) = do -- FIXME: does not replace a function call when it's followed by a block
- left <- convert2 stat (Block ys:xs)
+convert2 stat (Single(_,Call1WithBlock name valuelist block):xs) = do -- FIXME: does not replace a function call when it's followed by a block
+ left <- convert2 stat (Block block :xs)
  return$ showCall name valuelist ++ left
   where 
    showCall :: Ident -> ValueList -> String

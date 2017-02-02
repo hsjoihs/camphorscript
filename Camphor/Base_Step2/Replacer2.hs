@@ -16,7 +16,6 @@ import Data.Maybe(isJust)
 import Text.Parsec  
 import qualified Data.Map as M 
 
-
 {-  -------------------------------------------------------------------------------
    ***************************
    * definition of replacer2 *
@@ -93,7 +92,20 @@ replacer2 stat (n:|ns) pos (Call1 ident valuelist) table
   case matchingInstance of
    []    -> rpl1 (n:|ns) pos ident valuelist table stat
    (x:_) -> Left$newErrorMessage(Message$"cannot recursively call "++show' x++" inside "++show' n)pos
- 
+   
+replacer2 stat (n:|ns) pos (Call1WithBlock ident valuelist block) table = do  -- ident is not replaced
+ let newValuelist = fmap (replaceSingle table) valuelist
+ newblock <- makeNewBlock (Block block)
+ return(Call1WithBlock ident newValuelist newblock:|[])
+ where
+  makeNewBlock :: Sent -> Either ParseError Sents
+  makeNewBlock (Single(_,ssent)) = do
+   res <- replacer2 stat (n:|ns) pos ssent table
+   return$map (\x->Single(pos,x))(toList res)
+  makeNewBlock (Block xs) = do
+   replaced <- sequence [makeNewBlock sent | sent <- xs] 
+   return$ concat replaced
+
 replacer2 stat (n:|ns) pos (Call2 oper valuelist1 valuelist2) table = do
  let matchingInstance = [ a | a@(Operator o (typelist1,typelist2,_)) <- (n:ns), o == oper, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ]
  case matchingInstance of
@@ -153,4 +165,4 @@ replaceSingle :: ReplTable -> Value -> Value
 replaceSingle _ m@(Constant _) = m
 replaceSingle table v@(Var idn) = case M.lookup idn table of
  Nothing -> v
- Just val -> val 
+ Just val -> val  
