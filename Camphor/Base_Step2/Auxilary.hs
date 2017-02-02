@@ -10,10 +10,11 @@ module Camphor.Base_Step2.Auxilary
 ,isConsistent,contradiction
 ,NonEmptyValue
 ,breakBy',reverse',reverse''
-,isValidCall3,getCall4Left
+,isValidCall3,getCall4Left,getInstanceOfCall1,getInstanceOfCall2
+,map'
 ) where
+import Camphor.Base_Step2.Type
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
-import Camphor.Base_Step2.Base_Step2_2
 import Camphor.Base_Step2.UserState
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
@@ -21,8 +22,37 @@ import Text.Parsec
 import Camphor.NonEmpty
 import qualified Data.Map as M
 
-type NonEmptyValue = (Value,NonEmpty (Oper,Value))
 
+getInstanceOfCall2 :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError (TypeList,TypeList, Sent)
+getInstanceOfCall2 pos op valuelist1 valuelist2 stat = do
+ opinfo <- opinfo'
+ let matchingOpInstance = [ a | a@(typelist1,typelist2,_) <- opinfo, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ] 
+ case matchingOpInstance of 
+  []        -> Left $newErrorMessage(Message$"no type-matching instance of "++show op++" defined")pos 
+  [instnce] -> return instnce
+  xs        -> Left $newErrorMessage(Message$show(length xs)++" type-matching instances of "++show op++" defined")pos 
+ where
+  opinfo' :: Either ParseError [(TypeList,TypeList, Sent)]
+  opinfo' = fmap snd $ getOpContents2 pos stat op
+
+getInstanceOfCall1 :: SourcePos -> Ident -> ValueList -> UserState -> Either ParseError (TypeList,Sent)
+getInstanceOfCall1 pos ident valuelist stat = do
+ finfo <- finfo'
+ let matchingFuncInstance = [ a | a@(typelist,_) <- finfo, valuelist `matches` typelist ]
+ case matchingFuncInstance of
+  []        -> Left $newErrorMessage(Message$"no type-matching instance of "++show ident++" defined")pos  
+  [instnce] -> return instnce
+  xs        -> Left $newErrorMessage(Message$show(length xs)++" type-matching instances of "++show ident++" defined")pos   
+ where
+  finfo' :: Either ParseError [(TypeList, Sent)]
+  finfo' = case getVFContents stat ident of 
+   Nothing          -> Left $newErrorMessage(Message$"function "++show ident++" is not defined")pos 
+   Just(Left())     -> Left $newErrorMessage(Message$"cannot call"++show ident++" because it is defined as a variable")pos
+   Just(Right info) -> Right $ info 
+
+
+map' :: (a -> b) -> (a,[(c,a)]) -> (b,[(c,b)])
+map' f (a,xs) = (f a,[ (c1,f a1) | (c1,a1) <- xs ])
 
 getCall4Left :: SourcePos -> NonEmpty (Value, Oper) -> UserState -> Either ParseError (ValueList, Oper)
 getCall4Left pos (x:|xs) stat = do  
@@ -71,8 +101,6 @@ breakBy2 o ((o2,v2):|(ov3:ovs))
  where 
   (a,b,c) = breakBy2 o (ov3:|ovs)
 
-
-type ReplTable = M.Map Ident Value 
 getOpContents2 :: SourcePos -> UserState -> Oper -> Either ParseError OpInfo
 getOpContents2 pos s o = case getOpContents s o of
  Nothing   -> Left $ newErrorMessage(Message$"operator "++show o++" is not defined")pos

@@ -1,16 +1,14 @@
 {-# LANGUAGE FlexibleContexts , TypeSynonymInstances , FlexibleInstances #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
 module Camphor.Base_Step2.UserState
-(Fixity(..)
-,UserState(..),VFInfo,OpInfo,VFList,OpList
-,emptyState
+(emptyState
 ,containsIdent,addIdent,removeIdent,getVFContents
 ,addOpFixity,getOpName,containsOp,getOpContents,matches,getFixValue
 ,isInfixL,isInfixR
 ,show',PrettyPrint,MacroId(..)
 )where
+import Camphor.Base_Step2.Type
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
-import Camphor.Base_Step2.Base_Step2_2
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import qualified Data.Map as M
@@ -46,17 +44,7 @@ instance PrettyPrint MacroId where
  show' (Func ident (typelist,_)) = "function "++ident++"("++show' typelist++"){ .. }"
  show' (Operator oper (typelist1,typelist2,_)) = "operator ("++oper++")("++show' typelist1++";"++show' typelist2++"){ .. }"
 
-data Fixity = InfixL Integer Oper | InfixR Integer Oper deriving(Show,Eq) 
 
-type VFInfo = Either () [(TypeList, Sent)]
-type OpInfo = (Fixity,[(TypeList,TypeList, Sent)])
-
-data MacroId = Func Ident (TypeList,Sent) | Operator Oper (TypeList,TypeList, Sent) deriving(Show,Eq)  
-
-type VFList = M.Map Ident VFInfo
-type OpList = M.Map Oper OpInfo
-
-data UserState = UserState VFList OpList
 
 getFixValue :: Fixity -> Integer
 getFixValue (InfixL fix _) = fix

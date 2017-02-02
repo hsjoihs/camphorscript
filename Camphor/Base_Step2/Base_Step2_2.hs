@@ -2,42 +2,19 @@
 {-# OPTIONS -Wall -fno-warn-unused-do-bind  #-}
 module Camphor.Base_Step2.Base_Step2_2
 (parser2_2
-,Upgrade(..),Sent,Sents,Type(..),Value(..),TypeList,ValueList,Extra,SimpleSent(..)
 )where
+import Camphor.Base_Step2.Type
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
-import Camphor.Global.Synonyms
 import Text.Parsec 
 import Control.Applicative hiding ((<|>),many)
 import Camphor.Base_Step2.PCS_Parser2
 import Data.Functor.Identity
 
-
 parser2_2 :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sents
 parser2_2 = do{xs <- many sent; eof; return xs;} 
- 
-data Upgrade a = Single a | Block [Upgrade a] deriving(Show,Eq)
-
-type Extra = SourcePos
-type Sent  = Upgrade (Extra,SimpleSent)
-type Sents = [Sent]
-
-type TypeList = (Type, Ident, [(Oper, Type, Ident)])
-type ValueList = (Value,[(Oper,Value)])
-
-data SimpleSent =
- Char Ident | Del Ident | Scolon | Infl Fix Oper | Infr Fix Oper | Sp String | Comm String | 
- Func1 Ident TypeList Sent | Func2 Oper TypeList TypeList Sent | Call1 Ident ValueList |
- Call2 Oper ValueList ValueList | Call3 Oper ValueList ValueList | Call4 [(Value,Oper)] ValueList | Call5 ValueList deriving(Show,Eq)
-
-data Type = CNSTNT_CHAR | CONST_CHAR | CHAR_AND deriving(Show,Eq)
- 
-data Value = Var Ident | Constant Integer deriving(Show,Eq)
-
-
 
 simple :: SourcePos -> SimpleSent -> Sent
 simple p x = Single(p,x)
- 
  
 sent :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 sent = def <|> del <|> scl <|>
@@ -157,8 +134,6 @@ op_call3 = try(do{
  _scolon; return(simple p$Call3 op vs1 vs2); 
  })
 
- 
- 
 ---   値【演算子 値】 演算子(値 【演算子 値】); or (値 【演算子 値】);
 op_call4 :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
 op_call4 = try(do{
@@ -192,7 +167,6 @@ getTypeList = do
 
 value :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Value
 value = (Var <$> _ident <?> "variable") <|> (Constant <$> _num <?> "unsigned integer or character literal")
-
 
 getValueList :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity ValueList
 getValueList = do

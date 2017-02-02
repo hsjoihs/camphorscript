@@ -3,16 +3,16 @@
 {- Functional macro expansion -}
 module Camphor.Base_Step2.Base_Step2
 (step2
---,parser2'
 ) where 
 
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Camphor.Partial
-import Camphor.Base_Step2.Base_Step2_2
+import Camphor.Base_Step2.Type
+import Camphor.Base_Step2.UserState
 import Camphor.Base_Step2.New 
 import Camphor.Base_Step2.Auxilary
+import Camphor.Base_Step2.Base_Step2_2(parser2_2)
 import Camphor.Base_Step2.PCS_Parser(parser2')
-import Camphor.Base_Step2.UserState
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import Camphor.Global.Operators
@@ -64,7 +64,6 @@ convert2 stat (Single(pos,Infr fixity op):xs) = do
  newStat <- newR pos fixity op stat 
  left <- convert2 newStat xs 
  return left
- 
 
 convert2 stat (Single(pos,Func1 name typelist sent):xs) = do
  newStat <- newF1 pos name typelist sent stat 
@@ -195,31 +194,15 @@ newK5 pos (x,ov:ovs) stat = do
 --- macro-replacing function for operator
 replaceOpMacro :: SourcePos -> Oper -> ValueList -> ValueList -> UserState -> Either ParseError Txt
 replaceOpMacro pos op valuelist1 valuelist2 stat = do
- opinfo <- opinfo'
- let matchingOpInstance = [ a | a@(typelist1,typelist2,_) <- opinfo, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ] 
- case matchingOpInstance of 
-  []        -> Left $newErrorMessage(Message$"no type-matching instance of "++show op++" defined")pos 
-  [instnce] -> replacerOfOp (Operator op instnce) instnce valuelist1 valuelist2 stat
-  xs        -> Left $newErrorMessage(Message$show(length xs)++" type-matching instances of "++show op++" defined")pos 
- where
-  opinfo' :: Either ParseError [(TypeList,TypeList, Sent)]
-  opinfo' = fmap snd $ getOpContents2 pos stat op
-
+ instnce <- getInstanceOfCall2 pos op valuelist1 valuelist2 stat
+ replacerOfOp (Operator op instnce) instnce valuelist1 valuelist2 stat
+   
 --- macro-replacing function for operator   
 replaceFuncMacro :: SourcePos -> Ident -> ValueList -> UserState -> Either ParseError Txt   
 replaceFuncMacro pos ident valuelist stat = do
- finfo <- finfo'
- let matchingFuncInstance = [ a | a@(typelist,_) <- finfo, valuelist `matches` typelist ]
- case matchingFuncInstance of
-  []        -> Left $newErrorMessage(Message$"no type-matching instance of "++show ident++" defined")pos  
-  [instnce] -> replacerOfFunc (Func ident instnce) instnce valuelist stat
-  xs        -> Left $newErrorMessage(Message$show(length xs)++" type-matching instances of "++show ident++" defined")pos   
- where
-  finfo' :: Either ParseError [(TypeList, Sent)]
-  finfo' = case getVFContents stat ident of 
-   Nothing          -> Left $newErrorMessage(Message$"function "++show ident++" is not defined")pos 
-   Just(Left())     -> Left $newErrorMessage(Message$"cannot call"++show ident++" because it is defined as a variable")pos
-   Just(Right info) -> Right $ info
+ instnce <- getInstanceOfCall1 pos ident valuelist stat
+ replacerOfFunc (Func ident instnce) instnce valuelist stat
+
 
 replacerOfOp :: MacroId -> (TypeList,TypeList, Sent) -> ValueList -> ValueList -> UserState -> Either ParseError Txt
 replacerOfOp opname (typelist1,typelist2,sent) valuelist1 valuelist2 stat = 
@@ -229,6 +212,8 @@ replacerOfFunc :: MacroId -> (TypeList, Sent) -> ValueList -> UserState -> Eithe
 replacerOfFunc funcname (typelist,sent) valuelist stat =
  replacer funcname sent stat $ makeReplacerTable typelist valuelist
 
+ 
+ 
 replacer :: MacroId -> Sent -> UserState -> ReplTable -> Either ParseError Txt
 replacer mname (Single(pos2,ssent)) stat table = do
  newSents <- replacer2 stat (mname:|[]) pos2 ssent table
@@ -264,27 +249,27 @@ replacer2 _ _ pos (Func1 ident _ _) _ =
 replacer2 _ _ pos (Func2 oper _ _ _) _ = 
  Left$newErrorMessage(Message$"cannot define operator "++show oper ++"inside function/operator definition ")pos 
   
-replacer2 _ (n:|ns) pos (Call1 ident valuelist) table 
+replacer2 stat (n:|ns) pos (Call1 ident valuelist) table 
  | isJust$ M.lookup ident table = Left$newErrorMessage(Message$"cannot call an argument "++show ident)pos 
  | otherwise = do
   let matchingInstance = [ a | a@(Func name (typelist,_)) <- (n:ns), name == ident , valuelist `matches` typelist]
   case matchingInstance of
-   []    -> rpl1 (n:|ns) pos ident valuelist table
+   []    -> rpl1 (n:|ns) pos ident valuelist table stat
    (x:_) -> Left$newErrorMessage(Message$"cannot recursively call "++show' x++" inside "++show' n)pos
  
-replacer2 _ (n:|ns) pos (Call2 oper valuelist1 valuelist2) table = do
+replacer2 stat (n:|ns) pos (Call2 oper valuelist1 valuelist2) table = do
  let matchingInstance = [ a | a@(Operator o (typelist1,typelist2,_)) <- (n:ns), o == oper, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ]
  case matchingInstance of
-   []    -> rpl2 (n:|ns) pos oper (valuelist1,valuelist2) table
+   []    -> rpl2 (n:|ns) pos oper (valuelist1,valuelist2) table stat
    (x:_) -> Left$newErrorMessage(Message$"cannot recursively call "++show' x++" inside "++show' n)pos
   
 replacer2 stat narr pos (Call3 op valuelist1 valuelist2) table = do
  isValidCall3 pos op valuelist2 stat
  replacer2 stat narr pos (Call2 op valuelist1 valuelist2) table
 
-replacer2 stat narr pos (Call4 []     valuelist          ) table = replacer2 stat narr pos (Call5 valuelist) table
+replacer2 stat narr pos (Call4 []     valuelist ) table = replacer2 stat narr pos (Call5 valuelist) table
 
-replacer2 stat narr pos (Call4 (x:xs) valuelist2         ) table = do
+replacer2 stat narr pos (Call4 (x:xs) valuelist2) table = do
  (valuelist1,op) <- getCall4Left pos (x:|xs) stat
  replacer2 stat narr pos (Call2 op valuelist1 valuelist2) table
 
@@ -302,8 +287,38 @@ replacer2 stat narr pos (Call5 (x,ov:ovs)) table = do
    ********************
 ----------------------------------------------------------------------------------}
 
-rpl1 :: NonEmpty MacroId -> SourcePos -> Ident -> ValueList -> M.Map Ident Value -> Either ParseError (NonEmpty SimpleSent)
-rpl1 (n:|ns) pos ident valuelist table = undefined
+--- First, replace valuelist by the replacement table. Then, expand the macro.
 
-rpl2 :: NonEmpty MacroId -> SourcePos -> Oper -> (ValueList,ValueList) -> M.Map Ident Value -> Either ParseError (NonEmpty SimpleSent)
-rpl2 (n:|ns) pos oper valuelist table = undefined
+
+--       outermacros         position    name     valuelist    replacement table
+rpl1 :: NonEmpty MacroId -> SourcePos -> Ident -> ValueList -> M.Map Ident Value -> UserState -> Either ParseError (NonEmpty SimpleSent)
+rpl1 ms pos ident valuelist table stat = do
+ let newValuelist = map' tmp valuelist
+ instnce@(typelist,sent) <- getInstanceOfCall1 pos ident newValuelist stat
+ let mname = Func ident instnce
+ --replacer2 stat (mname `cons` ms) pos __ __
+ undefined
+ where
+  tmp :: Value -> Value
+  tmp m@(Constant _) = m
+  tmp v@(Var idn) = case M.lookup idn table of
+   Nothing -> v
+   Just val -> val   
+
+{-
+
+replacer2 :: UserState -> NonEmpty MacroId -> SourcePos -> SimpleSent -> M.Map Ident Value ->  Either ParseError (NonEmpty SimpleSent)
+
+replacer funcname sent stat $ makeReplacerTable typelist valuelist
+
+replacer :: MacroId -> Sent -> UserState -> ReplTable -> Either ParseError Txt
+replacer mname (Single(pos2,ssent)) stat table = do
+ newSents <- replacer2 stat (mname:|[]) pos2 ssent table
+ case newSents of newSSent:|[] -> convert2 stat [Single(pos2,newSSent)] ; (x:|xs) -> convert2 stat [Block$map(\k->Single(pos2,k))(x:xs)]
+replacer mname (Block xs) stat table = do
+ result <- sequence [replacer mname ssent stat table | ssent <- xs]
+ return$concat(["{"]++result++["}"])
+-}   
+   
+rpl2 :: NonEmpty MacroId -> SourcePos -> Oper -> (ValueList,ValueList) -> M.Map Ident Value -> UserState -> Either ParseError (NonEmpty SimpleSent)
+rpl2 (n:|ns) pos oper (vlist1,vlist2) table stat = undefined

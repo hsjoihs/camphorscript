@@ -6,22 +6,13 @@ module Camphor.Base_Step2.PCS_Parser
 ,showTok
 
 )where
-
+import Camphor.Base_Step2.Type
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Camphor.Global.Parsers
-import Camphor.Global.Synonyms
 import Text.Parsec hiding(token)
 
 parser2' :: Stream s m Char => ParsecT s u m [(SourcePos,Tok)]
 parser2' = do{ts<-many tok;eof;return ts;}
-
-data Tok = 
- CHAR  | DELETE | IDENT Ident   |   NUM Integer   |  
- PAREN | NERAP  | BRACE | ECARB | SCOLON | CNSTNT |
- COMM String    |    OP Oper    | INFIXL | INFIXR |
- VOID  | CONST  |   SP String                       deriving(Show,Eq)
-
-
 
 tok :: Stream s m Char => ParsecT s u m (SourcePos,Tok)
 tok = _char <|> _delete  <|> _num <|> _scolon <|>
@@ -40,8 +31,6 @@ _ecarb :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
 _ecarb  = do{p <- getPosition; char '}'; return (p,ECARB)}
 _scolon :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
 _scolon = do{p <- getPosition; char ';'; return (p,SCOLON)}
-
-
 
 __ :: Stream s m Char => ParsecT s u m () 
 __ = skipMany _nl

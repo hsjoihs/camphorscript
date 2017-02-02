@@ -5,10 +5,9 @@ module Camphor.Base_Step2.New
 (newC,newD,newL,newR,newF1,newF2,getCall5Result
 ) where 
 
-
+import Camphor.Base_Step2.Type
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Data.Ord(comparing)
-import Camphor.Base_Step2.Base_Step2_2
 import Camphor.Base_Step2.Auxilary
 import Camphor.Base_Step2.UserState
 import Camphor.Global.Synonyms
