@@ -7,8 +7,10 @@ import Camphor.SafePrelude
 import Camphor.SepList(SepList(..)) 
 import Camphor.Base.Base_Step2.Type
 import Camphor.Base.Base_Step2.UserState
+import Camphor.Base.Base_Step2.Auxilary2
 import Camphor.Base.Base_Step2.Auxilary
 import Camphor.Base.Base_Step2.Call5Result
+import Camphor.Base.Base_Step2.ErrList
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import Camphor.NonEmpty
@@ -19,10 +21,11 @@ import Control.Monad.Reader
 import Camphor.TupleTrans
 import Camphor.TailSepList
 
-unwrapAllMay :: [Value] -> Maybe [Ident2]
-unwrapAllMay vs = mapM unwrap vs
- where 
-  unwrap (Var i) = Just i; unwrap _ = Nothing 
+unwrapAllMay :: [Value] -> Either (NonEmpty Integer) [Ident2]
+unwrapAllMay []              = Right []
+unwrapAllMay (Var i:vs)      = (i:) <$> unwrapAllMay vs
+unwrapAllMay (Constant c:vs) = case unwrapAllMay vs of Right _ -> Left(nE c); Left cs -> Left$ c `cons` cs
+
 
 makeNewIdent :: CollisionTable -> Ident2 -> UserState -> SourcePos -> Either ParseError Ident2  
 makeNewIdent clTable ident stat pos = do
@@ -50,13 +53,12 @@ replacer3 _ _ pos (R_Pragma x) table = toState $ case x of
  ("MEMORY":"using":vars) -> do -- replaces the ARGUMENT of `using' pragma ...*1
   let vars' = forM vars toIdent2
   case vars' of 
-   Left e -> err $ newErrorMessage(Message$showStr e++" used in a `MEMORY using' pragma is not an identifier")pos
+   Left e -> err $toPE pos$ Step2 <!> Prag <!> Memory <!> Using <!> NotValidIdent e
    Right vars_ -> do
     replaced <- replaceSingles table (map Var vars_)
-    let censored = unwrapAllMay replaced
-    case censored of 
-     Nothing  -> err $ newErrorMessage(Message$"something used in a `MEMORY using' pragma is not a variable")pos
-     Just res -> return[Single pos $ Pragma$"MEMORY":"using":map unId res] 
+    case unwrapAllMay replaced of 
+     Left fails -> err $toPE pos$ Step2 <!> Prag <!> Memory <!> Using <!> IsConstant fails
+     Right res  -> return[Single pos $ Pragma$"MEMORY":"using":map unId res] 
  _                       -> return[Single pos $ Pragma x] 
 
 {- 
@@ -66,35 +68,34 @@ replacer3 _ _ pos (R_Pragma x) table = toState $ case x of
 	 -} 
  
 -- errors --
-replacer3 _ _ pos (R_Infl _ _          ) _  = err$newErrorMessage(Message "cannot declare fixity inside function/operator definition ")pos  
-replacer3 _ _ pos (R_Infr _ _          ) _  = err$newErrorMessage(Message "cannot declare fixity inside function/operator definition ")pos  
-replacer3 _ _ pos (R_Func1 ident _ _   ) _  = err$cantdefine("function " ++ showIdent ident)pos
-replacer3 _ _ pos (R_Func1Nul ident _  ) _  = err$cantdefine("function " ++ showIdent ident)pos 
-replacer3 _ _ pos (R_Func2 oper _ _ _  ) _  = err$cantdefine("operator " ++ showStr(unOp oper ))pos 
-replacer3 _ _ pos (R_Func2Nul oper _ _ ) _  = err$cantdefine("operator " ++ showStr(unOp oper ))pos 
-replacer3 _ _ pos (R_Syntax1 name _ _  ) _  = err$cantdefine("syntax "   ++ showIdent name)pos 
-replacer3 _ _ pos (R_Syntax2 name _ _  ) _  = err$cantdefine("syntax "   ++ showIdent name)pos 
+replacer3 _ _ pos (R_Infl _ o          ) _  = err$toPE pos$ Step2 <!> Fixity <!> WrongDef_2 <!> InsideCall_2 <!> Operat_3 o
+replacer3 _ _ pos (R_Infr _ o          ) _  = err$toPE pos$ Step2 <!> Fixity <!> WrongDef_2 <!> InsideCall_2 <!> Operat_3 o 
+replacer3 _ _ pos (R_Func1 ident _ _   ) _  = err$toPE pos$ Step2 <!> Type <!> WrongDef <!> InsideCall <!> Functi ident
+replacer3 _ _ pos (R_Func1Nul ident _  ) _  = err$toPE pos$ Step2 <!> Type <!> WrongDef <!> InsideCall <!> Functi ident
+replacer3 _ _ pos (R_Func2 oper _ _ _  ) _  = err$toPE pos$ Step2 <!> Type <!> WrongDef <!> InsideCall <!> Operat oper
+replacer3 _ _ pos (R_Func2Nul oper _ _ ) _  = err$toPE pos$ Step2 <!> Type <!> WrongDef <!> InsideCall <!> Operat oper
+replacer3 _ _ pos (R_Syntax1 name _ _  ) _  = err$toPE pos$ Step2 <!> Type <!> WrongDef <!> InsideCall <!> Synt name
+replacer3 _ _ pos (R_Syntax2 name _ _  ) _  = err$toPE pos$ Step2 <!> Type <!> WrongDef <!> InsideCall <!> Synt name
  
 -- char & delete -- 
 replacer3 stat _ pos (R_Char ident) table  = case M.lookup ident table of
- Just _  -> err$newErrorMessage(Message$"cannot redefine an argument "++showIdent ident)pos 
+ Just _  -> err$toPE pos$ Step2 <!> Access <!> WrongDef_3 <!> Definedasarg_3 <!> Idn ident 
  Nothing -> do
   clTable <- getFst
   using <- getSnd
   if ident `M.member` clTable 
-   then err$newErrorMessage(Message$"dual definition of variable "++showIdent ident)pos 
+   then err$toPE pos$ Step2 <!> Access <!> WrongDef_3 <!> Alreadydefined <!> Idn ident 
    else return()
   case using of {
-   Nothing     -> do{newIdent <- lift(makeNewIdent clTable ident stat pos); modifyFst (M.insert ident (newIdent,False)); return [Single pos $ Char newIdent]};
-   Just []     -> do{newIdent <- lift(makeNewIdent clTable ident stat pos); modifyFst (M.insert ident (newIdent,False)); return [Single pos $ Char newIdent]};
    Just (u:us) -> do{putSnd(Just us); newIdent <- return u;                 modifyFst (M.insert ident (newIdent,True )); return [Single pos $ Comm$"char "++unId u++";"]};
+   _           -> do{newIdent <- lift(makeNewIdent clTable ident stat pos); modifyFst (M.insert ident (newIdent,False)); return [Single pos $ Char newIdent]};
   }
   
 replacer3 _ _ pos (R_Del ident) table  = case M.lookup ident table of 
- Just _  -> err$newErrorMessage(Message$"cannot delete an argument"++showIdent ident)pos 
+ Just _  -> err$toPE pos$ Step2 <!> Access <!> WrongDel <!> Definedasarg_2 <!> Idn ident 
  Nothing -> do
   clTable <- getFst
-  (newIdent,isUsing) <- lift $ maybeToEither (newErrorMessage(Message$"variable "++showIdent ident++" is not defined in this function")pos) (M.lookup ident clTable)
+  (newIdent,isUsing) <- lift $ maybeToEither (toPE pos$ Step2 <!> Access <!> WrongDel <!> Notdefinedhere <!> Idn ident)(M.lookup ident clTable)
   modifyFst (M.delete ident)
   return [Single pos $ if isUsing then Comm$"delete " ++ unId newIdent ++ ";" else Del newIdent] --can't delete the one passed by `using' pragma
 
@@ -125,17 +126,17 @@ replacer3 _ _ pos (R_Pleq (Var v1) (Constant c)) table  = toState $ do
  let x = replaceSingle table clt (Var v1)
  case x of
   Var v -> return[Single pos $ Pleq v c]
-  _     -> err$cantbeleft (unId v1) "+=" pos 
+  _     -> err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Leftofbuiltin "+=" <!> Variab v1
 
 replacer3 _ _ pos (R_Mneq (Var v1) (Constant c)) table  = toState $ do
  clt <- askFst
  let x = replaceSingle table clt (Var v1)
  case x of
   Var v -> return[Single pos $ Mneq v c]
-  _     -> err$cantbeleft (unId v1) "-=" pos 
+  _     -> err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Leftofbuiltin "-=" <!> Variab v1
 
-replacer3 _ _ pos (R_Pleq (Constant c) _) _ = err$(cantbeleft_ c "+=")pos  
-replacer3 _ _ pos (R_Mneq (Constant c) _) _ = err$(cantbeleft_ c "-=")pos  
+replacer3 _ _ pos (R_Pleq (Constant c) _) _ = err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Leftofbuiltin "+=" <!> Consta c 
+replacer3 _ _ pos (R_Mneq (Constant c) _) _ = err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Leftofbuiltin "-=" <!> Consta c 
 replacer3 stat ns pos ((R_Pleq (Var v1) (Var v2))) table = toState $ basis Pleq "+=" (stat,ns,pos,v1,v2,table)
 replacer3 stat ns pos ((R_Mneq (Var v1) (Var v2))) table = toState $ basis Mneq "-=" (stat,ns,pos,v1,v2,table)
 
@@ -158,32 +159,36 @@ replacer3 stat ns pos (R_Wrt (Var ident)) table = toState $ do
   c     -> call1 stat ns pos (writeI,return c) table 
 
 --- Syntax Calls ---
-replacer3 stat narr pos (R_SynCall1 ident valuelist pos2 block) table = toState $ do  -- FIXME: syntax is not replaced
- newValuelist <- replaceSingles table valuelist
- newblock <- fromState $ makeNewBlock2(Block pos2 block)
- return [Single pos $ SynCall1 ident newValuelist pos2 newblock] 
- where
-  makeNewBlock2 :: Sent -> SCMEP Sents
-  makeNewBlock2 (Single _ ssent) = do
-   res <- replacer3 stat narr pos (toSimpleSent2 ssent) table
-   return res
-  makeNewBlock2 (Block  _ xs) = do
-   replaced <- forM xs makeNewBlock2 
-   return $ concat replaced
+replacer3 stat narr pos (R_SynCall1 ident valuelist pos2 block) table 
+ | isJust$ M.lookup ident table = err$toPE pos$ Step2 <!> Type <!> WrongCall <!> Definedasarg <!> Synt_2 ident 
+ | otherwise = toState $ do  -- FIXME: syntax is not replaced
+  newValuelist <- replaceSingles table valuelist
+  newblock <- fromState $ makeNewBlock2(Block pos2 block)
+  return [Single pos $ SynCall1 ident newValuelist pos2 newblock] 
+  where
+   makeNewBlock2 :: Sent -> SCMEP Sents
+   makeNewBlock2 (Single _ ssent) = do
+    res <- replacer3 stat narr pos (toSimpleSent2 ssent) table
+    return res
+   makeNewBlock2 (Block  _ xs) = do
+    replaced <- forM xs makeNewBlock2 
+    return $ concat replaced
    
 
-replacer3 stat narr pos (R_SynCall2 ident tvaluelist pos2 block) table = toState $ do  -- FIXME: syntax is not replaced
- newTValuelist <- replaceSingles2 table tvaluelist
- newblock <- fromState $ makeNewBlock2(Block pos2 block)
- return [Single pos $ SynCall2 ident newTValuelist pos2 newblock] 
- where
-  makeNewBlock2 :: Sent -> SCMEP Sents
-  makeNewBlock2 (Single _ ssent) = do
-   res <- replacer3 stat narr pos (toSimpleSent2 ssent) table
-   return res
-  makeNewBlock2 (Block  _ xs) = do
-   replaced <- forM xs makeNewBlock2 
-   return $ concat replaced
+replacer3 stat narr pos (R_SynCall2 ident tvaluelist pos2 block) table  
+ | isJust$ M.lookup ident table = err$toPE pos$ Step2 <!> Type <!> WrongCall <!> Definedasarg <!> Synt_2 ident 
+ | otherwise = toState $ do  -- FIXME: syntax is not replaced
+  newTValuelist <- replaceSingles2 table tvaluelist
+  newblock <- fromState $ makeNewBlock2(Block pos2 block)
+  return [Single pos $ SynCall2 ident newTValuelist pos2 newblock] 
+  where
+   makeNewBlock2 :: Sent -> SCMEP Sents
+   makeNewBlock2 (Single _ ssent) = do
+    res <- replacer3 stat narr pos (toSimpleSent2 ssent) table
+    return res
+   makeNewBlock2 (Block  _ xs) = do
+    replaced <- forM xs makeNewBlock2 
+    return $ concat replaced
    
 replacer3 _ _ pos R_SynBlock   _     = do
  
@@ -197,19 +202,19 @@ replacer3 _ _ pos R_SynBlock   _     = do
 ----------------------------------------------------------------------------------}
 call1 :: UserState -> NonEmpty MacroId -> SourcePos -> (Ident2, ValueList) -> ReplTable -> RCMEP [Sent]
 call1 stat (n:|ns) pos (ident,valuelist) table
- | isJust$ M.lookup ident table = err$newErrorMessage(Message $ "cannot call an argument "++showIdent ident)pos 
+ | isJust$ M.lookup ident table = err$toPE pos$ Step2 <!> Type <!> WrongCall <!> Definedasarg <!> Functi_2 ident 
  | otherwise = do
   let matchingInstance = [ a | a@(Func name (typelist,_)) <- (n:ns), name == ident , valuelist `matches` typelist]
   case matchingInstance of
    []    -> rpl3 (n:|ns) pos ident valuelist table stat
-   (x:_) -> err$newErrorMessage(Message$"cannot call "++show' x++" recursively inside "++show' n)pos
+   (x:_) -> err$toPE pos$Step2 <!> Type <!> WrongCall <!> Recursivecall n x
 
 call2 :: UserState -> NonEmpty MacroId -> SourcePos -> (Oper, SepList Oper Value, SepList Oper Value) -> ReplTable -> RCMEP [Sent]
 call2 stat (n:|ns) pos (oper,valuelist1,valuelist2) table = do
  let matchingInstance = [ a | a@(Operator o (typelist1,typelist2,_)) <- (n:ns), o == oper, valuelist1 `matches` typelist1, valuelist2 `matches` typelist2 ]
  case matchingInstance of
    []    -> rpl4 (n:|ns) pos oper (valuelist1,valuelist2) table stat
-   (x:_) -> err$newErrorMessage(Message$"cannot call "++show' x++" recursively inside "++show' n)pos  
+   (x:_) -> err$toPE pos$Step2 <!> Type <!> WrongCall <!> Recursivecall n x 
  
 -- replaces `variable += variable' or `variable -= variable' 
 basis :: (Ident2 -> Integer -> SimpleSent) -> String -> 
@@ -221,8 +226,8 @@ basis constr op (stat,ns,pos,v1,v2,table) = do
  case (x,k) of
   (Var v,Var y)      -> call2 stat ns pos (wrap op,return(Var v),return(Var y)) table
   (Var v,Constant c) -> return[Single pos $ constr v c] 
-  _                  -> err$cantbeleft (unId v1) op pos 
-  
+  _                  -> err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Leftofbuiltin op <!> Variab v1
+
 
 --- First, replace valuelist by the collision table. Then, replace valuelist by the replacement table. Then, expand the macro.
 --       outermacros         position    name     valuelist    replacement table                          collision table
@@ -231,7 +236,7 @@ rpl3 ms pos ident valuelist table stat = do
  newValuelist <- replaceSingles table valuelist -- replacement of valuelist
  (typelist,sent') <- lift $ getInstanceOfCall1 pos ident newValuelist stat 
  case sent' of 
-  Nothing -> err$newErrorMessage(Message$"cannot call function "++showIdent ident++" because it is defined as null")pos ;
+  Nothing -> err$toPE pos$Step2 <!> Type <!> WrongCall <!> Nulldefined <!> Functi_4 ident;
   Just sent -> do -- obtain what's in the function
    let mname = Func ident (typelist,Just sent) 
    let table2 = makeReplacerTable typelist newValuelist -- replace the parameters using the arguments
@@ -247,7 +252,7 @@ rpl4 ms pos oper (vlist1,vlist2) table stat = do
  newVlist2 <- replaceSingles table vlist2 -- replacement of valuelist 
  (tlist1,tlist2,sent') <- lift $ getInstanceOfCall2 pos oper newVlist1 newVlist2 stat
  case sent' of 
-  Nothing -> err$newErrorMessage(Message$"cannot call operator "++unOp oper++" because it is defined as null")pos 
+  Nothing -> err$toPE pos$Step2 <!> Type <!> WrongCall <!> Nulldefined <!> Operat_4 oper
   Just sent -> do
    let mname = Operator oper (tlist1,tlist2,Just sent) 
    let table2 = makeReplacerTable2 (tlist1,tlist2) (newVlist1,newVlist2)
@@ -291,14 +296,3 @@ rpl1_2 pos (Single _ ssent) table2 newMs stat = do
 rpl1_2 pos (Block  p xs)    table2 newMs stat = do
  results <- forM xs (\ssent -> rpl1_2 pos ssent table2 newMs stat)
  return [Block p $ concat results]
-
-
--- messages --
-cantdefine :: String -> SourcePos -> ParseError
-cantdefine d = newErrorMessage(Message$"cannot define " ++ d ++ "inside function/operator definition ")
-
-cantbeleft :: String -> String -> SourcePos -> ParseError
-cantbeleft c str = newErrorMessage(Message$showStr c++" is a constant and thus cannot be the left side of operator "++showStr str) 
-
-cantbeleft_ :: (Num a,Show a) => a -> String -> SourcePos -> ParseError
-cantbeleft_ c str = newErrorMessage(Message$showNum c++" is a constant and thus cannot be the left side of operator "++showStr str) 

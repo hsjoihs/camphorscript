@@ -8,16 +8,17 @@ import Camphor.Base.Base_Step2.Type
 import Camphor.SafePrelude
 import Camphor.Base.Base_Step2.Auxilary
 import Camphor.Base.Base_Step2.UserState
+import Camphor.Base.Base_Step2.Auxilary2
+import Camphor.Base.Base_Step2.ErrList
 import Camphor.Global.Synonyms
-import Camphor.Global.Utilities
 import Camphor.NonEmpty
 import Text.Parsec 
 
 contradiction :: [Fixity] -> Maybe Fixity
 contradiction [ ] = Nothing
 contradiction [_] = Nothing
-contradiction (InfixL _ _:xs) = listToMaybe $ filter isInfixR xs 
-contradiction (InfixR _ _:xs) = listToMaybe $ filter isInfixL xs 
+contradiction (InfixL _ _:xs) = listToMaybe $ filter isInfixR xs -- InfixR INTENTIONAL
+contradiction (InfixR _ _:xs) = listToMaybe $ filter isInfixL xs -- InfixL INTENTIONAL
 
 minimumsBy :: (a -> a -> Ordering) -> NonEmpty a -> NonEmpty a
 minimumsBy cmp_ (x_ :| xs_) = go2 cmp_ xs_ (x_:|[])
@@ -73,10 +74,7 @@ cmpOper pos stat o1 o2 = do
 getCall5Result :: SourcePos -> NonEmptyValue -> UserState -> Either ParseError (Oper,ValueList,ValueList)
 getCall5Result pos nEvaluelist stat = do
  fixes <- getOpsFixities' pos stat nEvaluelist
- minOp <- minimumsBy2 (comparing getFixValue) fixes (cantmix pos)
+ minOp <- minimumsBy2 (comparing getFixValue) fixes (\k k2 -> toPE pos$ Step2 <!> Type <!> WrongCall <!> Infixconflict k k2) -- borrowed from GHC 
  case minOp of
   InfixL _ _ -> breakByFirstMinimum (cmpOper pos stat) nEvaluelist 
   InfixR _ _ -> breakByLastMinimum (cmpOper pos stat) nEvaluelist 
-  
-cantmix :: SourcePos -> Fixity -> Fixity -> ParseError
-cantmix pos k k2 = newErrorMessage(Message$"cannot mix " ++ show' k ++ " and " ++ show' k2 ++ " in the same infix expression")pos  -- message borrowed from GHC  

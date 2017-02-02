@@ -11,7 +11,7 @@ import Camphor.SafePrelude hiding(reverse)
 import qualified Camphor.SafePrelude as P
 import Camphor.Listlike
 
-data SepList s a = SepList a [(s,a)] deriving(Show,Eq)
+data SepList s a = SepList a [(s,a)] deriving(Show,Eq,Ord)
 
 reverse :: SepList b a -> SepList b a
 reverse (SepList t ts) = uncurry SepList(reverse' (t,ts)) 

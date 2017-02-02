@@ -15,7 +15,7 @@ module Camphor.NonEmpty
 )where
 import Camphor.SafePrelude 
 import Camphor.Listlike
-data NonEmpty a = (:|)a [a] deriving(Show)
+data NonEmpty a = (:|)a [a] deriving(Show,Eq,Ord)
 
 infixr 5 :|
 infixr 5 `cons`

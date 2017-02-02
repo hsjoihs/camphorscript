@@ -9,9 +9,11 @@ import Camphor.SafePrelude
 import Camphor.SepList as Sep
 import Camphor.Base.Base_Step2.Type
 import Camphor.Base.Base_Step2.UserState
+import Camphor.Base.Base_Step2.Auxilary2
 import Camphor.Base.Base_Step2.New 
 import Camphor.Base.Base_Step2.Call5Result
 import Camphor.Base.Base_Step2.Auxilary
+import Camphor.Base.Base_Step2.ErrList
 import Camphor.Base.Base_Step2.Base_Step2_2(parser2_2)
 import Camphor.Base.Base_Step2.PCS_Parser(parser2')
 import Camphor.Base.Base_Step2.Replacer2(replacer3)
@@ -84,21 +86,21 @@ convert2_2 (Single pos  (Pragma prgm):xs) = case prgm of
  ("MEMORY":"using":vars) -> do
   let vars' = forM vars toIdent2
   case vars' of 
-   Left e -> err$newErrorMessage(Message$showStr e++" used in a `MEMORY using' pragma is not an identifier")pos 
+   Left e -> err$toPE pos $ Step2 <!> Prag <!> Memory <!> Using <!> NotValidIdent e
    Right vars_ -> 
     complex (convert2_2 xs) (return . setTmp vars_) (concatMap (\iden -> "assert_zero " ++ unId iden ++ ";") vars_) -- INTENTIONALLY LEFT AS convert2_2 
  _                       -> ("/*# " ++ unwords prgm ++ " #*/") <++?> convert2_3 xs
 
 convert2_2 (Single pos (Char iden)                  :xs) = complex (convert2_3 xs) (newC pos iden)                         ("char "   ++ unId iden ++ ";")
 convert2_2 (Single pos (Del  iden)                  :xs) = complex (convert2_3 xs) (newD pos iden)                         ("delete " ++ unId iden ++ ";")
-convert2_2 (Single pos (Infl fixity op)             :xs) = complex (convert2_3 xs) (newL pos fixity op)                     ""
-convert2_2 (Single pos (Infr fixity op)             :xs) = complex (convert2_3 xs) (newR pos fixity op)                     ""
+convert2_2 (Single pos (Infl fixity op)             :xs) = complex (convert2_3 xs) (newFix pos fixity op InfixL)            ""
+convert2_2 (Single pos (Infr fixity op)             :xs) = complex (convert2_3 xs) (newFix pos fixity op InfixR)            ""
 convert2_2 (Single pos (Func1 name typelist sent)   :xs) = complex (convert2_3 xs) (newF1 pos name typelist (Just sent))    ""
 convert2_2 (Single pos (Func1Nul name typelist)     :xs) = complex (convert2_3 xs) (newF1 pos name typelist Nothing    )    ""
 convert2_2 (Single pos (Func2 op tlist1 tlist2 sent):xs) = complex (convert2_3 xs) (newF2 pos op tlist1 tlist2 (Just sent)) ""
 convert2_2 (Single pos (Func2Nul op tlist1 tlist2)  :xs) = complex (convert2_3 xs) (newF2 pos op tlist1 tlist2 Nothing    ) ""
-convert2_2 (Single pos (Syntax1 name tl bl)         :xs) = complex (convert2_3 xs) (newS1 pos name tl bl)                   ""
-convert2_2 (Single pos (Syntax2 name ttl bl)        :xs) = complex (convert2_3 xs) (newS2 pos name ttl bl)                  ""
+convert2_2 (Single pos (Syntax1 name tl bl)         :xs) = complex (convert2_3 xs) (newS pos name (West tl) bl)                   ""
+convert2_2 (Single pos (Syntax2 name ttl bl)        :xs) = complex (convert2_3 xs) (newS pos name (East ttl) bl)                  ""
  
 convert2_2 (Single pos (Call1 name valuelist)          :xs) = complex2 (convert2_3 xs) (newK1 pos name valuelist) 
 convert2_2 (Single pos (Call2 op valuelist1 valuelist2):xs) = complex2 (convert2_3 xs) (newK2 pos op valuelist1 valuelist2) --- (val [op val])op(val [op val]);
@@ -113,33 +115,29 @@ convert2_2 (Block p ys:xs) = complex3 (convert2_3 xs) (newStat3getter p ys)
 {-----------------------------------------------------------
  -                   * end of convert2_2 *                 -
  -----------------------------------------------------------}
-
-
- 
-
  
 -- Function call
 newK1 :: SourcePos -> Ident2 -> ValueList -> ReaderT UserState (Either ParseError) Txt
 newK1 pos ident valuelist   
- | valuelistIdentConflict valuelist = err$newErrorMessage(Message$"overlapping arguments of function "++showIdent ident)pos 
+ | valuelistIdentConflict valuelist = err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Argoverlap <!> Functi ident
  | otherwise = do
   stat <- ask
   instnce <- lift $ getInstanceOfCall1 pos ident valuelist stat
   let funcname = Func ident instnce; (typelist,sent') = instnce
   case sent' of
-   Nothing   -> err$newErrorMessage(Message$"cannot call function "++getName funcname++" because it is defined as null")pos
+   Nothing   -> err$toPE pos$Step2 <!> Type <!> WrongCall <!> Nulldefined <!> Functi_4 ident
    Just sent -> replacer funcname (toSent2 sent) (makeReplacerTable typelist valuelist)   
    
 -- normalized operator call
 newK2 :: SourcePos -> Oper -> ValueList -> ValueList -> ReaderT UserState (Either ParseError) Txt
 newK2 pos op valuelist1 valuelist2
- | conflict $ filter isVar $ (toList' valuelist1 ++ toList' valuelist2) = err$newErrorMessage(Message$"overlapping arguments of operator "++showStr(unOp op))pos 
+ | conflict $ filter isVar $ (toList' valuelist1 ++ toList' valuelist2) = err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Argoverlap <!> Operat op
  | otherwise = do
   stat <- ask
   instnce <- lift $ getInstanceOfCall2 pos op valuelist1 valuelist2 stat
   let opname = Operator op instnce; (typelist1,typelist2,sent') = instnce
   case sent' of 
-   Nothing   -> err$newErrorMessage(Message$"cannot call operator "++getName opname++" because it is defined as null")pos 
+   Nothing   -> err$toPE pos$Step2 <!> Type <!> WrongCall <!> Nulldefined <!> Operat_4 op
    Just sent -> replacer opname sent (makeReplacerTable2 (typelist1,typelist2) (valuelist1,valuelist2)) 
  
 -- left-parenthesized operator call
@@ -164,9 +162,9 @@ newK5 _   (SepList(Constant _)[])      = return "" -- 123; is a nullary sentence
 newK5 pos (SepList(Var ident )[])      = do
  stat <- ask
  case getVFContents stat ident of
-  Nothing           -> err$newErrorMessage(Message$"identifier "++showIdent ident++" is not defined")pos 
+  Nothing           -> err$toPE pos$ Step2 <!> Access <!> WrongRef <!> Notdefined_3 <!> Idn ident
   Just Variable     -> return ""
-  Just (FunSyn _ _) -> err$newErrorMessage(Message$"cannot use variable "++showIdent ident++" because it is already defined as a function/syntax")pos  
+  Just (FunSyn _ _) -> err$toPE pos$ Step2 <!> Access <!> WrongRef <!> Definedasfunsyn <!> Idn ident
 
 newK5 pos (SepList x(ov:ovs)) = do
  stat <- ask
@@ -181,7 +179,9 @@ newStat3getter p ys = do
  let result = "{" ++ res ++ "}"
  newStat <- get
  let remainingVars = getTopVFBlock newStat
- if not $ M.null remainingVars then err$newErrorMessage(Message$"identifiers not deleted")pos else return ()
+ case map fst $ M.toList remainingVars of
+  [] -> return ()
+  (x:xs)  -> err$toPE pos$ Step2 <!> Finish <!> NotDel <!> Idns (x:|xs)
  deleteTopVFBlock_ (newErrorMessage(Message$"FIXME: code 0004 ")pos)
  return result
 
@@ -193,7 +193,7 @@ newSC1 _   name (SepList (Var i) _) (pos2,block)
   res <- fromState $ newStat3getter pos2 block 
   return $ "while(" ++ unId i ++ ")" ++ res
 newSC1 pos name vl (pos2,block)
- | valuelistIdentConflict vl = err$newErrorMessage(Message$"overlapping arguments of syntax "++showIdent name)pos  
+ | valuelistIdentConflict vl = err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Argoverlap <!> Synt name 
  | otherwise = do
   stat <- ask
   (instnce,repl) <- lift $ getInstanceOfSC pos name (West vl) stat
@@ -202,7 +202,7 @@ newSC1 pos name vl (pos2,block)
 --- syntax call 2  
 newSC2 :: SourcePos -> Ident2 -> TailValueList -> (SourcePos,Sents) -> ReaderT UserState (Either ParseError) String
 newSC2 pos name tvl (pos2,block)
- | valuelistIdentConflict tvl = err$newErrorMessage(Message$"overlapping arguments of syntax "++showIdent name)pos 
+ | valuelistIdentConflict tvl = err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Argoverlap <!> Synt name
  | otherwise = do
   stat <- ask
   (instnce,repl) <- lift $ getInstanceOfSC pos name (East tvl) stat

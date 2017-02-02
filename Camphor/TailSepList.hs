@@ -7,7 +7,7 @@ import Camphor.SafePrelude
 import Camphor.Listlike
 
 
-newtype TailSepList o v = TSL {unTSL :: [(o,v)]} deriving(Show,Eq)
+newtype TailSepList o v = TSL {unTSL :: [(o,v)]} deriving(Show,Eq,Ord)
 
 instance Functor (TailSepList o) where
  fmap f (TSL xs) = TSL $ map (\(o,v) -> (o,f v)) xs

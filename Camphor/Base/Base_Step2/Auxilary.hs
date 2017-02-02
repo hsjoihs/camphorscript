@@ -26,8 +26,8 @@ import Camphor.SafePrelude
 import qualified Camphor.SepList as S
 import Camphor.Base.Base_Step2.Type
 import Camphor.Base.Base_Step2.UserState
+import Camphor.Base.Base_Step2.Auxilary2
 import Camphor.Global.Synonyms
-import Camphor.Global.Utilities
 import Text.Parsec 
 import Camphor.NonEmpty
 import qualified Data.Map as M
@@ -118,26 +118,26 @@ canBeRightOf pos f2 f1
  | v2 > v1 = Right()
  | v2 < v1 = __mkmsg pos (getOpName f1) (getOpName f2)
  where v1 = getFixValue f1; v2 = getFixValue f2;
-canBeRightOf pos (InfixL _ nm1) (InfixL _ nm2) = __mkmsg pos nm1 nm2
-canBeRightOf pos (InfixL _ nm1) (InfixR _ nm2) = __mixed pos nm1 nm2
-canBeRightOf pos (InfixR _ nm1) (InfixL _ nm2) = __mixed pos nm1 nm2
-canBeRightOf _   (InfixR _ _  ) (InfixR _ _  ) = Right()
+canBeRightOf pos     (InfixL _ nm1)     (InfixL _ nm2) = __mkmsg pos nm1 nm2
+canBeRightOf pos nm1@(InfixL _ _  ) nm2@(InfixR _ _  ) = __mixed pos nm1 nm2
+canBeRightOf pos nm1@(InfixR _ _  ) nm2@(InfixL _ _  ) = __mixed pos nm1 nm2
+canBeRightOf _       (InfixR _ _  )     (InfixR _ _  ) = Right()
 
 canBeLeftOf :: SourcePos -> Fixity -> Fixity -> Either ParseError ()
 canBeLeftOf pos f2 f1
  | v2 > v1 = Right()
  | v2 < v1 = __mkmsg pos (getOpName f1) (getOpName f2)
  where v1 = getFixValue f1; v2 = getFixValue f2;
-canBeLeftOf pos (InfixR _ nm1) (InfixR _ nm2) = __mkmsg pos nm1 nm2
-canBeLeftOf pos (InfixR _ nm1) (InfixL _ nm2) = __mixed pos nm1 nm2
-canBeLeftOf pos (InfixL _ nm1) (InfixR _ nm2) = __mixed pos nm1 nm2
-canBeLeftOf _   (InfixL _ _  ) (InfixL _ _  ) = Right()
+canBeLeftOf pos     (InfixR _ nm1)     (InfixR _ nm2) = __mkmsg pos nm1 nm2
+canBeLeftOf pos nm1@(InfixR _ _  ) nm2@(InfixL _ _  ) = __mixed pos nm1 nm2
+canBeLeftOf pos nm1@(InfixL _ _  ) nm2@(InfixR _ _  ) = __mixed pos nm1 nm2
+canBeLeftOf _       (InfixL _ _  )     (InfixL _ _  ) = Right()
 
 __mkmsg :: SourcePos -> Oper -> Oper -> Either ParseError a
-__mkmsg pos nm1 nm2 = Left $ newErrorMessage(Message$"operator "++showStr (unOp nm2)++" has smaller fixity than its outer operator "++showStr (unOp nm1))pos
+__mkmsg pos nm1 nm2 = Left $ toPE pos $ Step2 <!> Type <!> WrongCall <!> Smaller nm2  <!> Operat_3 nm1
  
-__mixed :: SourcePos -> Oper -> Oper -> Either ParseError a
-__mixed pos nm1 nm2 = Left $ newErrorMessage(Message$"operator "++showStr (unOp nm1)++" and operator "++showStr (unOp nm2)++" has opposite fixity and thus cannot coexist")pos  
+__mixed :: SourcePos -> Fixity -> Fixity -> Either ParseError a
+__mixed pos nm1 nm2 = Left $ toPE pos $ Step2 <!> Type <!> WrongCall <!> Infixconflict nm1 nm2 
   
 toIdentList :: TypeList -> [Ident2]
 toIdentList (S.SepList (_,t) xs) = t:[x|(_,(_,x))<-xs]

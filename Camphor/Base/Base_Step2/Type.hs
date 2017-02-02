@@ -30,7 +30,7 @@ type ReplTable = M.Map Ident2 Value
 type CollisionTable = M.Map Ident2 (Ident2,Bool) -- bool : is this variable defined by the `using' pragma?
 
 -- Base_Step2_2
-data Upgrade a b = Single a b | Block a [Upgrade a b] deriving(Show,Eq)
+data Upgrade a b = Single a b | Block a [Upgrade a b] deriving(Show,Eq,Ord)
 type Extra = SourcePos
 type Sent  = Upgrade Extra SimpleSent
 type Sents = [Sent]
@@ -51,7 +51,7 @@ data SimpleSent =
  Call5 ValueList   | Call3 Oper ValueList ValueList   |  Call4 [(Value,Oper)] ValueList |
  Pleq Ident2 Integer | Mneq Ident2 Integer |   Rd Ident2    |  Wrt Ident2 | 
  Syntax1 Ident2 TypeList Sent | Syntax2 Ident2 TailTypeList Sent | SynBlock 
- deriving(Show,Eq)
+ deriving(Show,Eq,Ord)
  
 data SimpleSent2 = 
  R_Scolon | R_Char Ident2 |   R_Del Ident2   |   R_Sp String   | R_Comm String |
@@ -65,14 +65,14 @@ data SimpleSent2 =
  R_Call5 ValueList  | R_Call3 Oper ValueList ValueList   |  R_Call4 [(Value,Oper)] ValueList |
  R_Pleq Value Value | R_Mneq Value Value |   R_Rd Value    |  R_Wrt Value |
  R_Syntax1 Ident2 TypeList Sent | R_Syntax2 Ident2 TailTypeList Sent | R_SynBlock 
- deriving(Show,Eq)
+ deriving(Show,Eq,Ord)
 
-data Type = CNSTNT_CHAR | CONST_CHAR | CHAR_AND deriving(Show,Eq)
+data Type = CNSTNT_CHAR | CONST_CHAR | CHAR_AND deriving(Show,Eq,Ord)
 data Value = Var Ident2 | Constant Integer deriving(Show,Eq,Ord)
 type ParserState = [SourcePos]
 
 -- UserState
-data Fixity = InfixL Integer Oper | InfixR Integer Oper deriving(Show,Eq) 
+data Fixity = InfixL Integer Oper | InfixR Integer Oper deriving(Show,Eq,Ord) 
 type TmpStat = [Ident2]
 
 -- PCS_Parser

@@ -2,7 +2,7 @@
 {-# OPTIONS -Wall #-}
 module Camphor.Base.Base_Step2.UserState
 (UserState(),emptyState
-,OpInfo,MacroId(..),VFInstance,OpInstance,SyntaxInstance,PrettyPrint,VFInfo(..) -- types
+,OpInfo,VFInfo(..) -- types
 
 -- accesses private members
 ,getTmp,setTmp,clearTmp
@@ -12,34 +12,18 @@ module Camphor.Base.Base_Step2.UserState
 ,getVFContents
 ,getOpContents,addOpContents,addOpFixity
 ,addVFBlock,getTopVFBlock{- ,deleteTopVFBlock-},deleteTopVFBlock_ 
-
--- does not access private members
-,isInfixL,isInfixR
-,typelistIdentConflict
-,valuelistIdentConflict
-,getName,getOpName
-,getFixValue
-,matches,matches2
-,overlaps,overlaps'
-,show'
 )where
 import Camphor.SafePrelude
-import Camphor.SepList as Sep
 import Camphor.Base.Base_Step2.Type
+import Camphor.Base.Base_Step2.Auxilary2
 import Camphor.Global.Synonyms
 import Camphor.Global.Utilities
 import qualified Data.Map as M
 import Text.Parsec.Pos(newPos)
 import Camphor.NonEmpty as NE
 import Control.Monad.State hiding(fix)
-import Camphor.Listlike
-import Camphor.TailSepList
 
-type VFInstance = (TypeList, Maybe Sent) -- Maybe Sent ::: block or `null function'
-type OpInstance = (TypeList,TypeList, Maybe Sent2)
 type OpInfo = (Fixity,[OpInstance])
-data MacroId = Func Ident2 VFInstance | Operator Oper OpInstance | Syn Ident2 SyntaxInstance deriving(Show,Eq)  
-type SyntaxInstance = (Between TailTypeList TypeList,Sent) -- list, block
 data VFInfo = Variable | FunSyn [VFInstance] [SyntaxInstance] deriving(Show,Eq)
 
 -- private
@@ -47,83 +31,6 @@ type VFList = NonEmpty(M.Map Ident2 VFInfo)
 type OpList = M.Map Oper OpInfo
 data UserState = UserState VFList OpList (Maybe TmpStat) deriving(Show)
 
-
-getName :: MacroId -> String
-getName (Func ident _) = showIdent ident
-getName (Syn ident _) = showIdent ident
-getName (Operator oper _ ) = unOp oper
-
-overlaps :: TypeList -> TypeList -> Bool
-overlaps (SepList (typ,_) xs) (SepList (typ2,_) xs2) 
- | typ `clashesWith` typ2 = length xs == length xs2 && all id (zipWith transform xs xs2)
- | otherwise              = False
- where
-  transform :: (Oper,(Type,Ident2)) -> (Oper,(Type,Ident2)) -> Bool
-  transform (op3,(typ3,_)) (op4,(typ4,_)) = op3 == op4 && typ3 `clashesWith` typ4
-  CNSTNT_CHAR `clashesWith` CHAR_AND      = False
-  CHAR_AND    `clashesWith` CNSTNT_CHAR   = False
-  _           `clashesWith` _             = True
-  
-overlaps' :: TailTypeList -> TailTypeList -> Bool
-overlaps' xs xs2 = length' xs == length' xs2 && all id (zipWith transform (unTSL xs) (unTSL xs2))
- where
-  transform :: (Oper,(Type,Ident2)) -> (Oper,(Type,Ident2)) -> Bool
-  transform (op3,(typ3,_)) (op4,(typ4,_)) = op3 == op4 && typ3 `clashesWith` typ4
-  CNSTNT_CHAR `clashesWith` CHAR_AND      = False
-  CHAR_AND    `clashesWith` CNSTNT_CHAR   = False 
-  _           `clashesWith` _             = True  
-
-typelistIdentConflict :: (Listlike f) => f (Type,Ident2) -> Bool
-typelistIdentConflict = conflict . map snd . toList'
-
-valuelistIdentConflict :: (Listlike f) => f Value -> Bool
-valuelistIdentConflict = conflict . filter isVar . toList'
-  
-isInfixL :: Fixity -> Bool
-isInfixL (InfixL _ _) = True
-isInfixL (InfixR _ _) = False
-
-isInfixR :: Fixity -> Bool
-isInfixR = not . isInfixL
-
-
-class PrettyPrint a where
- show' :: a -> String
-
-instance PrettyPrint Fixity where
- show' (InfixL int op) = showStr(unOp op)++"[infixl "++showNum int++"]"
- show' (InfixR int op) = showStr(unOp op)++"[infixr "++showNum int++"]"
- 
-instance PrettyPrint Value where
- show'(Var x) = unId x
- show'(Constant n) = showNum n
- 
--- (Type, Ident2, [(Oper, Type, Ident2)]) 
-instance PrettyPrint TypeList where
- show' (SepList (typ, ident) xs) = show' typ ++ " " ++ unId ident ++ " " ++ concatMap (\(o,(t,i)) -> unOp o ++ " " ++ show' t ++ " " ++ unId i ++ " ") xs
- 
-instance PrettyPrint Type where
- show' CNSTNT_CHAR = "constant char"
- show' CONST_CHAR = "const char"
- show' CHAR_AND = "char&"
- 
-instance PrettyPrint MacroId where
- show' (Func ident (typelist,_)) = "function "++unId ident++"("++show' typelist++"){ .. }"
- show' (Operator oper (typelist1,typelist2,_)) = "operator ("++unOp oper++")("++show' typelist1++";"++show' typelist2++"){ .. }"
- show' (Syn ident (West tl,  _))  = "syntax " ++ unId ident ++ "(" ++ show' tl ++ "){block}{ .. }"
- show' (Syn ident (East ttl, _)) = "syntax " ++ unId ident ++ "(" ++ show' ttl ++ "){block}{ .. }" 
-
-instance PrettyPrint TailTypeList where
- show' (TSL ttl) = concatMap (\(o,(t,i)) -> unOp o ++ " " ++ show' t ++ " " ++ unId i ++ " ") ttl
-
-
-getFixValue :: Fixity -> Integer 
-getFixValue (InfixL fix _) = fix
-getFixValue (InfixR fix _) = fix
-
-getOpName :: Fixity -> Oper
-getOpName (InfixL _ op) = op
-getOpName (InfixR _ op) = op
 
 emptyState :: UserState
 emptyState = UserState deffun defop Nothing
@@ -207,31 +114,8 @@ addOpContents stat@(UserState vflist oplist tmp) op (typelist1,typelist2,sent) (
      | any id [ typelist1 `overlaps` tlist1 && typelist2 `overlaps` tlist2 | (tlist1,tlist2,_) <- list ] = Left e
      | otherwise = Right $ (typelist1,typelist2,sent):list
 
- 
 -- containsOp :: UserState -> Oper -> Bool
 -- containsOp (UserState _ oplist _) oper = oper `M.member` oplist
 
 getOpContents :: UserState -> Oper -> Maybe OpInfo
 getOpContents (UserState _ oplist _) oper = M.lookup oper oplist
-
-zipMatch :: [(Oper,Value)] -> [(Oper,(Type,a))] -> [Bool]
-zipMatch = zipWith (\(op2,val2)(op3,(typ3,_)) -> op2 == op3 && val2 `isTypeof` typ3)
-
-matches :: ValueList -> TypeList -> Bool
-matches (SepList val ovs) (SepList (typ,_) otis)
- | length ovs /= length otis    = False -- wrong length
- | not(val `isTypeof` typ)      = False -- wrong type
- | all id $ zipMatch ovs otis   = True
- | otherwise                    = False
-  
-matches2 :: TailValueList -> TailTypeList -> Bool
-matches2 tvl ttl
- | length' tvl /= length' ttl                = False -- wrong length
- | all id $ zipMatch (unTSL tvl) (unTSL ttl) = True
- | otherwise                                 = False 
-
-isTypeof :: Value -> Type -> Bool
-isTypeof _            CONST_CHAR  = True
-isTypeof (Var      _) CHAR_AND    = True
-isTypeof (Constant _) CNSTNT_CHAR = True
-isTypeof _            _           = False
