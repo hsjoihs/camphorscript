@@ -42,8 +42,8 @@ parser3' = do{sents<-many sentences3;eof;return sents;}
 sentences3 :: Stream s m Char => ParsecT s u m Set3
 sentences3 = def <|> del <|> add <|> sub <|> while <|> block <|> read_ <|> write <|> nul <|> emp <|> comm 
  where 
-  def   = try(do{string "char"  ;spaces';xs<-identifier;spaces'; char ';';return$ Top(DEF,xs)})
-  del   = try(do{string "delete";spaces';xs<-identifier;spaces'; char ';';return$ Top(DEL,xs)})
+  def   = do{try(do{string "char"  ;spaces';});xs<-identifier;spaces'; char ';';return$ Top(DEF,xs)}
+  del   = do{try(do{string "delete";spaces';});xs<-identifier;spaces'; char ';';return$ Top(DEL,xs)}
   add   = try(do{xs<-identifier ;spaces';char '+';spaces';char '=';spaces'; ys<-byte;spaces';char ';';return$ Mid(ADD,xs,ys)})
   sub   = try(do{xs<-identifier ;spaces';char '-';spaces';char '=';spaces'; ys<-byte;spaces';char ';';return$ Mid(SUB,xs,ys)})
   read_ = try(do{string "read"  ;spaces';char '(';spaces';xs<-identifier;spaces';char ')';spaces';char ';';return$ Top(REA,xs)})

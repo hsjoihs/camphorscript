@@ -1,8 +1,11 @@
 ﻿To do
-エラーテスト充実化
 Step2作成
 R_Step4(NouDarake -> CompiledCamphorScript)の作成
-エラーメッセージの可読性向上
+
+
+ver 0.5.2  22:12 2014/04/28 (月)
+流れ.txtを改訂
+エラーメッセージの可読性向上(Step7を除く)
 
 ver 0.5.1   1:00 2014/04/28 (月)
 autotest.batのファイル一覧はbat\autotestlist.txtから読み取るように変更

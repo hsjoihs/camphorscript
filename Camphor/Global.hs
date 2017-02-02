@@ -55,8 +55,8 @@ spaces1' = skipMany1 space'
 space' :: Stream s m Char => ParsecT s u m Char
 space' = 
   space <|> 
-  do{string "/*"; manyTill anyChar(try(string "*/"));return ' ';} <|> 
-  do{string "//";many(noneOf "\n");newline;return ' '} <?> "space, block comment or line comment"
+  (do{string "/*"; manyTill anyChar(try(string "*/"));return ' ';} <?> "block comment") <|> 
+  (do{string "//";many(noneOf "\n");newline;return ' '} <?> "line comment")
 
 
 
@@ -65,7 +65,7 @@ nbnls :: Stream s m Char => ParsecT s u m ()
 nbnls=skipMany nbnl
 
 nbnl :: Stream s m Char => ParsecT s u m Char
-nbnl = nbsp <|> try(do{string "/*"; manyTill anyChar(try(string "*/"));return ' ';}) <?> "non-breaking space or block comment"
+nbnl = ( nbsp <?> "non-breaking space" )<|> (try(do{string "/*"; manyTill anyChar(try(string "*/"));return ' ';}) <?> "block comment")
 
 
 strP :: Stream s m Char => ParsecT s u m Char -> ParsecT s u m String
@@ -114,7 +114,7 @@ unesc '0' = '\0'
 unesc x   = x -- '\?"
   
 newline' :: Stream s m Char => ParsecT s u m ()
-newline' = do{newline;return()} <|> do{string "//";many(noneOf "\n");newline;return()} <?> "new line or line comment"
+newline' = (do{newline;return()} <?> "new line") <|> (do{string "//";many(noneOf "\n");newline;return()} <?> "line comment")
   
 type Ident=String
 type Txt=String
