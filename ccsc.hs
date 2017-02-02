@@ -64,8 +64,15 @@ type Stat = (Maybe FilePath,Maybe FilePath,Either String(Int,Int)) -- in,out,fro
 dispatch5 :: Options -> Stat -> IO () 
 dispatch5 ("-o":outf:xs)    (inf        ,_   ,frmTo     ) = dispatch5 xs (     inf,Just outf,frmTo)
 dispatch5 ["-o"]             _                            = abort("argument to '-o' is missing")
-dispatch5 (['-','C',x,y]:xs)(inf        ,outf,_         ) = dispatch5 xs (     inf,outf      ,Right(read[x],read[y]))
-dispatch5 (['-','C',x]  :xs)(inf        ,outf,_         ) = dispatch5 xs (     inf,outf      ,Right(read[x],read[x]))
+
+dispatch5 (o@['-','C',x,y]:xs)(inf        ,outf,_         ) = case (readMay[x],readMay[y]) of
+ (Just x',Just y') -> dispatch5 xs (inf,outf,Right(x',y'))
+ _                 -> abort ("incorrect format "++show o++" of option -Cnum[num]")    
+  
+dispatch5 (o@['-','C',x]  :xs)(inf        ,outf,_         ) = case readMay [x] of 
+ Nothing  -> abort ("incorrect format "++show o++" of option -Cnum[num]")
+ Just x' -> dispatch5 xs (inf,outf,Right(x',x'))
+ 
 dispatch5 ("-E":xs)         (inf        ,outf,_         ) = dispatch5 xs (     inf,outf      ,Right(1      ,1      ))
 dispatch5 (inf:xs)          (_          ,outf,frmTo     ) = dispatch5 xs (Just inf,outf      ,frmTo)
 

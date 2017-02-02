@@ -6,7 +6,7 @@ module Camphor.Base_Step2
 
 ) where
 
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,(!!))
+import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,(!!),read)
 import Camphor.Global
 import Text.Parsec hiding(token)
 import Control.Applicative hiding ((<|>),many)

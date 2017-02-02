@@ -11,8 +11,9 @@ module Camphor.Global
 ,lib_dir
 ,Ident,Txt
 ,lift,(<$$>)
+,readEith,readMay
 )where
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,(!!))
+import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,(!!),read)
 import Control.Monad
 import Text.Parsec hiding(token)
 import Data.Char(isSpace,ord)
@@ -97,3 +98,13 @@ lift = fmap . fmap
 
 (<$$>) :: (Functor f, Functor f1) => (a -> b) -> f (f1 a) -> f (f1 b)
 (<$$>) = lift
+
+readEith :: Read a => e -> String -> Either e a
+readEith err s = case [x | (x,t) <- reads s, ("","") <- lex t] of
+                [x] -> Right x
+                _ -> Left err
+
+readMay :: Read a => String -> Maybe a
+readMay s = case [x | (x,t) <- reads s, ("","") <- lex t] of
+                [x] -> Just x
+                _ -> Nothing

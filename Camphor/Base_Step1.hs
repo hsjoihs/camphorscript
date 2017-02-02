@@ -14,7 +14,7 @@ module Camphor.Base_Step1
 ,token
 ) where
 
-import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,(!!))
+import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,(!!),read)
 import Camphor.Global
 import Text.Parsec hiding(token)
 import Text.Parsec.Error
