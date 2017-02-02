@@ -3,7 +3,7 @@
 module Camphor.Base_Step2_2
 (parser2_2
 ,parser2'
-,Upgrade(..),Sent,Sents,Type,Value,TypeList1,ValueList
+,Upgrade(..),Sent,Sents,Type,Value,TypeList1,ValueList,Extra(..)
 )where
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error,undefined)
 import Camphor.Global.Synonyms
@@ -18,8 +18,8 @@ parser2_2 = do{xs <- many sent; eof; return xs;}
  
 data Upgrade a = Single a | Block [Upgrade a] deriving(Show)
 
-type Extra = ()
-type Sent  = Upgrade (Maybe Extra,SimpleSent)
+data Extra = X deriving(Show,Eq,Ord,Bounded,Enum)
+type Sent  = Upgrade (Extra,SimpleSent)
 type Sents  = [Sent]
 
 type TypeList1 = (Type, Ident, [(Oper, Type, Ident)])
@@ -33,7 +33,7 @@ data SimpleSent =
 
 
 simple :: SimpleSent -> Sent
-simple x = Single(Nothing,x)
+simple x = Single(X,x)
  
  
 sent :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
@@ -119,7 +119,7 @@ op_call1 = do{
 
 ---  (値【演算子 値】)演算子(値 【演算子 値】);
 op_call2 :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
-op_call2 = do{
+op_call2 = try(do{
  
  _paren;                             __;  
  vs1 <- getValueList;                __;
@@ -132,12 +132,12 @@ op_call2 = do{
  _nerap; 
  
  _scolon; return(simple$Call2 op vs1 vs2);  --- Same as op_call1 because it always means the same thing
- }
+ })
  
  
 --- (値【演算子 値】)演算子 値 【演算子 値】 ; 
 op_call3 :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
-op_call3 = do{
+op_call3 = try(do{
  
  _paren;                             __;  
  vs1 <- getValueList;                __;
@@ -148,27 +148,27 @@ op_call3 = do{
  vs2 <- getValueList;                __;
 
  _scolon; return(simple$Call3 op vs1 vs2); 
- }
+ })
 
  
  
 ---   値【演算子 値】 演算子(値 【演算子 値】);
 op_call4 :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
-op_call4 = do{
+op_call4 = try(do{
  xs <- many(do{a <- value; __; b <- _op; return(a,b)}); __;
  _paren;                                               __;
  vs <- getValueList;                                   __;
  _nerap;                                               __;
  _scolon; return(simple$Call4 xs vs);
  
- }
+ })
  
 ---   値【演算子 値】 演算子 値 【演算子 値】 ;
 op_call5 :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity Sent
-op_call5 = do{
+op_call5 = try(do{
  vs <- getValueList; __; _scolon; return(simple$Call5 vs)
  
- }
+ })
  
 
 data Type = CNSTNT_CHAR | CONST_CHAR | CHAR_AND deriving(Show,Eq)
@@ -195,7 +195,7 @@ type ValueList = (Value,[(Oper,Value)])
 getValueList :: Stream s Identity (SourcePos, Tok) => ParsecT s u Identity ValueList
 getValueList = do
  g <- value;  __;
- h <- many(do{a <- _op; __; b <- value; return(a,b)})
+ h <- many(do{a <- _op; __; b <- value; __; return(a,b)})
  return(g,h)
  
 

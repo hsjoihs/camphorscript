@@ -86,7 +86,8 @@ include  = do
  char '>'
  nbnls
  newline'
- return(INCLU,"",fi) 
+ if('.' `elem` fi)then return(INCLU,"",fi) else return(INCLU,"",fi++"."++default_lib_extension)
+ 
   
   
 

@@ -1,0 +1,145 @@
+/* start of "lib\\stdcalc.txt" */
+
+
+
+/* a=0; */
+void clear(char& a) {
+	while(a){a-=1;}
+}
+
+void (=)(char& a;constant char N){
+	clear(a);a+=N;
+}
+
+
+/* start of "lib\\eq_til.txt" */
+
+void (+=~)(char& a;char& z){
+	while(z){a+=1;z-=1;}
+}	/* a+= ~z */
+
+void (+=~)(char& a,char& b;char& z){
+	while(z){a+=1;b+=1;z-=1;}
+}	/* (a,b)+= ~z*/
+
+void (+=~)(char& a;char& z * constant char N){
+	while(z){a+=N;z-=1;}
+}	/* a+= ~z_star_N */
+
+
+void (-=~)(char& a;char& z){
+	while(z){a-=1;z-=1;}
+}	/* a-= ~z */
+
+void (-=~)(char& a,char& b;char& z){
+	while(z){a-=1;b-=1;z-=1;}
+}	/* (a,b)-= ~z*/
+
+void (-=~)(char& a;char& z * constant char N){
+	while(z){a-=N;z-=1;}
+}	/* a-= ~z_star_N */
+
+
+void (=~)(char& a;char& z){
+	clear(a);
+	a+= ~z;
+}	/* a= ~z */
+
+void (=~)(char& a,char& b;char& z){
+	clear(a);clear(b);
+	(a,b)+= ~z;
+}	/* (a,b)= ~z*/
+
+void (=~)(char& a;char& z * constant char N){
+	clear(a);
+	a+= ~z*N;
+}	/* a= ~z_star_N */
+
+
+
+/*  end  of "lib\\eq_til.txt" */
+
+/* start of "lib\\eq_bang_til.txt" */
+
+void (+=!~)(char& a;char& z){
+	a+=1;
+	while(z){clear(z);a-=1;}
+}	/* a+= !~z*/
+
+void (+=!~)(char& a,char& b;char& z){
+	a+=1; b+=1;
+	while(z){clear(z);a-=1;b-=1;}
+}	/* (a,b)+= !~z*/
+
+void (=!~)(char& a;char& z){
+	clear(a); a+= !~z;
+}	/* a= !~z*/
+
+void (=!~)(char& a,char& b;char& z){
+	clear(a); clear(b); (a,b)+= !~z;
+}	/* (a,b)= !~z*/
+
+
+/*  end  of "lib\\eq_bang_til.txt" */
+
+
+void (+=)(char& a;char& b){
+	char c;
+	(a,c)+= ~b;
+	b+= ~c;
+	delete c;
+}
+
+void (-=|~)(char& a;char& b){
+	/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
+	char c;char d;
+	while(b)
+	{
+		(c,d)+= ~a;
+		   a += ~d;
+		while(c){
+			clear(c);
+			a-=1;
+		}
+		b-=1;
+	}
+	delete c;delete d;
+}
+
+
+
+
+/*  end  of "lib\\stdcalc.txt" */
+char a;char b;char c;char d;char e;char f;char g;
+
+a += 6;
+b += ~a * 8;
+b -=1;/* b=47 */
+
+read(c);
+
+c -|= ~b;/* using (d,e)*/
+delete b;
+d += c;  /* using e*/
+
+while(c){
+	clear(c);
+	e+=11;
+}
+delete c;
+
+e -=| ~d;/*using (f,g)*/
+delete d;
+
+while(e){
+	clear(e);
+	f+=10;
+	g+= ~f * 11;
+	
+	write(g);
+	g+= 7;write(g);
+	g-= 8;write(g);
+	g-=11;write(g);
+	g+= 3;write(g);
+	g+=13;write(g);
+}

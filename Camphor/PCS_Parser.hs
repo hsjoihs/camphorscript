@@ -25,10 +25,10 @@ data Tok =
 
 
 tok :: Stream s m Char => ParsecT s u m (SourcePos,Tok)
-tok = _char <|> _delete <|> _ident <|> _num <|> _scolon <|>
+tok = _char <|> _delete  <|> _num <|> _scolon <|>
  _paren <|> _nerap <|> _brace <|> _ecarb <|>
  _comm <|> _op <|> _infixl <|> _infixr <|>
- _void <|> _sp <|> _cnstnt <|> _const 
+ _void <|> _sp <|> _cnstnt <|> _const <|> _ident
 
 _paren :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
 _paren  = do{char '('; p <- getPosition; return (p,PAREN)}
@@ -54,7 +54,7 @@ _char :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
 _char    = do{try(do{string "char"     ; notFollowedBy alphaNumBar}); p <- getPosition; return (p,CHAR)}
 
 _delete :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
-_delete  = do{try(do{string "_delete"  ; notFollowedBy alphaNumBar}); p <- getPosition; return (p,DELETE)} 
+_delete  = do{try(do{string "delete"  ; notFollowedBy alphaNumBar}); p <- getPosition; return (p,DELETE)} 
 
 _infixl :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
 _infixl  = do{try(do{string "infixl"   ; notFollowedBy alphaNumBar}); p <- getPosition; return (p,INFIXL)} 
@@ -63,7 +63,7 @@ _infixr :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
 _infixr  = do{try(do{string "infixr"   ; notFollowedBy alphaNumBar}); p <- getPosition; return (p,INFIXR)} 
 
 _void :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
-_void    = do{try(do{string "_void"    ; notFollowedBy alphaNumBar}); p <- getPosition; return (p,VOID)} 
+_void    = do{try(do{string "void"    ; notFollowedBy alphaNumBar}); p <- getPosition; return (p,VOID)} 
 
 _cnstnt :: Stream s m Char =>  ParsecT s u m (SourcePos,Tok)
 _cnstnt  = do{try(do{string "constant" ; notFollowedBy alphaNumBar}); p <- getPosition; return (p,CNSTNT)} 

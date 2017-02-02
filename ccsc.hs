@@ -38,7 +38,7 @@ info=[
  "-Cnum[num]  compile from step 'num' to step 'num'",
  "-E          C preprocess only",
  "-m num      limit the number of memory used in the compiled Brainf*ck",
- "con         use stdin or stdout instead of infile or outfile"
+ "con         uses stdin or stdout instead of infile or outfile"
  ]
  
 main :: IO()
