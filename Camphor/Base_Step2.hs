@@ -21,67 +21,105 @@ step2 file str = do
  
  
 convert2 :: FilePath -> [Tok] -> Either ParseError Txt
-convert2 file ts = convert2' file NULL ts -- Right(show ts) {- for debug -}
+convert2 file ts = convert2' file (NULL,()) ts -- Right(show ts) {- for debug -}
 
 
-data Parser2State = NULL | Def1 | Def2 Ident | Del1 | Del2 Ident deriving(Show) 
+data ParseState = 
+ NULL | Def1 | Def2 Ident | Del1 | Del2 Ident |
+ Ifxl1 | Ifxl2 Integer | Ifxl3 Integer | Ifxl4 Integer String | Ifxl5 Integer String |
+ Ifxr1 | Ifxr2 Integer | Ifxr3 Integer | Ifxr4 Integer String | Ifxr5 Integer String 
+ deriving(Show) 
+
+type OtherStates = ()
+type Parser2State = (ParseState,OtherStates)
 
 convert2' :: FilePath -> Parser2State -> [Tok] -> Either ParseError Txt
 
+
 -- empty etc.
-convert2' _     NULL      []               = Right ""
-convert2' path  stat      (SP sp      :xs) = (sp++)                    <$>convert2' path  stat        xs
-convert2' path  stat      (COMM sp    :xs) = (("/*"++sp++"*/")++)      <$>convert2' path  stat        xs
+convert2' _    (NULL     ,_) []              = Right ""
+convert2' path (stat     ,s)(SP sp      :xs) = (sp++)                    <$>convert2' path (stat     ,s)xs
+convert2' path (stat     ,s)(COMM sp    :xs) = (("/*"++sp++"*/")++)      <$>convert2' path (stat     ,s)xs --
 
 
 -- char a;
-convert2' path  NULL      (CHAR       :xs) =                              convert2' path  Def1        xs
-convert2' path  Def1      (IDENT idnt :xs) =                              convert2' path (Def2 idnt)  xs
-convert2' path (Def2 idnt)(SCOLON     :xs) = (("char "++idnt++";")++)  <$>convert2' path  NULL        xs
+convert2' path (NULL     ,s)(CHAR       :xs) =                              convert2' path (Def1     ,s)xs
+convert2' path (Def1     ,s)(IDENT idnt :xs) =                              convert2' path (Def2 idnt,s)xs
+convert2' path (Def2 idnt,s)(SCOLON     :xs) = (("char "++idnt++";")++)  <$>convert2' path (NULL     ,s)xs --
 
-convert2' path  Def1      (x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
-convert2' path (Def2 _)   (x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Def1     ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Def2 _   ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
 
 
 -- delete a;
-convert2' path  NULL      (DELETE     :xs) =                              convert2' path  Del1        xs
-convert2' path  Del1      (IDENT idnt :xs) =                              convert2' path (Del2 idnt)  xs
-convert2' path (Del2 idnt)(SCOLON     :xs) = (("delete "++idnt++";")++)<$>convert2' path  NULL        xs
+convert2' path (NULL     ,s)(DELETE     :xs) =                              convert2' path (Del1     ,s)xs
+convert2' path (Del1     ,s)(IDENT idnt :xs) =                              convert2' path (Del2 idnt,s)xs
+convert2' path (Del2 idnt,s)(SCOLON     :xs) = (("delete "++idnt++";")++)<$>convert2' path (NULL     ,s)xs --
 
-convert2' path  Del1      (x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
-convert2' path (Del2 _)   (x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Del1     ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Del2 _   ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
 
 
 -- ;
-convert2' path  NULL      (SCOLON     :xs) = (";"++)                   <$>convert2' path  NULL        xs
+convert2' path (NULL     ,s)(SCOLON     :xs) = (";"++)                   <$>convert2' path (NULL     ,s)xs
 
 
 -- infixl
-convert2' path  NULL      (INFIXL     :xs) = undefined
+convert2' path (NULL      ,s)(INFIXL     :xs) =                              convert2' path (Ifxl1     ,s)xs
+convert2' path (Ifxl1     ,s)(NUM nm     :xs) =                              convert2' path (Ifxl2 nm  ,s)xs
+convert2' path (Ifxl2 n   ,s)(PAREN      :xs) =                              convert2' path (Ifxl3 n   ,s)xs
+convert2' path (Ifxl3 n   ,s)(OP op      :xs) =                              convert2' path (Ifxl4 n op,s)xs
+convert2' path (Ifxl4 n op,s)(NERAP      :xs) =                              convert2' path (Ifxl5 n op,s)xs
+convert2' path (Ifxl5 n op,s)(SCOLON     :xs) =                              convert2' path (NULL      ,q)xs 
+ where q = undefined s n op
+
+convert2' path (Ifxl1     ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Ifxl2 _   ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Ifxl3 _   ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Ifxl4 _ _ ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Ifxl5 _ _ ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
 
 
 -- infixr
-convert2' path  NULL      (INFIXR     :xs) = undefined
+convert2' path (NULL      ,s)(INFIXR     :xs) =                              convert2' path (Ifxr1     ,s)xs
+convert2' path (Ifxr1     ,s)(NUM nm     :xs) =                              convert2' path (Ifxr2 nm  ,s)xs
+convert2' path (Ifxr2 n   ,s)(PAREN      :xs) =                              convert2' path (Ifxr3 n   ,s)xs
+convert2' path (Ifxr3 n   ,s)(OP op      :xs) =                              convert2' path (Ifxr4 n op,s)xs
+convert2' path (Ifxr4 n op,s)(NERAP      :xs) =                              convert2' path (Ifxr5 n op,s)xs
+convert2' path (Ifxr5 n op,s)(SCOLON     :xs) =                              convert2' path (NULL      ,q)xs 
+ where q = undefined s n op
 
+convert2' path (Ifxr1     ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Ifxr2 _   ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Ifxr3 _   ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Ifxr4 _ _ ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
+convert2' path (Ifxr5 _ _ ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
 
 -- void
-convert2' path  NULL      (VOID       :xs) = undefined
+convert2' path (NULL     ,s)(VOID       :xs) = undefined path xs s
 
 
 -- func()
-convert2' path  NULL      (IDENT idnt :xs) = undefined
+convert2' path (NULL     ,s)(IDENT idnt :xs) = undefined path xs s idnt
 
 
 -- (func)(a); or (+ =)(a;b);
-convert2' path  NULL      (PAREN      :xs) = undefined
+convert2' path (NULL     ,s)(PAREN      :xs) = undefined path xs s
 
 
 -- { ... }
-convert2' path  NULL      (BRACE      :xs) = undefined
+convert2' path (NULL     ,s)(BRACE      :xs) = undefined path xs s
 
 
 -- others(NUM,NERAP,ECARB,CNSTNT,OP,CONST)
-convert2' path  NULL      (x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
+convert2' path (NULL     ,_)(x          :_ ) = makeErr (unExpect$show' x)(path++"step2'") 0 1 
 
 
 
+{-
+data Tok = 
+ CHAR  | DELETE | IDENT Ident   |   NUM Integer   |  
+ PAREN | NERAP  | BRACE | ECARB | SCOLON | CNSTNT |
+ COMM String    |   OP String   | INFIXL | INFIXR |
+ VOID  | CONST  |   SP String                       deriving(Show)
+-}
