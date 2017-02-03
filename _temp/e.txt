@@ -1,2 +1,0 @@
-char a = ''';
-write(a);

@@ -1,6 +1,0 @@
-char a;char b;
-a+=1;
-while(a){
-	write(b);
-	read(b);
-}
