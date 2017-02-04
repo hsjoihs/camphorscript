@@ -7,7 +7,7 @@ module CamphorR.R_Base_Step4
 import Prelude hiding(head,tail,init,last,minimum,maximum,foldl1,foldr1,scanl1,scanr1,(!!),read,error)
 import Camphor.Global.Synonyms
 import Text.Parsec hiding(token)
-import Control.Applicative hiding ((<|>),many)
+import Control.Applicative ()--hiding ((<|>),many)
 import Camphor.Base.ND_parser
 import qualified Data.Set as S
 
