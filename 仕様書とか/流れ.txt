@@ -14,4 +14,4 @@ nouDarake
  *↓Step7(記号化)         			{- symbolization -}
 Brianf*ck_spaced
  *↓Step8(空白削除)       			{- comment deletion -}
-Brainf*ck_indented
+Brainf*ck_compressed
