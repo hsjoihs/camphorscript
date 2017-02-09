@@ -307,7 +307,7 @@ token = tIdentifier <|> tComment <|> tComment2 <|> tOperator <|> -- Comm first, 
   tIdentifier = identifier
   tNumeral    = try(many1 digit)
   tOperator   = unOp <$> operator
-  tChar       = try(char '\'' <:> noneOf "'" <:> string "'"   )
+  tChar       = try(char '\'' <:> noneOf "'\\" <:> string "'" ) <|> try(char '\'' <:> char '\\' <:> oneOf "abfnrtv0?'\"\\" <:> string "'")
   tString     = try(char '"'  <:> many(noneOf "\"") <++> string "\"")
   tSpecial    = strP $ oneOf "#$().;{\\}[]"
   tComment    = try(do{string"/*";xs <- manyTill anyChar (try (string "*/"));return$"/*"++(xs>>=escStar)++"*/" })
