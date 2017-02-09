@@ -13,4 +13,6 @@ xShow 12
 qUsingInherit 13
 qSynUseCollision 14
 xFizzbuzz 15
+yEscSeq 16
+yEscSeq2 17
 ; HCCS -> CCS_for

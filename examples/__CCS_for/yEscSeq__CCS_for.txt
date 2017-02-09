@@ -1,0 +1,14 @@
+
+char a;a+=7;write(a);
+char b;b+=8;write(b);
+char c;c+=12;write(c);
+char d;d+=10;write(d);
+char e;e+=13;write(e);
+char f;f+=9;write(f);
+char g;g+=11;write(g);
+char h;write(h);
+char i;i+=63;write(i);
+char j;j+=39;write(j);
+char k;k+=34;write(k);
+char l;l+=92;write(l);
+
