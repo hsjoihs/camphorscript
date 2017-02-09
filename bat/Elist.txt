@@ -12,4 +12,6 @@ yFileDirInclude 11
 xIsNumber_u 12
 xShow 13
 xFizzbuzz 14
+yEscSeq 15
+yEscSeq2 16
 ; CS -> PCS

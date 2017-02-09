@@ -20,4 +20,6 @@ qSynUseCollision 19
 xFizzbuzz 20
 yNewOp 21
 yNewOp2 22
+yEscSeq 23
+yEscSeq2 24
 ; PCS -> HCCS

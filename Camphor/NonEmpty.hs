@@ -47,7 +47,10 @@ searchBy f (x :| (x2:xs)) = case f x of
 instance Functor NonEmpty where
  fmap f (y :| ys) = f y :| map f ys
 
-
+instance Applicative NonEmpty where
+ pure = nE
+ (<*>) = ap
+ 
 instance Monad NonEmpty where
  return = nE
  m >>= f = concat'(fmap f m)

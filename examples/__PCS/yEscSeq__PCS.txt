@@ -1,0 +1,13 @@
+char a ='\a';write(a);
+char b ='\b';write(b);
+char c ='\f';write(c);
+char d ='\n';write(d);
+char e ='\r';write(e);
+char f ='\t';write(f);
+char g ='\v';write(g);
+char h ='\0';write(h);
+char i ='\?';write(i);
+char j ='\'';write(j);
+char k ='\"';write(k);
+char l ='\\';write(l);
+

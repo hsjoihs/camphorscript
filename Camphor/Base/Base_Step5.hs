@@ -159,7 +159,7 @@ convert5' m f((n ,st    ,ls),Bot(WHI ide,Ns v):xs) = case lookup' ide (toList st
      else do
     (table2,res2) <- convert5'  m f((n  ,st               ,ls),xs) -- left
     return (table2,"mov " <+> show k <+> "; loop; " <+> res1 <+> "mov " <+> show k <+> "; pool; " <+> res2)
-	{-++ "begin_static_assert "++show k++"; "-}
+    {-++ "begin_static_assert "++show k++"; "-}
    Nothing                                      -> makeErr(msgIde ide "is not defined")(f ++ "--step5'") 0 0
    
 convert5' m f((n ,st    ,ls),Bot(BLO ,Ns v):xs) =  do

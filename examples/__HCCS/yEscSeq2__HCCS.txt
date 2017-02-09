@@ -1,0 +1,13 @@
+char a;a+=7;
+char b;b+=8;
+char c;c+=12;
+char d;d+=10;
+char e;e+=13;
+char f;f+=9;
+char g;g+=11;
+char h;
+char i;i+=63;
+char j;j+=39;
+char k;k+=34;
+char l;l+=92;
+
