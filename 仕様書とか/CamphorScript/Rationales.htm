@@ -11,6 +11,8 @@
 .container:before, .container:after{content: ""; display: table;}
 .container:after{clear: both;}
 </style>
+<script src="files/jquery-3.1.1.min.js" type="text/javascript"></script>
+<script src="files/main.js"></script>
 </head>
 <body style="background-color:white;">
 <h3>0. 序文</h3>
@@ -68,9 +70,10 @@ Brainf*ck_compressed
 Stepの数字が飛んでいるのは、空いている番号のところに将来処理を追加する予定だからである。
 さて、百聞は一見に如かずというし、CamphorScriptが順にどうやって変換されていくかを見ていこう。（例として、サンプルファイル内の<code>xShow</code>を用いる）
 </pre>
+<button>表示/非表示を切り替え</button>
 <div class="container2">
 <div class="container">
-<div class="box"><table><tr><td>CamphorScript</td></tr><tr><td><pre class="codes">
+<div class="box"><table><tr><td>CamphorScript</td></tr><tr><td/><pre class="codes">
 #include &lt;stdcalc&gt;
 #include &lt;div&gt;
 char a;char b; char c; char d;
