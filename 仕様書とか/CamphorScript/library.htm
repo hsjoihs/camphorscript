@@ -21,11 +21,29 @@ includeしているライブラリ：無し<br>
 <hr>
 <h3>2. &lt;eq_til&gt;</h3>
 includeしているライブラリ：&lt;fixdecl&gt;
-
+<table>
+<tr><td>定義</td><td>使い方</td><td>意味</td><td>同等の挙動をするC</td></tr>
+<tr><td>void (+=~)(char&amp; a;char&amp; z)</td><td>a+= ~z;</td><td>zを破壊しながらそれをaに足し合わせる</td><td>a+=z, z=0;</td></tr>
+<tr><td>void (+=~)(char&amp; a,char&amp; b;char&amp; z)</td><td>(a,b)+= ~z;</td><td>zを破壊しながらそれをaとbに足し合わせる</td><td>a+=z, b+=z, z=0;</td></tr>
+<tr><td>void (+=~)(char&amp; a;char&amp; z * constant char N)</td><td>a+= ~z*N;</td><td>zを破壊しながら、Nをz回aに足す</td><td>a+=z*N, z=0;</td></tr>
+<tr><td>void (-=~)(char&amp; a;char&amp; z)</td><td>a-= ~z;</td><td>zを破壊しながらそれをaから引く</td><td>a-=z, z=0;</td></tr>
+<tr><td>void (-=~)(char&amp; a,char&amp; b;char&amp; z)</td><td>(a,b)-= ~z;</td><td>zを破壊しながらそれをaやbから引く</td><td>a-=z, b-=z, z=0;</td></tr>
+<tr><td>void (-=~)(char&amp; a;char&amp; z * constant char N)</td><td>a-= ~z*N;</td><td>zを破壊しながら、Nをz回aから引く</td><td>a-=z*N, z=0</td></tr>
+<tr><td>void (=~)(char&amp; a;char&amp; z)</td><td>a= ~z;</td><td>zを破壊しながらそれをaにコピー</td><td>a=z, z=0;</td></tr>
+<tr><td>void (=~)(char&amp; a,char&amp; b;char&amp; z)</td><td>(a,b)= ~z;</td><td>zを破壊しながらそれをaとbにコピー</td><td>a=z, b=z, z=0;</td></tr>
+<tr><td>void (=~)(char&amp; a;char&amp; z * constant char N)</td><td>a= ~z*N;</td><td>zを破壊しながら、aをN*zにする</td><td>a=z*N, z=0;</td></tr>
+</table>
 <hr>
 
-<h3>1. &lt;eq_bang_til&gt;</h3>
+<h3>3. &lt;eq_bang_til&gt;</h3>
 includeしているライブラリ：&lt;fixdecl&gt;
+<table>
+<tr><td>定義</td><td>使い方</td><td>意味</td><td>同等の挙動をするC</td></tr>
+<tr><td>void (+=!~)(char& a;char& z)</td><td>a+= !~z;</td><td></td><td>a+= !z, z=0;</td></tr>
+<tr><td>void (+=!~)(char& a,char& b;char& z)</td><td>(a,b)+= !~z;</td><td></td><td>a+= !z, b+= !z, z=0;</td></tr>
+<tr><td>void (=!~)(char& a;char& z)</td><td>a= !~z;</td><td></td><td>a= !z, z=0;</td></tr>
+<tr><td>void (=!~)(char& a,char& b;char& z)</td><td>(a,b)= !~z;</td><td></td><td>a= !z, b= !z, z=0;</td></tr>
+</table>
 <hr>
 
 
