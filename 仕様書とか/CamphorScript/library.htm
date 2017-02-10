@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>ライブラリ解説</title>
+</head>
+<body>
+<h3>0. 依存関係</h3>
+<img src="files/dependency.png" />
+<hr>
+<h3>1. &lt;fixdecl&gt;</h3>
+includeしているライブラリ：無し<br>
+以下の演算子の優先順位が定義されている。
+<table>
+<tr><td>infixl 0</td><td>(,)</td></tr>
+<tr><td>infixr 5</td><td>(=), (+=), (-=), (=~), (+=~), (-=~), (+=!~), (=!~), (-|=), (-|=~)</td></tr>
+<tr><td>infixl 35</td><td>(+), (-), (+~), (-~)</td></tr>
+<tr><td>infixl 40</td><td>(*), (%), (*~), (/), (/~)</td></tr>
+<tr><td></td><td></td></tr>
+</table>
+<hr>
+<h3>2. &lt;eq_til&gt;</h3>
+includeしているライブラリ：&lt;fixdecl&gt;
+
+<hr>
+
+<h3>1. &lt;eq_bang_til&gt;</h3>
+includeしているライブラリ：&lt;fixdecl&gt;
+<hr>
+
+
+
+
+
+<h3>1. &lt;stdcalc&gt;</h3>
+includeしているライブラリ：&lt;fixdecl&gt;, &lt;eq_til&gt;, &lt;eq_bang_til&gt;
+<hr>
+
+<h3>1. &lt;div&gt;</h3>
+includeしているライブラリ：&lt;stdcalc&gt;
+<hr>
+
+<h3>1. &lt;stdcalc2&gt;</h3>
+includeしているライブラリ：&lt;stdcalc&gt;
+<hr>
+
+<h3>1. &lt;conditional&gt;</h3>
+includeしているライブラリ：&lt;stdcalc2&gt;
+<hr>
+
+<h3>n. 記号の読み方</h3>
+一部のライブラリは代表的な演算子がファイル名となっているが、その際の対応表を示す。
+<pre>
+= eq
+! bang
++ plus
+- min
+* star
+~ til
+% per
+& and
+, com
+/ div
+: col
+< lt
+> gt
+? q
+@ at
+| pipe
+^ hat
+</pre>
+</body>
+</html>
