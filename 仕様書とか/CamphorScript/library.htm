@@ -36,7 +36,7 @@ includeしているライブラリ：&lt;fixdecl&gt;
 <hr>
 
 <h3>3. &lt;eq_bang_til&gt;</h3>
-includeしているライブラリ：&lt;fixdecl&gt;
+includeしているライブラリ：&lt;fixdecl&gt;<br>
 <table>
 <tr><td>定義</td><td>使い方</td><td>意味</td><td>同等の挙動をするC</td></tr>
 <tr><td>void (+=!~)(char& a;char& z)</td><td>a+= !~z;</td><td></td><td>a+= !z, z=0;</td></tr>
@@ -46,12 +46,17 @@ includeしているライブラリ：&lt;fixdecl&gt;
 </table>
 <hr>
 
-
-
-
-
 <h3>1. &lt;stdcalc&gt;</h3>
-includeしているライブラリ：&lt;fixdecl&gt;, &lt;eq_til&gt;, &lt;eq_bang_til&gt;
+includeしているライブラリ：&lt;fixdecl&gt;, &lt;eq_til&gt;, &lt;eq_bang_til&gt;<br>
+<table>
+<tr><td>定義</td><td>使い方</td><td>意味</td><td>同等の挙動をするC</td></tr>
+<tr><td>void clear(char& a)</td><td>clear(a);</td><td>aを0にする</td><td>a=0;</td></tr>
+<tr><td>void (=)(char& a;constant char N)</td><td>a=N;</td><td>aに定数Nを代入</td><td>a=N;</td></tr>
+<tr><td>void (+=)(char& a;char& b)</td><td>a+=b;</td><td>aにbを足す</td><td>a+=b;</td></tr>
+<tr><td>void (+=)(char& a;constant char N *~ char& z)</td><td>a+= N * ~z;</td><td>zを破壊しながら、Nをz回aに足す</td><td>a += N * z, z=0;</td></tr>
+<tr><td>void (-|=~)(char& a;char& b)</td><td>a -|= ~b;</td><td></td><td>a= (a&gt;b ? a-b : 0), b=0;</td></tr>
+</table>
+
 <hr>
 
 <h3>1. &lt;div&gt;</h3>
