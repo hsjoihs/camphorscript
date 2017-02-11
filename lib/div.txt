@@ -1,5 +1,5 @@
 #include <stdcalc>
-infixr 5 (+<-~); infixr 5 (+<--~); infixr 5 (<-~); infixl 40 (/); infixr 5 (-|=);
+infixr 5 (+<-~); /*infixr 5 (+<--~);*/ infixr 5 (<-~); infixl 40 (/); infixr 5 (-|=);
 void (-|=) (char& a; const char N)
 {
 	char b; b+=N;
@@ -38,7 +38,7 @@ void sprint(char& x1, char& x2, char& x3 +<-~ char& a)
 	(x1,x2)+ <- ~k/10;
 	delete k;
 }
-
+/*
 void (+<--~) (char& quot, char& rem; char& a / const char N)
 {
 	char orig; char a3; char not_; char tmp; char a2;
@@ -56,3 +56,4 @@ void (+<--~) (char& quot, char& rem; char& a / const char N)
 	}
 	delete orig; delete a3; delete not_; delete tmp; delete a2;
 }
+*/
