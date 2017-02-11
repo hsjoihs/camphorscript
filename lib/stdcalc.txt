@@ -27,7 +27,7 @@ void (+=)(char& a;char& b){
 
 void (+=)(char& a;constant char N *~ char& z){
 	while(z){a+=N;z-=1;}
-}	/* a+= ~z*N */
+}	/* a+= N* ~z */
 
 void (-|=~)(char& a;char& b){
 	/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
