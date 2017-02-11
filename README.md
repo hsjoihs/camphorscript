@@ -1,4 +1,5 @@
 # camphorscript
+A C-like language designed to help write brainf*ck
 
 ```
 #include <stdcalc>
