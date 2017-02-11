@@ -38,7 +38,7 @@ includeしているライブラリ：&lt;fixdecl&gt;
 </table>
 <hr>
 
-<h3>3. &lt;eq_bang_til&gt;</h3>
+<h3>1. &lt;eq_bang_til&gt;</h3>
 includeしているライブラリ：&lt;fixdecl&gt;<br>
 演算子優先順位宣言：無し<br>
 関数・演算子定義
@@ -67,15 +67,35 @@ includeしているライブラリ：&lt;fixdecl&gt;, &lt;eq_til&gt;, &lt;eq_ban
 <hr>
 
 <h3>1. &lt;div&gt;</h3>
-includeしているライブラリ：&lt;stdcalc&gt;
+includeしているライブラリ：&lt;stdcalc&gt;<br>
+演算子優先順位宣言：
+<table>
+<tr><td>infixr 5</td><td>(+&lt;-~), (&lt;-~), (-|=)</td></tr>
+<tr><td>infixl 40</td><td>(/)</td></tr>
+</table>
+関数・演算子定義
+<table>
+<tr><td>定義</td><td>使い方</td><td>意味</td><td>同等の挙動をするC</td></tr>
+<tr><td>void (-|=) (char&amp; a; const char N)</td><td>a -|= N;</td><td></td><td>a= (a&gt;b ? a-b : 0);</td></tr>
+<tr><td>void (+=)(char&amp;a,char&amp;b;char&amp;c)</td><td>(a,b) += c;</td><td></td><td>a+=c, b+=c;</td></tr>
+<tr><td>void (+&lt;-~) (char&amp; quot, char&amp; rem; char&amp; a / const char N)</td><td>(quot, rem)+ &lt;- ~a / N;</td><td></td><td>quot += a / N, rem += a % N, a=0;</td></tr>
+<tr><td>void sprint(char&amp; x1, char&amp; x2, char&amp; x3 +&lt;-~ char&amp; a)</td><td>sprint(x1, x2, x3 + &lt;- ~a);</td><td></td><td>x3 += a % 10, x2 += (a/10) % 10, x1 += a/100, a=0;</td></tr>
+</table>
 <hr>
 
 <h3>1. &lt;stdcalc2&gt;</h3>
-includeしているライブラリ：&lt;stdcalc&gt;
+includeしているライブラリ：&lt;stdcalc&gt;<br>
+
+<table>
+<tr><td>FIXME</td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td></tr>
+</table>
+
 <hr>
 
 <h3>1. &lt;conditional&gt;</h3>
-includeしているライブラリ：&lt;stdcalc2&gt;
+includeしているライブラリ：&lt;stdcalc2&gt;<br>
 <hr>
 
 <h3>n. 記号の読み方</h3>
