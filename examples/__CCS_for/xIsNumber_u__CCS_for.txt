@@ -1,5 +1,5 @@
 
-/* a=0; *//* a+= ~z *//* (a,b)+= ~z*//* a+= ~z_star_N *//* a-= ~z *//* (a,b)-= ~z*//* a-= ~z_star_N *//* a= ~z *//* (a,b)= ~z*//* a= ~z_star_N *//* a+= !~z*//* (a,b)+= !~z*//* a= !~z*//* (a,b)= !~z*//* a+= ~z_star_N */
+/* a=0; *//* a+= ~z *//* (a,b)+= ~z*//* a+= ~z_star_N *//* a-= ~z *//* (a,b)-= ~z*//* a-= ~z_star_N *//* a= ~z *//* (a,b)= ~z*//* a= ~z_star_N *//* a+= !~z*//* (a,b)+= !~z*//* a= !~z*//* (a,b)= !~z*//* a+= N_star_ ~z */
 char a;char b;char c;char d;char e;char f;char g;
 
 a+=6;

@@ -1,6 +1,24 @@
 
-/* a=0; *//* a+= ~z *//* (a,b)+= ~z*//* a+= ~z_star_N *//* a-= ~z *//* (a,b)-= ~z*//* a-= ~z_star_N *//* a= ~z *//* (a,b)= ~z*//* a= ~z_star_N *//* a+= !~z*//* (a,b)+= !~z*//* a= !~z*//* (a,b)= !~z*//* a+= ~z_star_N */
-
+/* a=0; *//* a+= ~z *//* (a,b)+= ~z*//* a+= ~z_star_N *//* a-= ~z *//* (a,b)-= ~z*//* a-= ~z_star_N *//* a= ~z *//* (a,b)= ~z*//* a= ~z_star_N *//* a+= !~z*//* (a,b)+= !~z*//* a= !~z*//* (a,b)= !~z*//* a+= N_star_ ~z */
+/*infixr 5 (+<--~);*/   /*
+void (+<--~) (char& quot, char& rem; char& a / const char N)
+{
+	char orig; char a3; char not_; char tmp; char a2;
+	while(a)
+	{
+		(tmp,orig) +=~ a; a +=~ tmp;
+		a -|= N;
+		(a2,a3) += a;
+		
+		not_ += 1;
+		while(a2){clear(a2); quot+=1;}
+		while(a3){clear(a3); clear(not_);}		
+		while(not_){not_-=1; rem+= orig;} 
+		clear(orig);
+	}
+	delete orig; delete a3; delete not_; delete tmp; delete a2;
+}
+*/
 char a;char b; char c; char d;
 read(a);
 b+=48; c+=48; d+=48;
