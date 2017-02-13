@@ -144,7 +144,7 @@ void (+=)(char&a;char&b){
 
 void (+=)(char&a;constant char N *~char&z){
 	while(z){a+=N;z-=1;}
-}	/* a+= ~z_star_N */
+}	/* a+= N_star_ ~z */
 
 void (-|=~)(char&a;char&b){
 	/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
