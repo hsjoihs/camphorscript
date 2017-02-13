@@ -43,6 +43,163 @@
 ・Cっぽい見た目
 ・高い拡張性（できるだけライブラリに委任する）
 </pre>
+
+<h3>3. CamphorScript概略</h3>
+<hr>
+<pre>
+まずは見た目から。
+C譲りのフリーフォーマットであって、改行やら空白やらはどこにでも入れられる。ただ、当然<code>char</code>を<code>ch ar</code>と書いたり、<code>char a</code>を<code>chara</code>と書くことはできない。
+<u>ただし、演算子だけは例外である。</u><code>+=</code>を<code>+ =</code>と表記することは、<u>Cなどとは異なり<b>許される。</b></u>そういう設計にした理由は後述する。
+
+まず、Brainf*ckを吐き出せる以上、8命令のどれにも対応する処理が存在しなければならないはずだ。
+とはいえ、メモリの管理を変数に委託していることで、<code>&lt;</code>と<code>&gt;</code>は不要となる。
+<code>+</code>と<code>-</code>については、<code>+=</code>と<code>-=</code>という演算子を組み込むことで解決した。当然左オペランドは変数、右オペランドは定数である。Brainf*ckにおいて<code>++++++++</code>と表されるコードは、普通に<code>a+=8;</code>と表現される。
+<code>.</code>と<code>,</code>はそれぞれ<code>write()</code>と<code>read()</code>という組み込み関数。引数は変数。
+さて、最大の問題児が<code>[</code>と<code>]</code>である。特に、逆翻訳時に問題を起こす。
+現状のCamphorScriptでは、<code>[</code>と<code>]</code>の中に<code>&lt;</code>と<code>&gt;</code>が同数入っているときのみ、逆翻訳を受け付ける。そうでなければエラーを吐く。
+それにはそれなりの理由がある。配列に対応できてないのもこれが原因だが、そもそも現状のCamphorScriptはあくまでアドレスを変数として抽象化するにとどまっている。
+ループでアドレスがズレられると、当然困るというわけだ。
+
+さて、メモリを変数として抽象化するということは、どうせなら色々実現したい機能というのもあるわけだ。特に、メモリの再利用は実装したい。
+逆に言うと、Brainf*ckにおいて同一メモリを時間で切り分けて用いるなんて日常茶飯事だが、高級言語みを出すにはやっぱりシステムの側でリサイクルできるようにしないとということである。
+
+Cなら普通に「使い終わった変数は放置」という方針で構わんだろう。しかし、今相手にしているのはCamphorScript。未使用メモリは0であることが期待される。
+だからこその<code>delete</code>である。<code>delete</code>は中身が0であることをプログラマ側が保証してからでないと使ってはいけないが、それはつまりこういうことである。
+
+なお、変数のスコープはブロックスコープである。ブロック内で宣言した変数はブロック外からは参照できない…というだけなら普通の言語と同じだが、CamphorScriptはもう一ひねりある。
+「ブロック内で宣言した変数は、ブロック内で<code>delete</code>しないとコンパイルエラー」という仕様になっているのだ。
+まあこれはメモリを浪費しないためのある意味当然の仕様である。
+
+
+関数。お分かりのとおり、Brainf*ckに関数やサブルーチンなどというものは無いわけで、関数は全て（組み込みを除いて）マクロとして実現されている。
+さて、マクロを使うと疑似的に参照渡しができるのはあまりにも有名な話である。Cのswapマクロを思い出していただければわかるだろう。
+そこで考えた。Brainf*ckではお呼びでない「型システム」を、マクロの特性を表現するために濫用できないだろうか？と。
+ということでできたのが<code>char&amp;</code>と<code>constant char</code>である。
+</pre>
+<table>
+<tr><td>仮引数の型</td><td>真引数</td></tr>
+<tr><td><code>char&amp;</code></td><td>変数</td></tr>
+<tr><td><code>constant char</code></td><td>定数</td></tr>
+</table>
+<pre>具体的には、関数は次のように記述する。</pre>
+<table><tr><td><pre class="codes">
+void clear(char& a) {
+	while(a){a-=1;}
+}
+</pre></td></tr></table><pre>（この関数は<code>&lt;stdcalc&gt;</code>ライブラリにて既に実装済み）
+
+この関数を定義したうえで、<code>clear(b);</code>と書くと、（CCS→HCCSのときに）<code>{ while(b){b-=1;} }</code>と変換される。
+要するに、結局はマクロである。
+
+
+関数内で新しい変数宣言をすることも可能である。しかし、その場合にも制約がある。
+Cの場合、関数内で宣言された変数の実体はコールスタック上に取られる領域である。
+しかし、CamphorScriptやBrainf*ckにコールスタックなどというものはないし、そもそも関数やサブルーチンではなくマクロである。
+ということで、当然ではあるが、「先頭で新たな変数を定義し、終わりで全て<code>delete</code>する」ことによって代用とする。
+関数はブロックに展開されるので、内部で宣言した変数にも同様の扱いが必要ということである。
+<span style="font-size: 70%">というか、現状だと「関数宣言の時点ではdeleteがないことは検出されず、ブロックに展開された時に初めて検出され、コンパイルエラーとなる」というクソ仕様である。これはクソなので直さねばならない。</span>
+
+
+
+さて、演算子だが、これはちょっと特殊な仕様になっている。
+そもそもCamphorScriptはあくまでBrainf*ckでのプログラミングを補助するための存在であり、決してCのサブセットをBrainf*ckでエミュレートするためのものではない。
+故に、C的要素はBrainf*ckのイディオムを体現するために用いるべきであって、決してCなどのイディオムをBrainf*ckに持ち込むために用いるべきではない。
+
+
+さて、Brainf*ckで頻出<sup>[独自研究]</sup>するイディオム（に相当するCamphorScript）に、次のようなものがある。
+</pre>
+<table><tr><td><pre class="codes">
+while(a){
+	a-=1;
+	b+=1;
+	c+=1;
+}
+</pre></td></tr></table>
+<pre>
+これは、結果として「aの値を破壊し0にしながら、bとcにaの値を加える」という操作を意味する。つまり、Cなら普通以下のように書く操作である。
+</pre>
+<table><tr><td><pre class="codes">
+b+=a;
+c+=a;
+a=0;
+</pre></td></tr></table>
+<pre>
+しかし、これはあくまでCのやり方である。Cにおいて空気のように自然な<code>b+=a;</code>という処理は、Brainf*ckではそれほど自然な考え方ではない。
+それどころか、Cの<code>b+=a;</code>をBrainf*ckで再現するには、その部分として上記の<code>while(a){ a-=1; b+=1; c+=1; }</code>を含んだコードを書く必要がある。
+故に、<code>while(a){ a-=1; b+=1; c+=1; }</code>を<code>b+=a; c+=a; a=0;</code>と表現するわけにはいかない。
+
+まずは、一行減った
+</pre>
+<table><tr><td><pre class="codes">
+while(a){
+	a-=1;
+	b+=1;
+}
+</pre></td></tr></table>
+<pre>
+を考えよう。Cの<code>b+=a; a=0;</code>というコードだが、これを当然1つの式として表すべきである。
+もちろん、<code>clear_the_first_and_add_to_the_second(a,b);</code>という関数とすれば解決される問題ではあるが、
+このような長い関数名はどう考えても実用的でも直感的でもない。故に、Haskellをパクり、演算子を自作できるようにしたのである。
+
+私は、この演算子に<code>+=~</code>という名前を与えた。<code>b +=~ a</code>という風に用いる。この<code>~</code>はビット演算的な意味ではなく、C++のデストラクタの<u><b>ニュアンス</b></u>を表すものである。
+<code>b+=a</code>を行いながら、同時にaが壊されていくというニュアンスを表現しようと思ったのである。
+なお、演算子として使える文字は、<code>!%&*+,-:<=>?@^/|~</code>である。
+
+
+さて、具体的な宣言の書き方について説明する。結論から言うと、以下のような形になる。</pre>
+<table><tr><td><pre class="codes">
+void (+=~)(char&amp;b<strong style="font-size:large;color:red">;</strong>char&amp;a){
+	while(a){b+=1;a-=1;}
+}
+</pre></td></tr></table>
+<pre>
+引数の区切りはコンマではなく、セミコロンである。これは重要なところである。理由は後ほど判明する。
+ちなみに、宣言の形に合わせ、<code>(+=~)(b;a);</code>とも呼べる仕様になっている。使い道があるかどうかは知らん。
+また、CamphorScriptでは演算子中にスペースを入れることを許容している。これは、<code>a+= ~b</code>という表記をすることで、
+あたかも<code>~b</code>が「bを破壊しながらbの元の値を返す演算子」であってその結果を<code>a+=</code>しているかのように見せることができるようにするためである。
+
+こいつを説明したところで、次に<code>while(a){ a-=1; b+=1; c+=1;}</code>を説明していく。
+これまた、<code>clear_the_first_and_add_to_the_second_and_to_the_third(a,b,c);</code>という関数名にはしたくないわけであるが、今度は3引数。2項演算子では当然扱えない。
+じゃあどうするか？答えは簡単。「こういうのも演算子で扱えるように文法を拡張する」のである。
+
+<code>&lt;eq_til&gt;</code>ライブラリ内での実際の定義を見てみよう。
+</pre>
+<table><tr><td><pre class="codes">
+void (+=~)(char& a<strong style="font-size:large;color:blue">,</strong>char& b<strong style="font-size:large;color:red">;</strong>char& z){
+	while(z){a+=1;b+=1;z-=1;}
+}	/* (a,b)+= ~z*/
+</pre></td></tr></table>
+<pre>
+なんと、区切りの文字にコンマとセミコロンの両方が使われている。どういうことだろうか。
+下のコメントを見ると、<code>(a,b)+= ~z</code>と書いてある。実際、この書き方をすると上手く動く。
+以下、そのからくりを解説する。
+
+まず、演算子の結合性について説明する。
+<code>&lt;fixdecl&gt;</code>ライブラリに、以下のような宣言がある。
+<code>infixl  0 (,); infixr  5 (+=~);</code>
+<code>infixl</code>, <code>infixr</code>はHaskellからパクった仕様であり、左結合・右結合を指定する。
+数値が大きい方が結合性が高い。Haskellとは異なり、演算子の前後にはカッコを必要とし、また数値には任意の非負整数を指定することができる。
+
+
+さて、CamphorScriptの演算子呼び出しにおいては、「文中で最も優先順位の低い演算子に対応する定義が参照される」というルールがある<span style="font-size: 70%">…はずなのだが挙動がちょっとよく分からないことになってるなどうしよう</span>
+
+
+また、以上のように定義されているので、組み込みの<code>read</code>や<code>write</code>は<code>char&amp;</code>を引数とする関数であり、
+組み込みの演算子<code>+=</code>や<code>-=</code>は左オペランドが<code>char&amp;</code>、右オペランドが<code>constant char</code>である演算子として捉えることができる。
+ユーザー側は、これらの演算子が言語に組み込みのものであるかライブラリによって提供されるものなのかという差をほとんど意識することなく、コードが書けるようになっている。
+演算子も関数もオーバーロードできることから、</pre><table><tr><td><pre class="codes">
+void (+=)(char& a;char& b){
+	char c2;
+	while(b){a+=1;c2+=1;b-=1;}
+	while(c2){b+=1;c2-=1;}
+	delete c2;
+}
+</pre></td></tr></table><pre>というコードを書いてやれば、（<code>&lt;stdcalc&gt;</code>ライブラリにて既に実装済み）ユーザ側は<code>a+=b;</code>と<code>a+=3;</code>との間に差を覚えずにコードを書くことさえ可能である。
+（勿論、Brainf*ckに翻訳したときの実体は大きく異なるので、実際は差を意識してコードを書くべきだが。）
+
+ということで<sup>[どういうことで？]</sup>、仮引数の型として<code>const char</code>というのも用意してある。これは、<code>constant char</code>と<code>char&amp;</code>の両方を受け取れる仮引数の型である。
+内部実装としては、<code>constant char</code>の場合と<code>char&amp;</code>の場合の関数(or演算子)が両方宣言されるという仕様になっていたはずである<sup>[要検証]</sup>。<span style="font-size: 70%">2年半前に実装したものの詳細なんて覚えてるわけないし、どこを調べれば答えが書いてあるかも知らない</span>
+</pre>
 <h3>2. 全体像</h3>
 <hr>
 <pre>
@@ -854,163 +1011,6 @@ PreprocessedCamphorScript → Half-CompiledCamphorScriptでは、CamphorScript�
 
 
 
-</pre>
-
-<h3>3. CamphorScript概略</h3>
-<hr>
-<pre>
-まずは見た目から。
-C譲りのフリーフォーマットであって、改行やら空白やらはどこにでも入れられる。ただ、当然<code>char</code>を<code>ch ar</code>と書いたり、<code>char a</code>を<code>chara</code>と書くことはできない。
-<u>ただし、演算子だけは例外である。</u><code>+=</code>を<code>+ =</code>と表記することは、<u>Cなどとは異なり<b>許される。</b></u>そういう設計にした理由は後述する。
-
-まず、Brainf*ckを吐き出せる以上、8命令のどれにも対応する処理が存在しなければならないはずだ。
-とはいえ、メモリの管理を変数に委託していることで、<code>&lt;</code>と<code>&gt;</code>は不要となる。
-<code>+</code>と<code>-</code>については、<code>+=</code>と<code>-=</code>という演算子を組み込むことで解決した。当然左オペランドは変数、右オペランドは定数である。Brainf*ckにおいて<code>++++++++</code>と表されるコードは、普通に<code>a+=8;</code>と表現される。
-<code>.</code>と<code>,</code>はそれぞれ<code>write()</code>と<code>read()</code>という組み込み関数。引数は変数。
-さて、最大の問題児が<code>[</code>と<code>]</code>である。特に、逆翻訳時に問題を起こす。
-現状のCamphorScriptでは、<code>[</code>と<code>]</code>の中に<code>&lt;</code>と<code>&gt;</code>が同数入っているときのみ、逆翻訳を受け付ける。そうでなければエラーを吐く。
-それにはそれなりの理由がある。配列に対応できてないのもこれが原因だが、そもそも現状のCamphorScriptはあくまでアドレスを変数として抽象化するにとどまっている。
-ループでアドレスがズレられると、当然困るというわけだ。
-
-さて、メモリを変数として抽象化するということは、どうせなら色々実現したい機能というのもあるわけだ。特に、メモリの再利用は実装したい。
-逆に言うと、Brainf*ckにおいて同一メモリを時間で切り分けて用いるなんて日常茶飯事だが、高級言語みを出すにはやっぱりシステムの側でリサイクルできるようにしないとということである。
-
-Cなら普通に「使い終わった変数は放置」という方針で構わんだろう。しかし、今相手にしているのはCamphorScript。未使用メモリは0であることが期待される。
-だからこその<code>delete</code>である。<code>delete</code>は中身が0であることをプログラマ側が保証してからでないと使ってはいけないが、それはつまりこういうことである。
-
-なお、変数のスコープはブロックスコープである。ブロック内で宣言した変数はブロック外からは参照できない…というだけなら普通の言語と同じだが、CamphorScriptはもう一ひねりある。
-「ブロック内で宣言した変数は、ブロック内で<code>delete</code>しないとコンパイルエラー」という仕様になっているのだ。
-まあこれはメモリを浪費しないためのある意味当然の仕様である。
-
-
-関数。お分かりのとおり、Brainf*ckに関数やサブルーチンなどというものは無いわけで、関数は全て（組み込みを除いて）マクロとして実現されている。
-さて、マクロを使うと疑似的に参照渡しができるのはあまりにも有名な話である。Cのswapマクロを思い出していただければわかるだろう。
-そこで考えた。Brainf*ckではお呼びでない「型システム」を、マクロの特性を表現するために濫用できないだろうか？と。
-ということでできたのが<code>char&amp;</code>と<code>constant char</code>である。
-</pre>
-<table>
-<tr><td>仮引数の型</td><td>真引数</td></tr>
-<tr><td><code>char&amp;</code></td><td>変数</td></tr>
-<tr><td><code>constant char</code></td><td>定数</td></tr>
-</table>
-<pre>具体的には、関数は次のように記述する。</pre>
-<table><tr><td><pre class="codes">
-void clear(char& a) {
-	while(a){a-=1;}
-}
-</pre></td></tr></table><pre>（この関数は<code>&lt;stdcalc&gt;</code>ライブラリにて既に実装済み）
-
-この関数を定義したうえで、<code>clear(b);</code>と書くと、（CCS→HCCSのときに）<code>{ while(b){b-=1;} }</code>と変換される。
-要するに、結局はマクロである。
-
-
-関数内で新しい変数宣言をすることも可能である。しかし、その場合にも制約がある。
-Cの場合、関数内で宣言された変数の実体はコールスタック上に取られる領域である。
-しかし、CamphorScriptやBrainf*ckにコールスタックなどというものはないし、そもそも関数やサブルーチンではなくマクロである。
-ということで、当然ではあるが、「先頭で新たな変数を定義し、終わりで全て<code>delete</code>する」ことによって代用とする。
-関数はブロックに展開されるので、内部で宣言した変数にも同様の扱いが必要ということである。
-<span style="font-size: 70%">というか、現状だと「関数宣言の時点ではdeleteがないことは検出されず、ブロックに展開された時に初めて検出され、コンパイルエラーとなる」というクソ仕様である。これはクソなので直さねばならない。</span>
-
-
-
-さて、演算子だが、これはちょっと特殊な仕様になっている。
-そもそもCamphorScriptはあくまでBrainf*ckでのプログラミングを補助するための存在であり、決してCのサブセットをBrainf*ckでエミュレートするためのものではない。
-故に、C的要素はBrainf*ckのイディオムを体現するために用いるべきであって、決してCなどのイディオムをBrainf*ckに持ち込むために用いるべきではない。
-
-
-さて、Brainf*ckで頻出<sup>[独自研究]</sup>するイディオム（に相当するCamphorScript）に、次のようなものがある。
-</pre>
-<table><tr><td><pre class="codes">
-while(a){
-	a-=1;
-	b+=1;
-	c+=1;
-}
-</pre></td></tr></table>
-<pre>
-これは、結果として「aの値を破壊し0にしながら、bとcにaの値を加える」という操作を意味する。つまり、Cなら普通以下のように書く操作である。
-</pre>
-<table><tr><td><pre class="codes">
-b+=a;
-c+=a;
-a=0;
-</pre></td></tr></table>
-<pre>
-しかし、これはあくまでCのやり方である。Cにおいて空気のように自然な<code>b+=a;</code>という処理は、Brainf*ckではそれほど自然な考え方ではない。
-それどころか、Cの<code>b+=a;</code>をBrainf*ckで再現するには、その部分として上記の<code>while(a){ a-=1; b+=1; c+=1; }</code>を含んだコードを書く必要がある。
-故に、<code>while(a){ a-=1; b+=1; c+=1; }</code>を<code>b+=a; c+=a; a=0;</code>と表現するわけにはいかない。
-
-まずは、一行減った
-</pre>
-<table><tr><td><pre class="codes">
-while(a){
-	a-=1;
-	b+=1;
-}
-</pre></td></tr></table>
-<pre>
-を考えよう。Cの<code>b+=a; a=0;</code>というコードだが、これを当然1つの式として表すべきである。
-もちろん、<code>clear_the_first_and_add_to_the_second(a,b);</code>という関数とすれば解決される問題ではあるが、
-このような長い関数名はどう考えても実用的でも直感的でもない。故に、Haskellをパクり、演算子を自作できるようにしたのである。
-
-私は、この演算子に<code>+=~</code>という名前を与えた。<code>b +=~ a</code>という風に用いる。この<code>~</code>はビット演算的な意味ではなく、C++のデストラクタの<u><b>ニュアンス</b></u>を表すものである。
-<code>b+=a</code>を行いながら、同時にaが壊されていくというニュアンスを表現しようと思ったのである。
-なお、演算子として使える文字は、<code>!%&*+,-:<=>?@^/|~</code>である。
-
-
-さて、具体的な宣言の書き方について説明する。結論から言うと、以下のような形になる。</pre>
-<table><tr><td><pre class="codes">
-void (+=~)(char&amp;b<strong style="font-size:large;color:red">;</strong>char&amp;a){
-	while(a){b+=1;a-=1;}
-}
-</pre></td></tr></table>
-<pre>
-引数の区切りはコンマではなく、セミコロンである。これは重要なところである。理由は後ほど判明する。
-ちなみに、宣言の形に合わせ、<code>(+=~)(b;a);</code>とも呼べる仕様になっている。使い道があるかどうかは知らん。
-また、CamphorScriptでは演算子中にスペースを入れることを許容している。これは、<code>a+= ~b</code>という表記をすることで、
-あたかも<code>~b</code>が「bを破壊しながらbの元の値を返す演算子」であってその結果を<code>a+=</code>しているかのように見せることができるようにするためである。
-
-こいつを説明したところで、次に<code>while(a){ a-=1; b+=1; c+=1;}</code>を説明していく。
-これまた、<code>clear_the_first_and_add_to_the_second_and_to_the_third(a,b,c);</code>という関数名にはしたくないわけであるが、今度は3引数。2項演算子では当然扱えない。
-じゃあどうするか？答えは簡単。「こういうのも演算子で扱えるように文法を拡張する」のである。
-
-<code>&lt;eq_til&gt;</code>ライブラリ内での実際の定義を見てみよう。
-</pre>
-<table><tr><td><pre class="codes">
-void (+=~)(char& a<strong style="font-size:large;color:blue">,</strong>char& b<strong style="font-size:large;color:red">;</strong>char& z){
-	while(z){a+=1;b+=1;z-=1;}
-}	/* (a,b)+= ~z*/
-</pre></td></tr></table>
-<pre>
-なんと、区切りの文字にコンマとセミコロンの両方が使われている。どういうことだろうか。
-下のコメントを見ると、<code>(a,b)+= ~z</code>と書いてある。実際、この書き方をすると上手く動く。
-以下、そのからくりを解説する。
-
-まず、演算子の結合性について説明する。
-<code>&lt;fixdecl&gt;</code>ライブラリに、以下のような宣言がある。
-<code>infixl  0 (,); infixr  5 (+=~);</code>
-<code>infixl</code>, <code>infixr</code>はHaskellからパクった仕様であり、左結合・右結合を指定する。
-数値が大きい方が結合性が高い。Haskellとは異なり、演算子の前後にはカッコを必要とし、また数値には任意の非負整数を指定することができる。
-
-
-さて、CamphorScriptの演算子呼び出しにおいては、「文中で最も優先順位の低い演算子に対応する定義が参照される」というルールがある<span style="font-size: 70%">…はずなのだが挙動がちょっとよく分からないことになってるなどうしよう</span>
-
-
-また、以上のように定義されているので、組み込みの<code>read</code>や<code>write</code>は<code>char&amp;</code>を引数とする関数であり、
-組み込みの演算子<code>+=</code>や<code>-=</code>は左オペランドが<code>char&amp;</code>、右オペランドが<code>constant char</code>である演算子として捉えることができる。
-ユーザー側は、これらの演算子が言語に組み込みのものであるかライブラリによって提供されるものなのかという差をほとんど意識することなく、コードが書けるようになっている。
-演算子も関数もオーバーロードできることから、</pre><table><tr><td><pre class="codes">
-void (+=)(char& a;char& b){
-	char c2;
-	while(b){a+=1;c2+=1;b-=1;}
-	while(c2){b+=1;c2-=1;}
-	delete c2;
-}
-</pre></td></tr></table><pre>というコードを書いてやれば、（<code>&lt;stdcalc&gt;</code>ライブラリにて既に実装済み）ユーザ側は<code>a+=b;</code>と<code>a+=3;</code>との間に差を覚えずにコードを書くことさえ可能である。
-（勿論、Brainf*ckに翻訳したときの実体は大きく異なるので、実際は差を意識してコードを書くべきだが。）
-
-ということで<sup>[どういうことで？]</sup>、仮引数の型として<code>const char</code>というのも用意してある。これは、<code>constant char</code>と<code>char&amp;</code>の両方を受け取れる仮引数の型である。
-内部実装としては、<code>constant char</code>の場合と<code>char&amp;</code>の場合の関数(or演算子)が両方宣言されるという仕様になっていたはずである<sup>[要検証]</sup>。<span style="font-size: 70%">2年半前に実装したものの詳細なんて覚えてるわけないし、どこを調べれば答えが書いてあるかも知らない</span>
 </pre>
 <hr>
 <pre>
