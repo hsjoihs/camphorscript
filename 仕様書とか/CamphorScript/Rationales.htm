@@ -43,7 +43,7 @@
 ・Cっぽい見た目
 ・高い拡張性（できるだけライブラリに委任する）
 </pre>
-<h3>2. じゃけん解説していきましょうねー</h3>
+<h3>2. 全体像</h3>
 <hr>
 <pre>
 まずは、全体像を把握するところから始めよう。
@@ -861,11 +861,11 @@ PreprocessedCamphorScript → Half-CompiledCamphorScriptでは、CamphorScript�
 <pre>
 まずは見た目から。
 C譲りのフリーフォーマットであって、改行やら空白やらはどこにでも入れられる。ただ、当然<code>char</code>を<code>ch ar</code>と書いたり、<code>char a</code>を<code>chara</code>と書くことはできない。
-<u>ただし、演算子だけは例外である。</u><code>+=</code>を<code>+ =</code>と表記することは、<u>Cとは異なり<b>許される。</b></u>そういう設計にした理由は後述する。
+<u>ただし、演算子だけは例外である。</u><code>+=</code>を<code>+ =</code>と表記することは、<u>Cなどとは異なり<b>許される。</b></u>そういう設計にした理由は後述する。
 
 まず、Brainf*ckを吐き出せる以上、8命令のどれにも対応する処理が存在しなければならないはずだ。
 とはいえ、メモリの管理を変数に委託していることで、<code>&lt;</code>と<code>&gt;</code>は不要となる。
-<code>+</code>と<code>-</code>については、<code>+=</code>と<code>-=</code>という演算子を組み込むことで解決した。当然左オペランドは変数、右オペランドは定数である。
+<code>+</code>と<code>-</code>については、<code>+=</code>と<code>-=</code>という演算子を組み込むことで解決した。当然左オペランドは変数、右オペランドは定数である。Brainf*ckにおいて<code>++++++++</code>と表されるコードは、普通に<code>a+=8;</code>と表現される。
 <code>.</code>と<code>,</code>はそれぞれ<code>write()</code>と<code>read()</code>という組み込み関数。引数は変数。
 さて、最大の問題児が<code>[</code>と<code>]</code>である。特に、逆翻訳時に問題を起こす。
 現状のCamphorScriptでは、<code>[</code>と<code>]</code>の中に<code>&lt;</code>と<code>&gt;</code>が同数入っているときのみ、逆翻訳を受け付ける。そうでなければエラーを吐く。
