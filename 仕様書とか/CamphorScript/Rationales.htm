@@ -849,7 +849,7 @@ mov 1; output; mov 2; output; mov 3; output;
 <pre>
 少なくとも前半4つはCっぽいことがわかるだろう。
 CamphorScript → PreprocessedCamphorScriptはただのCプリプロセッサもどきの仕事である。というか劣化版再発明するくらいなら既存のを使えばいいんじゃないかという気すらする。
-基本的に、ライブラリの読み込みを行うために存在する操作である。
+基本的に、ライブラリの読み込みを行うために存在する操作である。ちなみに、余計なスペースを削除したり、コメント内の<code>*</code>を<code>_star_</code>に置き換えるなどの謎の挙動を示すらしい。
 PreprocessedCamphorScript → Half-CompiledCamphorScriptでは、CamphorScriptの特徴である「関数」「演算子」「構文拡張」を処理する。これが終われば半分終わったようなものである。
 
 
