@@ -34,8 +34,10 @@ sprint(b,c,d + <-~ a);
 write(b);write(c);write(d);
 ```
 
-↓compile (with `$ ./ccsc -C18 examples/__CS/xShow__CS.txt -o con`)
-
+↓compile (with:  
+Windows: `ccsc -C18 examples\__CS\xShow__CS.txt -o con`  
+Linux: `$ ./ccsc -C18 examples/__CS/xShow__CS.txt -o con`  
+)
 
 Brainf*ck
 ```
@@ -51,7 +53,10 @@ Brainf*ck
 +++++++++[>++++++++>+++++++++++>+++++<<<-]>.>++.+++++++..+++.>-.------------.<++++++++.--------.+++.------.--------.>+.
 ```
 
-↓decompile (with `$ ./ccsrc -C84 examples/__BF_c/xHello__BF_c.txt -o con`)
+↓decompile (with:  
+Windows: `ccsrc -C84 examples\__BF_c\xHello__BF_c.txt -o con`  
+Linux: `$ ./ccsrc -C84 examples/__BF_c/xHello__BF_c.txt -o con`  
+)
 
 ```
 char v_0;char v_1;char v_2;char v_3;
@@ -99,7 +104,10 @@ write(i);i-=48;h+=48;write(h);h-=48;g-=1;}c+=4;while(c){b+=11;c-=1;}
 write(b);c+=3;while(c){b-=4;c-=1;}write(b);while(b){b-=1;}a-=1;}
 ```
 
-↓execute directly `$ ccsc -run examples\__CS\xFizzbuzz_compressed__CS.txt`
+↓execute directly (with:  
+Windows: `ccsc -run examples\__CS\xFizzbuzz_compressed__CS.txt`  
+Linux: `$ ./ccsc -run examples/__CS/xFizzbuzz_compressed__CS.txt`  
+)
 
 ```
 001, 002, Fizz, 004, Buzz, Fizz, 007, 008, Fizz, Buzz, 011, Fizz, 013, 014, FizzBuzz, 016, 017, Fizz, 019, Buzz, Fizz, 022, 023, Fizz, Buzz, 026, Fizz, 028, 029, FizzBuzz, 031, 032, Fizz, 034, Buzz, Fizz, 037, 038, Fizz, Buzz, 041, Fizz, 043, 044, FizzBuzz, 046, 047, Fizz, 049, Buzz, Fizz, 052, 053, Fizz, Buzz, 056, Fizz, 058, 059, FizzBuzz, 061, 062, Fizz, 064, Buzz, Fizz, 067, 068, Fizz, Buzz, 071, Fizz, 073, 074, FizzBuzz, 076, 077, Fizz, 079, Buzz, Fizz, 082, 083, Fizz, Buzz, 086, Fizz, 088, 089, FizzBuzz, 091, 092, Fizz, 094, Buzz, Fizz, 097, 098, Fizz, Buzz, 
