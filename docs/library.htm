@@ -5,8 +5,10 @@
 <title>ライブラリ解説</title>
 </head>
 <body>
+<h2>Libraries of CamphorScript</h2>
 <h3>0. 依存関係</h3>
-<img src="files/dependency.png" />
+<img src="files/dependency.png" /><br>
+線でつながれているものは、下にあるライブラリが上にあるライブラリに依存していることを表す。
 <hr>
 <h3>1. &lt;fixdecl&gt;</h3>
 includeしているライブラリ：無し<br>
@@ -66,7 +68,7 @@ includeしているライブラリ：&lt;fixdecl&gt;, &lt;eq_til&gt;, &lt;eq_ban
 
 <hr>
 
-<h3>1. &lt;div&gt;</h3>
+<h3>5. &lt;div&gt;</h3>
 includeしているライブラリ：&lt;stdcalc&gt;<br>
 演算子優先順位宣言：
 <table>
@@ -76,10 +78,10 @@ includeしているライブラリ：&lt;stdcalc&gt;<br>
 関数・演算子定義
 <table>
 <tr><td>定義</td><td>使い方</td><td>意味</td><td>同等の挙動をするC</td></tr>
-<tr><td>void (-|=) (char&amp; a; const char N)</td><td>a -|= N;</td><td></td><td>a= (a&gt;b ? a-b : 0);</td></tr>
-<tr><td>void (+=)(char&amp;a,char&amp;b;char&amp;c)</td><td>(a,b) += c;</td><td></td><td>a+=c, b+=c;</td></tr>
-<tr><td>void (+&lt;-~) (char&amp; quot, char&amp; rem; char&amp; a / const char N)</td><td>(quot, rem)+ &lt;- ~a / N;</td><td></td><td>quot += a / N, rem += a % N, a=0;</td></tr>
-<tr><td>void sprint(char&amp; x1, char&amp; x2, char&amp; x3 +&lt;-~ char&amp; a)</td><td>sprint(x1, x2, x3 + &lt;- ~a);</td><td></td><td>x3 += a % 10, x2 += (a/10) % 10, x1 += a/100, a=0;</td></tr>
+<tr><td>void (-|=) (char&amp; a; const char N)</td><td>a -|= N;</td><td>Nをaから引くが、aがN以下ならaは0になる</td><td>a= (a&gt;N ? a-N : 0);</td></tr>
+<tr><td>void (+=)(char&amp;a,char&amp;b;char&amp;c)</td><td>(a,b) += c;</td><td>cの値をaとbとに加える</td><td>a+=c, b+=c;</td></tr>
+<tr><td>void (+&lt;-~) (char&amp; quot, char&amp; rem; char&amp; a / const char N)</td><td>(quot, rem)+ &lt;- ~a / N;</td><td>aをNで割った商をquotに、余りをremに加える</td><td>quot += a / N, rem += a % N, a=0;</td></tr>
+<tr><td>void sprint(char&amp; x1, char&amp; x2, char&amp; x3 +&lt;-~ char&amp; a)</td><td>sprint(x1, x2, x3 + &lt;- ~a);</td><td>aを破壊しながら、aの100の位、aの10の位、aの1の位をそれぞれx1, x2, x3に足し合わせる</td><td>x3 += a % 10, x2 += (a/10) % 10, x1 += a/100, a=0;</td></tr>
 </table>
 <hr>
 
@@ -100,11 +102,11 @@ includeしているライブラリ：&lt;stdcalc2&gt;<br>
 <tr><td>定義</td><td>使い方</td><td>意味</td><td>同等の挙動をするC</td></tr>
 <tr><td>syntax unless(~char& a){block}</td><td>unless(~a){/*block*/}</td><td>aを0にするのと並行して、元々aが0のときblockの中身を実行する。</td><td>if(!a){a=0; {/*block*/}}</td></tr><!-- aがどの位置で0になるかは未定としたい -->
 <tr><td>syntax unless(char& a){block}</td><td>unless(a){/*block*/}</td><td>aが0のときblockの中身を実行する。</td><td>if(!a){/*block*/}</td></tr>
-<tr><td>syntax unless(constant char N - char& a){block}</td><td>N-aが0のとき、つまりNとaが等しいとき、blockの中身を実行する。</td><td></td><td>if(!(N-a)){/*block*/}</td></tr>
+<tr><td>syntax unless(constant char N - char& a){block}</td><td>unless(N-a){/*block*/}</td><td>N-aが0のとき、つまりNとaが等しいとき、blockの中身を実行する。</td><td>if(!(N-a)){/*block*/}</td></tr>
 </table>
 <hr>
 
-<h3>n. 記号の読み方</h3>
+<h3>備考: 記号の読み方</h3>
 一部のライブラリは代表的な演算子がファイル名となっているが、その際の対応表を示す。
 <pre>
 = eq
