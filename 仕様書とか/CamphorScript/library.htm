@@ -93,8 +93,15 @@ includeしているライブラリ：&lt;stdcalc&gt;<br>
 </table>
 <hr>
 
-<h3>1. &lt;conditional&gt;</h3>
+<h3>7. &lt;conditional&gt;</h3>
 includeしているライブラリ：&lt;stdcalc2&gt;<br>
+
+<table>
+<tr><td>定義</td><td>使い方</td><td>意味</td><td>同等の挙動をするC</td></tr>
+<tr><td>syntax unless(~char& a){block}</td><td>unless(~a){/*block*/}</td><td>aを0にするのと並行して、元々aが0のときblockの中身を実行する。</td><td>if(!a){a=0; {/*block*/}}</td></tr><!-- aがどの位置で0になるかは未定としたい -->
+<tr><td>syntax unless(char& a){block}</td><td>unless(a){/*block*/}</td><td>aが0のときblockの中身を実行する。</td><td>if(!a){/*block*/}</td></tr>
+<tr><td>syntax unless(constant char N - char& a){block}</td><td>N-aが0のとき、つまりNとaが等しいとき、blockの中身を実行する。</td><td></td><td>if(!(N-a)){/*block*/}</td></tr>
+</table>
 <hr>
 
 <h3>n. 記号の読み方</h3>

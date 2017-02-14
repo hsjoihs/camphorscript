@@ -1,4 +1,51 @@
-#include <conditional>
+#include <stdcalc2>
+syntax unless(~char& flag1){block}
+{
+	char flag2 = 1;
+	while(flag1){
+		clear(flag2);
+		clear(flag1);
+	}
+	while(flag2){
+		block;
+		flag2-=1;
+	}
+	delete flag2;
+}
+syntax unless(char& a){block}
+{
+	char t1,t2,t3;	
+	/*# MEMORY using t1 #*/t2 += a;
+	/*# MEMORY using t3 #*/
+	unless(~t2)
+	{
+		block;
+	}
+}
+syntax unless2(char& a){block}
+{
+	char t2,t1,t3;	
+	/*# MEMORY using t1 #*/t2 +== a;
+	/*# MEMORY using t3 #*/
+	unless(~t2)
+	{
+		block;
+	}
+}
+syntax unless(constant char N - char& a){block}
+{
+	char v1,v2,v3;	
+	/*# MEMORY using v2 #*/v1+==a;
+	v2 += N;
+	v2 -=~ v1;
+	/*# MEMORY using v3 #*/
+	unless(~v2)
+	{
+		block;
+	}
+	delete v1;delete v2;delete v3;
+}
+
 infixr  5 (+==);
 void (+==)(char& a;char& b){ // to make it completely same
 	char c2;

@@ -13,4 +13,6 @@ xShow 12
 xFizzbuzz 13
 yEscSeq 14
 yEscSeq2 15
+xFizzbuzz2 16
+xFizzbuzz3 17
 ; CCS_for -> BF_c

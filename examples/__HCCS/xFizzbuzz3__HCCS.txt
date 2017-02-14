@@ -1,0 +1,394 @@
+/*# LINE start "lib\\conditional.txt" #*/
+
+
+
+/*# LINE start "lib\\stdcalc2.txt" #*/
+
+
+
+/*# LINE start "lib\\stdcalc.txt" #*/
+
+
+
+/*# LINE start "lib\\fixdecl.txt" #*/
+
+
+
+
+       
+    
+   
+   
+   
+     
+
+
+
+/*# LINE end "lib\\fixdecl.txt" #*/
+
+
+/* a=0; */
+
+
+
+
+
+/*# LINE start "lib\\eq_til.txt" #*/
+
+
+
+/*# LINE start "lib\\fixdecl.txt" #*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*# LINE end "lib\\fixdecl.txt" #*/
+	/* a+= ~z */
+
+	/* (a,b)+= ~z*/
+
+	/* a+= ~z_star_N */
+
+
+	/* a-= ~z */
+
+	/* (a,b)-= ~z*/
+
+	/* a-= ~z_star_N */
+
+
+	/* a= ~z */
+
+	/* (a,b)= ~z*/
+
+	/* a= ~z_star_N */
+
+
+
+/*# LINE end "lib\\eq_til.txt" #*/
+
+/*# LINE start "lib\\eq_bang_til.txt" #*/
+
+
+
+/*# LINE start "lib\\fixdecl.txt" #*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*# LINE end "lib\\fixdecl.txt" #*/
+	/* a+= !~z*/
+
+	/* (a,b)+= !~z*/
+
+	/* a= !~z*/
+
+	/* (a,b)= !~z*/
+
+
+
+/*# LINE end "lib\\eq_bang_til.txt" #*/
+
+
+
+
+	/* a+= N_star_ ~z */
+
+
+
+
+
+
+
+
+
+
+/*# LINE end "lib\\stdcalc.txt" #*/
+
+
+
+
+
+/*# LINE end "lib\\stdcalc2.txt" #*/
+/*# LINE end "lib\\conditional.txt" #*/
+
+
+
+
+
+
+
+
+char iter;char v_1;char v_2;char v_3;char mod3;char mod5;char numFlag;char low;char mid;char high;
+assert_zero v_1;{
+	/*char v_1;*/
+	v_1+=10;
+	{
+	while(v_1){iter+=10;v_1-=1;}
+}
+	/*delete v_1;*/
+}
+mod3+=3;
+mod5+=5;
+while(iter){
+	low+=1;
+	assert_zero v_1;assert_zero v_2;assert_zero v_3;{
+	/*char v_1;*//*char v_2;*//*char v_3;*/	
+	assert_zero v_2;{
+	/*char v_2;*/
+	{
+	while(low){v_1+=1;v_2+=1;low-=1;}
+}
+	{
+	while(v_2){low+=1;v_2-=1;}
+}
+	/*delete v_2;*/
+}
+	v_2+=10;
+	{
+	while(v_1){v_2-=1;v_1-=1;}
+}
+	assert_zero v_3;
+	{
+	/*char v_3;*/v_3+=1;
+	while(v_2){
+		{
+	while(v_3){v_3-=1;}
+}
+		{
+	while(v_2){v_2-=1;}
+}
+	}
+	while(v_3){
+		
+		{
+	while(low){low-=1;}
+}mid+=1;
+	
+		v_3-=1;
+	}
+	/*delete v_3;*/
+}
+	/*delete v_1;*//*delete v_2;*//*delete v_3;*/
+}
+	assert_zero v_1;assert_zero v_2;assert_zero v_3;{
+	/*char v_1;*//*char v_2;*//*char v_3;*/	
+	assert_zero v_2;{
+	/*char v_2;*/
+	{
+	while(mid){v_1+=1;v_2+=1;mid-=1;}
+}
+	{
+	while(v_2){mid+=1;v_2-=1;}
+}
+	/*delete v_2;*/
+}
+	v_2+=10;
+	{
+	while(v_1){v_2-=1;v_1-=1;}
+}
+	assert_zero v_3;
+	{
+	/*char v_3;*/v_3+=1;
+	while(v_2){
+		{
+	while(v_3){v_3-=1;}
+}
+		{
+	while(v_2){v_2-=1;}
+}
+	}
+	while(v_3){
+		
+		{
+	while(mid){mid-=1;}
+}high+=1;
+	
+		v_3-=1;
+	}
+	/*delete v_3;*/
+}
+	/*delete v_1;*//*delete v_2;*//*delete v_3;*/
+}
+	
+	numFlag+=1;
+	mod3-=1;
+	
+	assert_zero v_1;assert_zero v_2;assert_zero v_3;
+	{
+	/*char v_1;*//*char v_2;*//*char v_3;*/	
+	assert_zero v_1;{
+	/*char v_1;*/
+	{
+	while(mod3){v_2+=1;v_1+=1;mod3-=1;}
+}
+	{
+	while(v_1){mod3+=1;v_1-=1;}
+}
+	/*delete v_1;*/
+}
+	assert_zero v_3;
+	{
+	/*char v_3;*/v_3+=1;
+	while(v_2){
+		{
+	while(v_3){v_3-=1;}
+}
+		{
+	while(v_2){v_2-=1;}
+}
+	}
+	while(v_3){
+		
+		
+		mod3+=3;
+		assert_zero v_2;{
+	/*char v_2;*/
+	v_2+=7;
+	{
+	while(v_2){v_1+=10;v_2-=1;}
+}
+	/*delete v_2;*/
+} write(v_1); /* write('F');*/
+		assert_zero v_2;{
+	/*char v_2;*/
+	v_2+=5;
+	{
+	while(v_2){v_1+=7;v_2-=1;}
+}
+	/*delete v_2;*/
+} write(v_1); /* write('i');*/
+		assert_zero v_2;{
+	/*char v_2;*/
+	v_2+=3;
+	{
+	while(v_2){v_1+=5;v_2-=1;}
+}
+	/*delete v_2;*/
+} v_1+=2;write(v_1); write(v_1); /*write('z');write('z');*/
+		{
+	while(v_1){v_1-=1;}
+}
+		{
+	while(numFlag){numFlag-=1;}
+}
+	
+	
+		v_3-=1;
+	}
+	/*delete v_3;*/
+}
+}
+	
+	mod5-=1;
+	
+	assert_zero v_1;assert_zero v_2;assert_zero v_3;
+	{
+	/*char v_1;*//*char v_2;*//*char v_3;*/	
+	assert_zero v_1;{
+	/*char v_1;*/
+	{
+	while(mod5){v_2+=1;v_1+=1;mod5-=1;}
+}
+	{
+	while(v_1){mod5+=1;v_1-=1;}
+}
+	/*delete v_1;*/
+}
+	assert_zero v_3;
+	{
+	/*char v_3;*/v_3+=1;
+	while(v_2){
+		{
+	while(v_3){v_3-=1;}
+}
+		{
+	while(v_2){v_2-=1;}
+}
+	}
+	while(v_3){
+		
+		
+		mod5+=5;
+		assert_zero v_2;{
+	/*char v_2;*/
+	v_2+=8;
+	{
+	while(v_2){v_1+=8;v_2-=1;}
+}
+	/*delete v_2;*/
+} v_1+=2;write(v_1); /* write('B'); */
+		assert_zero v_2;{
+	/*char v_2;*/
+	v_2+=6;
+	{
+	while(v_2){v_1+=8;v_2-=1;}
+}
+	/*delete v_2;*/
+} v_1+=3;write(v_1); /* write('u');*/
+		v_1+=5;write(v_1);write(v_1); /*write('z');write('z');*/
+		{
+	while(v_1){v_1-=1;}
+}
+		{
+	while(numFlag){numFlag-=1;}
+}
+	
+	
+		v_3-=1;
+	}
+	/*delete v_3;*/
+}
+}
+	/* v_1 is 0*/
+	while(numFlag){
+		{
+	high+=48; write(high); high-=48;
+}
+		{
+	mid+=48; write(mid); mid-=48;
+}
+		{
+	low+=48; write(low); low-=48;
+}
+		numFlag-=1;
+	}
+	assert_zero v_2;{
+	/*char v_2;*/
+	v_2+=4;
+	{
+	while(v_2){v_1+=11;v_2-=1;}
+}
+	/*delete v_2;*/
+} write(v_1); /* write(',');*/
+	assert_zero v_2;{
+	/*char v_2;*/
+	v_2+=3;
+	{
+	while(v_2){v_1-=4;v_2-=1;}
+}
+	/*delete v_2;*/
+} write(v_1); /* write(' ');*/
+	{
+	while(v_1){v_1-=1;}
+}
+	iter-=1;
+}
