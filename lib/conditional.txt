@@ -24,20 +24,10 @@ syntax unless(char& a){block}
 		block;
 	}
 }
-syntax unless2(char& a){block}
-{
-	char t2,t1,t3;	
-	/*# MEMORY using t1 #*/t2 +== a;
-	/*# MEMORY using t3 #*/
-	unless(~t2)
-	{
-		block;
-	}
-}
 syntax unless(constant char N - char& a){block}
 {
 	char v1,v2,v3;	
-	/*# MEMORY using v2 #*/v1+==a;
+	/*# MEMORY using v2 #*/v1+=a;
 	v2 += N;
 	v2 -=~ v1;
 	/*# MEMORY using v3 #*/
