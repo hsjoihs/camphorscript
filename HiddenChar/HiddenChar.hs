@@ -21,9 +21,6 @@ foreign import ccall unsafe "conio.h getch"
 getHiddenChar = do
  hSetBuffering stdin NoBuffering 
  getChar
-{- **********************************************************************************
-   * FIXME: should read input character from console immediately, not after newline *
-   ********************************************************************************** -}
 
 #endif  
   
