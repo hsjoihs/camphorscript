@@ -44,7 +44,7 @@ Brainf*ck
 +++++++++[>++++++++>+++++++++++>+++++<<<-]>.>++.+++++++..+++.>-.------------.<++++++++.--------.+++.------.--------.>+.
 ```
 
-↓decompile (with `./ccsrc -C84 examples/__BF_c/xShow__BF_c.txt -o con`)
+↓decompile (with `./ccsrc -C84 examples/__BF_c/xHello__BF_c.txt -o con`)
 
 ```
 char v_0;char v_1;char v_2;char v_3;
