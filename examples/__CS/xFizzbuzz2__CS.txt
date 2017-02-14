@@ -1,0 +1,113 @@
+#include <stdcalc2>
+syntax unless(~char& flag1){block}
+{
+	char flag2 = 1;
+	while(flag1){
+		clear(flag2);
+		clear(flag1);
+	}
+	while(flag2){
+		block;
+		flag2-=1;
+	}
+	delete flag2;
+}
+syntax unless(char& a){block}
+{
+	char t1,t2,t3;	
+	/*# MEMORY using t1 #*/t2 += a;
+	/*# MEMORY using t3 #*/
+	unless(~t2)
+	{
+		block;
+	}
+}
+syntax unless2(char& a){block}
+{
+	char t2,t1,t3;	
+	/*# MEMORY using t1 #*/t2 +== a;
+	/*# MEMORY using t3 #*/
+	unless(~t2)
+	{
+		block;
+	}
+}
+syntax unless(constant char N - char& a){block}
+{
+	char v1,v2,v3;	
+	/*# MEMORY using v2 #*/v1+==a;
+	v2 += N;
+	v2 -=~ v1;
+	/*# MEMORY using v3 #*/
+	unless(~v2)
+	{
+		block;
+	}
+	delete v1;delete v2;delete v3;
+}
+
+infixr  5 (+==);
+void (+==)(char& a;char& b){ // to make it completely same
+	char c2;
+	(c2,a)+= ~b;//flipped
+	b+= ~c2;
+	delete c2;
+}
+
+void writeNum(char& a)
+{
+	a += '0'; write(a); a -= '0';
+}
+
+#define BYV3 *# MEMORY using v_3 #* 
+#define BYV2 *# MEMORY using v_2 #* 
+#define BYV1 *# MEMORY using v_1 #* 
+#define BYV123 *# MEMORY using v_1 v_2 v_3 #* 
+
+char iter;char v_1;char v_2;char v_3;char mod3;char mod5;char numFlag;char low;char mid;char high;
+/BYV1/ iter += 10 * 10;
+mod3 += 3;
+mod5 += 5;
+while(iter){
+	low+=1;
+	/BYV123/ unless(10-low){clear(low);mid +=1;}
+	/BYV123/ unless(10-mid){clear(mid);high+=1;}
+	
+	numFlag+=1;
+	mod3-=1;
+	
+	/BYV123/
+	unless(mod3)
+	{
+		mod3+=3;
+		/BYV2/ v_1 += 7 * 10; write(v_1); // write('F');
+		/BYV2/ v_1 += 5 * 7 ; write(v_1); // write('i');
+		/BYV2/ v_1 += 3 * 5 ; v_1+=2;write(v_1); write(v_1); //write('z');write('z');
+		clear(v_1);
+		clear(numFlag);
+	}
+	
+	mod5-=1;
+	
+	/BYV123/
+	unless2(mod5)
+	{
+		mod5+=5;
+		/BYV2/ v_1 += 8 * 8; v_1+=2;write(v_1); // write('B'); 
+		/BYV2/ v_1 += 6 * 8; v_1+=3;write(v_1); // write('u');
+		v_1+=5;write(v_1);write(v_1); //write('z');write('z');
+		clear(v_1);
+		clear(numFlag);
+	}
+	// v_1 is 0
+	while(numFlag){
+		writeNum(high);
+		writeNum(mid);
+		writeNum(low);
+		numFlag-=1;
+	}
+	/BYV2/ v_1 += 4 * 11; write(v_1); // write(',');
+	/BYV2/ v_1 -= 3 * 4 ; write(v_1); // write(' ');
+	clear(v_1);
+	iter-=1;
+}

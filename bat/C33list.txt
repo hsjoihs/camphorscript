@@ -15,4 +15,5 @@ qSynUseCollision 14
 xFizzbuzz 15
 yEscSeq 16
 yEscSeq2 17
+xFizzbuzz2 18
 ; HCCS -> CCS_for
