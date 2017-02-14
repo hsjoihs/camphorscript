@@ -2,8 +2,8 @@
 A C-like language designed to help write brainf*ck
 
 ## Documentations
-[Rationales(Japanese)](https://hsjoihs.github.io/camphorscript/docs/Rationales.htm)
-[Library(Japanese)](https://hsjoihs.github.io/camphorscript/docs/library.htm)
+[Rationales(Japanese)](https://hsjoihs.github.io/camphorscript/docs/Rationales.htm)  
+[Library(Japanese)](https://hsjoihs.github.io/camphorscript/docs/library.htm)  
 
 ## Getting Started
 
