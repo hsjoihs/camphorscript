@@ -1,3 +1,349 @@
+terrresult2017-02-14_16-34-06: 
+failed    "ccsc -E examples\error\Step1_commented_endif.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_commented_endif.txt--step1'" (line 5, column 1):
+expecting #endif
+ 
+failed    "ccsc -E examples\error\Step1_defnum.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_defnum.txt--step1" (line 1, column 9):
+unexpected "1"
+expecting non-breaking space, block comment or identifier
+ 
+failed    "ccsc -E examples\error\Step1_defnum_in_if0.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_defnum_in_if0.txt--step1" (line 2, column 9):
+unexpected "1"
+expecting non-breaking space, block comment or identifier
+ 
+failed    "ccsc -E examples\error\Step1_doubledef.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_doubledef.txtstep1'" (line 2, column 1):
+C macro "abc" is already defined
+ 
+failed    "ccsc -E examples\error\Step1_endif.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_endif.txtstep1'" (line 1, column 1):
+unexpected #endif
+ 
+failed    "ccsc -E examples\error\Step1_error_pragma.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_error_pragma.txtstep1'" (line 1, column 1):
+#error abc
+ 
+failed    "ccsc -E examples\error\Step1_loneelse.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_loneelse.txtstep1'" (line 1, column 1):
+unexpected #else
+ 
+failed    "ccsc -E examples\error\Step1_loneelse2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_loneelse2.txtstep1'" (line 1, column 1):
+unexpected #else
+ 
+failed    "ccsc -E examples\error\Step1_loneifdef.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_loneifdef.txt--step1" (line 1, column 9):
+unexpected "\n"
+expecting non-breaking space, block comment or identifier
+ 
+failed    "ccsc -E examples\error\Step1_noendif.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_noendif.txt--step1'" (line 2, column 1):
+expecting #endif
+ 
+failed    "ccsc -E examples\error\Step1_noexistinclude.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_noexistinclude.txtstep1'" (line 1, column 1):
+library "doesnotexist__btjztlfoyvechyofuhjj.txt" is not found
+ 
+failed    "ccsc -E examples\error\Step1_undef.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step1_undef.txtstep1'" (line 1, column 1):
+C macro "abc" is not defined
+ 
+failed    "ccsc -C22 examples\error\Step2_1000_type_wrongcall_definedasvar_functi.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1000_type_wrongcall_definedasvar_functi.txt-step2" (line 1, column 20):
+cannot call "func" as a function because it is defined as a variable
+ 
+failed    "ccsc -C22 examples\error\Step2_1001_fixity_wrongdef_conflictfixdef_operat.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1001_fixity_wrongdef_conflictfixdef_operat.txt-step2" (line 1, column 15):
+conflicting fixity definitions of operator "+"
+ 
+failed    "ccsc -C22 examples\error\Step2_1002_fixity_wrongdef_insidecall_operat.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1002_fixity_wrongdef_insidecall_operat.txt-step2" (line 1, column 20):
+cannot declare fixity of "%%" inside function/operator definition
+ 
+failed    "ccsc -C22 examples\error\Step2_1003_type_wrongdef_definedasvar_functi.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1003_type_wrongdef_definedasvar_functi.txt-step2" (line 2, column 1):
+cannot define function "ttt" because it is already defined as a variable
+ 
+failed    "ccsc -C22 examples\error\Step2_1004_access_wrongdel_notdefined_idn.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1004_access_wrongdel_notdefined_idn.txt-step2-2" (line 1, column 1):
+cannot delete identifier "a" because it is not defined
+ 
+failed    "ccsc -C22 examples\error\Step2_1005_type_wrongdef_fixnotdefined_operat.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1005_type_wrongdef_fixnotdefined_operat.txt-step2-2" (line 1, column 1):
+cannot define operator "%%" because its fixity is not defined
+ 
+failed    "ccsc -C22 examples\error\Step2_1006_type_wrongcall_notypematch_functi.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1006_type_wrongcall_notypematch_functi.txt-step2" (line 2, column 9):
+no type-matching instance of function "ddd" defined
+ 
+failed    "ccsc -C22 examples\error\Step2_1007_type_wrongcall_notypematch_operat.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1007_type_wrongcall_notypematch_operat.txt-step2" (line 3, column 17):
+no type-matching instance of operator "%%" defined
+ 
+failed    "ccsc -C22 examples\error\Step2_1008_type_wrongcall_notdefined_functi.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1008_type_wrongcall_notdefined_functi.txt-step2" (line 1, column 9):
+cannot call function "ddd" because it is not defined
+ 
+failed    "ccsc -C22 examples\error\Step2_1009_type_wrongcall_notdefined_operat.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1009_type_wrongcall_notdefined_operat.txt-step2" (line 1, column 32):
+cannot call operator "%%" because it is not defined
+ 
+failed    "ccsc -C22 examples\error\Step2_1010_type_wrongcall_nulldefined_operat.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1010_type_wrongcall_nulldefined_operat.txt-step2" (line 1, column 47):
+cannot call operator "+=" because it is defined as null
+ 
+failed    "ccsc -C22 examples\error\Step2_1011_type_wrongcall_infixconflict.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1011_type_wrongcall_infixconflict.txt-step2" (line 6, column 1):
+cannot mix ">" [infixl 10] and "<" [infixr 10] in the same infix expression
+ 
+failed    "ccsc -C22 examples\error\Step2_1012_type_wrongcall_argoverlap_functi.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1012_type_wrongcall_argoverlap_functi.txt-step2" (line 1, column 58):
+overlapping arguments of function "func"
+ 
+failed    "ccsc -C22 examples\error\Step2_1013_type_wrongcall_argoverlap_operat.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1013_type_wrongcall_argoverlap_operat.txt-step2" (line 1, column 58):
+overlapping arguments of operator "+="
+ 
+failed    "ccsc -C22 examples\error\Step2_1014_type_wrongdef_paramoverlap_functi.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1014_type_wrongdef_paramoverlap_functi.txt-step2-2" (line 1, column 1):
+overlapping parameters of function "func"
+ 
+failed    "ccsc -C22 examples\error\Step2_1015_type_wrongdef_paramoverlap_operat.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1015_type_wrongdef_paramoverlap_operat.txt-step2" (line 1, column 16):
+overlapping parameters of operator "++"
+ 
+failed    "ccsc -C22 examples\error\Step2_1016_access_wrongdef_definedasarg_idn.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1016_access_wrongdef_definedasarg_idn.txt-step2" (line 1, column 20):
+cannot define identifier "a" because it is already defined as an argument
+ 
+failed    "ccsc -C22 examples\error\Step2_1017_access_wrongref_definedasfunsyn_idn.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1017_access_wrongref_definedasfunsyn_idn.txt-step2" (line 2, column 1):
+cannot access variable "func" because it is already defined as a function/syntax
+ 
+failed    "ccsc -C22 examples\error\Step2_1018_access_wrongref_notdefined_idn.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1018_access_wrongref_notdefined_idn.txt-step2-2" (line 1, column 1):
+cannot access variable "a" because it is not defined
+ 
+failed    "ccsc -C22 examples\error\Step2_1019_type_wrongcall_smaller_operat.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1019_type_wrongcall_smaller_operat.txt-step2" (line 7, column 1):
+cannot call operator "+" because it has smaller fixity than operator "*"
+ 
+failed    "ccsc -C22 examples\error\Step2_1020_type_wrongdef_typeoverlap_functi.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1020_type_wrongdef_typeoverlap_functi.txt-step2" (line 2, column 1):
+type-overlapping definition of function "func"
+ 
+failed    "ccsc -C22 examples\error\Step2_1021_type_wrongdef_typeoverlap_operat.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1021_type_wrongdef_typeoverlap_operat.txt-step2" (line 3, column 1):
+type-overlapping definition of operator "%"
+ 
+failed    "ccsc -C22 examples\error\Step2_1022_access_wrongdef_alreadydefined_idn.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1022_access_wrongdef_alreadydefined_idn.txt-step2" (line 1, column 9):
+cannot define identifier "a" because it is already defined
+ 
+failed    "ccsc -C22 examples\error\Step2_1023_finish_notdel_idns.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1023_finish_notdel_idns.txt-step2" (line 1, column 37):
+cannot finish a block without deleting identifier b__TMP_1
+ 
+failed    "ccsc -C22 examples\error\Step2_1024_type_wrongcall_notypematch_synt.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1024_type_wrongcall_notypematch_synt.txt-step2" (line 6, column 15):
+no type-matching instance of syntax "foo" defined
+ 
+failed    "ccsc -C22 examples\error\Step2_1025_type_wrongcall_notdefined_synt.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1025_type_wrongcall_notdefined_synt.txt-step2" (line 1, column 15):
+cannot use syntax "foo" because it is not defined
+ 
+failed    "ccsc -C22 examples\error\Step2_1026_type_wrongcall_definedasvar_synt.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1026_type_wrongcall_definedasvar_synt.txt-step2" (line 2, column 15):
+cannot use "foo" as a syntax because it is defined as a variable
+ 
+failed    "ccsc -C22 examples\error\Step2_1027_type_wrongcall_argoverlap_synt.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1027_type_wrongcall_argoverlap_synt.txt-step2" (line 5, column 17):
+overlapping arguments of syntax "foo"
+ 
+failed    "ccsc -C22 examples\error\Step2_1028_type_wrongcall_nulldefined_functi.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1028_type_wrongcall_nulldefined_functi.txt-step2" (line 2, column 9):
+cannot call function "foo" because it is defined as null
+ 
+failed    "ccsc -C22 examples\error\Step2_1029_type_wrongdef_definedasvar_synt.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1029_type_wrongdef_definedasvar_synt.txt-step2" (line 2, column 1):
+cannot define syntax "foo" because it is already defined as a variable
+ 
+failed    "ccsc -C22 examples\error\Step2_1030_type_wrongdef_typeoverlap_synt.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1030_type_wrongdef_typeoverlap_synt.txt-step2" (line 2, column 1):
+type-overlapping definition of syntax "foo"
+ 
+failed    "ccsc -C22 examples\error\Step2_1031_type_wrongdef_paramoverlap_synt.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1031_type_wrongdef_paramoverlap_synt.txt-step2-2" (line 1, column 1):
+overlapping parameters of syntax "foo"
+ 
+failed    "ccsc -C22 examples\error\Step2_1032_access_wrongdel_notdefinedhere_idn.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1032_access_wrongdel_notdefinedhere_idn.txt-step2" (line 5, column 9):
+cannot delete identifier "foo" because it is not defined in this function/operator
+ 
+failed    "ccsc -C22 examples\error\Step2_1033_access_wrongdel_definedasarg_idn.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1033_access_wrongdel_definedasarg_idn.txt-step2" (line 5, column 9):
+cannot delete identifier "a" because it is defined as an argument
+ 
+failed    "ccsc -C22 examples\error\Step2_1034_prag_memory_using_notvalidident.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1034_prag_memory_using_notvalidident.txt-step2" (line 9, column 9):
+cannot use "block" as a valid identifier in a `MEMORY using' pragma
+ 
+failed    "ccsc -C22 examples\error\Step2_1035_prag_memory_using_isconstant.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1035_prag_memory_using_isconstant.txt-step2" (line 3, column 9):
+cannot use constant 50 in a `MEMORY using' pragma
+ 
+failed    "ccsc -C22 examples\error\Step2_1036_type_wrongcall_definedasarg_functi.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1036_type_wrongcall_definedasarg_functi.txt-step2" (line 3, column 9):
+cannot call "a" as a function because it is defined as an argument
+ 
+failed    "ccsc -C22 examples\error\Step2_1037_type_wrongcall_definedasarg_synt.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1037_type_wrongcall_definedasarg_synt.txt-step2" (line 3, column 9):
+cannot use "a" as a syntax because it is defined as an argument
+ 
+failed    "ccsc -C22 examples\error\Step2_1038_type_wrongcall_recursivecall.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1038_type_wrongcall_recursivecall.txt-step2" (line 3, column 9):
+cannot call function foo(char& a ){ .. } recursively inside function bar(char& a ){ .. }
+ 
+failed    "ccsc -C22 examples\error\Step2_1039_type_wrongcall_fixnotdefined_operat.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1039_type_wrongcall_fixnotdefined_operat.txt-step2-2" (line 1, column 1):
+cannot call operator "%%" because its fixity is not defined
+ 
+failed    "ccsc -C22 examples\error\Step2_1040_type_wrongdef_insidecall_functi.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1040_type_wrongdef_insidecall_functi.txt-step2" (line 3, column 9):
+cannot define function "bar" inside function/operator definition
+ 
+failed    "ccsc -C22 examples\error\Step2_1041_type_wrongdef_insidecall_synt.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1041_type_wrongdef_insidecall_synt.txt-step2" (line 3, column 9):
+cannot define syntax "bar" inside function/operator definition
+ 
+failed    "ccsc -C22 examples\error\Step2_1042_type_wrongdef_insidecall_operat.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_1042_type_wrongdef_insidecall_operat.txt-step2" (line 4, column 9):
+cannot define operator "%%" inside function/operator definition
+ 
+failed    "ccsc -C22 examples\error\Step2_charblock.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_charblock.txt-step2" (line 1, column 6):
+unexpected token "block"
+ 
+failed    "ccsc -C22 examples\error\Step2_charchar.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_charchar.txt-step2" (line 1, column 6):
+unexpected token "char"
+ 
+failed    "ccsc -C22 examples\error\Step2_charconst.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_charconst.txt-step2" (line 1, column 6):
+unexpected token "const"
+ 
+failed    "ccsc -C22 examples\error\Step2_charconstant.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_charconstant.txt-step2" (line 1, column 6):
+unexpected token "constant"
+ 
+failed    "ccsc -C22 examples\error\Step2_chardelete.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_chardelete.txt-step2" (line 1, column 6):
+unexpected token "delete"
+ 
+failed    "ccsc -C22 examples\error\Step2_charinfixl.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_charinfixl.txt-step2" (line 1, column 6):
+unexpected token "infixl"
+ 
+failed    "ccsc -C22 examples\error\Step2_charinfixr.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_charinfixr.txt-step2" (line 1, column 6):
+unexpected token "infixr"
+ 
+failed    "ccsc -C22 examples\error\Step2_charsyntax.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_charsyntax.txt-step2" (line 1, column 6):
+unexpected token "syntax"
+ 
+failed    "ccsc -C22 examples\error\Step2_charvoid.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step2_charvoid.txt-step2" (line 1, column 6):
+unexpected token "void"
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidchar.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidchar.txt--step4_II" (line 1, column 5):
+unexpected ";"
+expecting space, block comment, "//" or identifier
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidchar2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidchar2.txt--step4_II" (line 1, column 8):
+unexpected "b"
+expecting space, block comment, "//" or ";"
+ 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invaliddelete.txt--step4_II" (line 1, column 7):
+unexpected ";"
+expecting space, block comment, "//" or identifier
+ 
+failed    "ccsc -C44 examples\error\Step4_invaliddelete2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invaliddelete2.txt--step4_II" (line 1, column 10):
+unexpected "b"
+expecting space, block comment, "//" or ";"
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidread.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidread.txt--step4_II" (line 1, column 6):
+unexpected "1"
+expecting space, block comment, "//" or identifier
+ 
+failed    "ccsc -C44 examples\error\Step4_invalidread2.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_invalidread2.txt--step4_II" (line 1, column 5):
+unexpected ","
+expecting letter, digit or "_", space, block comment, "//", "+", "-" or "("
+ 
+failed    "ccsc -C44 examples\error\Step4_nulladd.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_nulladd.txt--step4'" (line 0, column 0):
+identifier a is not defined
+ 
+failed    "ccsc -C44 examples\error\Step4_nullchar.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_nullchar.txt--step4'" (line 0, column 0):
+identifier a is already defined
+ 
+failed    "ccsc -C44 examples\error\Step4_nulldelete.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_nulldelete.txt--step4'" (line 0, column 0):
+identifier a is not defined or is already deleted in this scope
+ 
+failed    "ccsc -C44 examples\error\Step4_undeletedinblock.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_undeletedinblock.txt--step4'" (line 0, column 0):
+identifier a is not deleted
+ 
+failed    "ccsc -C44 examples\error\Step4_undeletedinwhile.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_undeletedinwhile.txt--step4'" (line 0, column 0):
+identifier a is not deleted
+ 
+failed    "ccsc -C44 examples\error\Step4_wrongescseq.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step4_wrongescseq.txt--step4_II" (line 1, column 13):
+unexpected "'"
+expecting "\\"
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_command.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_command.txt--step7" (line 1, column 1):
+unexpected 'b'
+expecting sentence, space, comment or end of input
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_comment.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_comment.txt--step7" (line 1, column 3):
+unexpected end of input
+expecting end of block comment
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_inc.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_inc.txt--step7" (line 1, column 5):
+unexpected "$"
+expecting space, unsigned integer, character literal, white space or ";"
+ 
+failed    "ccsc -C78 examples\error\Step7_invalid_loop.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_invalid_loop.txt--step7" (line 1, column 6):
+unexpected "3"
+expecting space or ";"
+ 
+failed    "ccsc -C78 examples\error\Step7_null_mov.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_null_mov.txt--step7" (line 1, column 4):
+unexpected ";"
+expecting white space, unsigned integer or character literal
+ 
+failed    "ccsc -C78 examples\error\Step7_rand.txt  -o bat\k.tmp" 
+parse error at "examples\error\Step7_rand.txt--step7" (line 1, column 1):
+unexpected 'g'
+expecting sentence, space, comment or end of input
+ 
+ 
 terrresult2017-02-14_16-18-25: 
 failed    "ccsc -E examples\error\Step1_commented_endif.txt  -o bat\k.tmp" 
 parse error at "examples\error\Step1_commented_endif.txt--step1'" (line 5, column 1):
