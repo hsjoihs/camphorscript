@@ -13,4 +13,6 @@ xIsNumber_u 12
 xShow 13
 yEscSeq2 14
 yEscSeq 15
+xFizzbuzz2 16
+xFizzbuzz3 17
 ; CS -> PCS

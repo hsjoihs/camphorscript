@@ -1,0 +1,296 @@
+/*# LINE start "lib\\conditional.txt" #*/
+
+
+
+/*# LINE start "lib\\stdcalc2.txt" #*/
+
+
+
+/*# LINE start "lib\\stdcalc.txt" #*/
+
+
+
+/*# LINE start "lib\\fixdecl.txt" #*/
+
+
+
+infixl  0 (,);
+infixr  5 (=);    infixr  5 (+=);  infixr  5 (-=); 
+infixr  5 (=~);   infixr  5 (+=~); infixr  5 (-=~);
+infixr  5 (+=!~); infixr  5 (=!~); infixr  5 (-|=); infixr 5 (-|=~);
+infixl 35 (+); infixl 35 (-) ; infixl 35 (+~); infixl 35 (-~) ;
+infixl 40 (*); infixl 40 (%) ; infixl 40 (*~) ; 
+infixl 40 (/) ; infixl 40 (/~) ;    
+
+
+
+/*# LINE end   "lib\\fixdecl.txt" #*/
+
+
+/* a=0; */
+void clear(char&a) {
+	while(a){a-=1;}
+}
+
+void (=)(char&a;constant char N){
+	clear(a);a+=N;
+}
+
+
+/*# LINE start "lib\\eq_til.txt" #*/
+
+
+
+/*# LINE start "lib\\fixdecl.txt" #*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*# LINE end   "lib\\fixdecl.txt" #*/
+void (+=~)(char&a;char&z){
+	while(z){a+=1;z-=1;}
+}	/* a+= ~z */
+
+void (+=~)(char&a,char&b;char&z){
+	while(z){a+=1;b+=1;z-=1;}
+}	/* (a,b)+= ~z*/
+
+void (+=~)(char&a;char&z *constant char N){
+	while(z){a+=N;z-=1;}
+}	/* a+= ~z_star_N */
+
+
+void (-=~)(char&a;char&z){
+	while(z){a-=1;z-=1;}
+}	/* a-= ~z */
+
+void (-=~)(char&a,char&b;char&z){
+	while(z){a-=1;b-=1;z-=1;}
+}	/* (a,b)-= ~z*/
+
+void (-=~)(char&a;char&z *constant char N){
+	while(z){a-=N;z-=1;}
+}	/* a-= ~z_star_N */
+
+
+void (=~)(char&a;char&z){
+	clear(a);
+	a+=~z;
+}	/* a= ~z */
+
+void (=~)(char&a,char&b;char&z){
+	clear(a);clear(b);
+	(a,b)+=~z;
+}	/* (a,b)= ~z*/
+
+void (=~)(char&a;char&z *constant char N){
+	clear(a);
+	a+=~z*N;
+}	/* a= ~z_star_N */
+
+
+
+/*# LINE end   "lib\\eq_til.txt" #*/
+
+/*# LINE start "lib\\eq_bang_til.txt" #*/
+
+
+
+/*# LINE start "lib\\fixdecl.txt" #*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*# LINE end   "lib\\fixdecl.txt" #*/
+void (+=!~)(char&a;char&z){
+	a+=1;
+	while(z){clear(z);a-=1;}
+}	/* a+= !~z*/
+
+void (+=!~)(char&a,char&b;char&z){
+	a+=1; b+=1;
+	while(z){clear(z);a-=1;b-=1;}
+}	/* (a,b)+= !~z*/
+
+void (=!~)(char&a;char&z){
+	clear(a); a+=!~z;
+}	/* a= !~z*/
+
+void (=!~)(char&a,char&b;char&z){
+	clear(a); clear(b); (a,b)+=!~z;
+}	/* (a,b)= !~z*/
+
+
+
+/*# LINE end   "lib\\eq_bang_til.txt" #*/
+
+
+void (+=)(char&a;char&b){
+	char c2;
+	(a,c2)+=~b;
+	b+=~c2;
+	delete c2;
+}
+
+void (+=)(char&a;constant char N *~char&z){
+	while(z){a+=N;z-=1;}
+}	/* a+= N_star_ ~z */
+
+void (-|=~)(char&a;char&b){
+	/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
+	char c2;char d2;
+	while(b)
+	{
+		(c2,d2)+=~a;
+		   a +=~d2;
+		while(c2){
+			clear(c2);
+			a-=1;
+		}
+		b-=1;
+	}
+	delete c2;delete d2;
+}
+
+
+
+
+
+
+
+
+/*# LINE end   "lib\\stdcalc.txt" #*/
+void (+=)(char&a; constant char M *constant char N)
+{
+	char c2;
+	c2+=M;
+	a +=~c2 *N;
+	delete c2;
+}
+void (-=)(char&a; constant char M *constant char N)
+{
+	char c2;
+	c2+=M;
+	a -=~c2 *N;
+	delete c2;
+}
+
+
+
+/*# LINE end   "lib\\stdcalc2.txt" #*/
+syntax unless(~char&flag1){block}
+{
+	char flag2 =1;
+	while(flag1){
+		clear(flag2);
+		clear(flag1);
+	}
+	while(flag2){
+		block;
+		flag2-=1;
+	}
+	delete flag2;
+}
+syntax unless(char&a){block}
+{
+	char t1,t2,t3;	
+	/*# MEMORY using t1 #*/t2 +=a;
+	/*# MEMORY using t3 #*/
+	unless(~t2)
+	{
+		block;
+	}
+}
+syntax unless(constant char N -char&a){block}
+{
+	char v1,v2,v3;	
+	/*# MEMORY using v2 #*/v1+=a;
+	v2 +=N;
+	v2 -=~v1;
+	/*# MEMORY using v3 #*/
+	unless(~v2)
+	{
+		block;
+	}
+	delete v1;delete v2;delete v3;
+}
+
+
+
+/*# LINE end   "lib\\conditional.txt" #*/
+
+void writeNum(char&a)
+{
+	a +='0'; write(a); a -='0';
+}
+
+
+
+
+
+
+char iter;char v_1;char v_2;char v_3;char mod3;char mod5;char numFlag;char low;char mid;char high;
+/*# MEMORY using v_1 #*/iter +=10 *10;
+mod3 +=3;
+mod5 +=5;
+while(iter){
+	low+=1;
+	/*# MEMORY using v_1 v_2 v_3 #*/unless(10-low){clear(low);mid +=1;}
+	/*# MEMORY using v_1 v_2 v_3 #*/unless(10-mid){clear(mid);high+=1;}
+	
+	numFlag+=1;
+	mod3-=1;
+	
+	/*# MEMORY using v_1 v_2 v_3 #*/
+	unless(mod3)
+	{
+		mod3+=3;
+		/*# MEMORY using v_2 #*/v_1 +=7 *10; write(v_1); /* write('F');*/
+		/*# MEMORY using v_2 #*/v_1 +=5 *7 ; write(v_1); /* write('i');*/
+		/*# MEMORY using v_2 #*/v_1 +=3 *5 ; v_1+=2;write(v_1); write(v_1); /*write('z');write('z');*/
+		clear(v_1);
+		clear(numFlag);
+	}
+	
+	mod5-=1;
+	
+	/*# MEMORY using v_1 v_2 v_3 #*/
+	unless(mod5)
+	{
+		mod5+=5;
+		/*# MEMORY using v_2 #*/v_1 +=8 *8; v_1+=2;write(v_1); /* write('B'); */
+		/*# MEMORY using v_2 #*/v_1 +=6 *8; v_1+=3;write(v_1); /* write('u');*/
+		v_1+=5;write(v_1);write(v_1); /*write('z');write('z');*/
+		clear(v_1);
+		clear(numFlag);
+	}
+	/* v_1 is 0*/
+	while(numFlag){
+		writeNum(high);
+		writeNum(mid);
+		writeNum(low);
+		numFlag-=1;
+	}
+	/*# MEMORY using v_2 #*/v_1 +=4 *11; write(v_1); /* write(',');*/
+	/*# MEMORY using v_2 #*/v_1 -=3 *4 ; write(v_1); /* write(' ');*/
+	clear(v_1);
+	iter-=1;
+}
