@@ -44,7 +44,7 @@
 ・高い拡張性（できるだけライブラリに委任する）
 </pre>
 
-<h3>3. CamphorScript概略</h3>
+<h3>2. CamphorScript概略</h3>
 <hr>
 <pre>
 まずは見た目から。
@@ -54,6 +54,9 @@ C譲りのフリーフォーマットであって、改行やら空白やらは�
 まず、Brainf*ckを吐き出せる以上、8命令のどれにも対応する処理が存在しなければならないはずだ。
 とはいえ、メモリの管理を変数に委託していることで、<code>&lt;</code>と<code>&gt;</code>は不要となる。
 <code>+</code>と<code>-</code>については、<code>+=</code>と<code>-=</code>という演算子を組み込むことで解決した。当然左オペランドは変数、右オペランドは定数である。Brainf*ckにおいて<code>++++++++</code>と表されるコードは、普通に<code>a+=8;</code>と表現される。
+なお、いちいち<code>char a; a += 8;</code>と書くのは鬱陶しいので、<code>char a = 8;</code>と書けるようにしてある。
+なお、これは<code>char a; a=8;</code>とは異なる意味なので注意が必要である。挙動は同じだが。
+
 <code>.</code>と<code>,</code>はそれぞれ<code>write()</code>と<code>read()</code>という組み込み関数。引数は変数。
 さて、最大の問題児が<code>[</code>と<code>]</code>である。特に、逆翻訳時に問題を起こす。
 現状のCamphorScriptでは、<code>[</code>と<code>]</code>の中に<code>&lt;</code>と<code>&gt;</code>が同数入っているときのみ、逆翻訳を受け付ける。そうでなければエラーを吐く。
@@ -200,12 +203,13 @@ void (+=)(char& a;char& b){
 ということで<sup>[どういうことで？]</sup>、仮引数の型として<code>const char</code>というのも用意してある。これは、<code>constant char</code>と<code>char&amp;</code>の両方を受け取れる仮引数の型である。
 内部実装としては、<code>constant char</code>の場合と<code>char&amp;</code>の場合の関数(or演算子)が両方宣言されるという仕様になっていたはずである<sup>[要検証]</sup>。<span style="font-size: 70%">2年半前に実装したものの詳細なんて覚えてるわけないし、どこを調べれば答えが書いてあるかも知らない</span>
 </pre>
-<h3>2. 全体像</h3>
+<h3>3. 全体像</h3>
 <hr>
 <pre>
-まずは、全体像を把握するところから始めよう。
+全体像は、このようになっている。
 </pre>
-<table><tr><td><pre>
+<table><tr><td>コンパイル：</td></tr>
+<tr><td><pre>
 CamphorScript(CS)
  *↓Step1(C的マクロ展開)     			{- C macro expansion -}
 PreprocessedCamphorScript(PCS)
@@ -222,6 +226,15 @@ nouDarake
 Brainf*ck_spaced
  *↓Step8(空白削除)       			{- comment deletion -}
 Brainf*ck_compressed
+</pre></td></tr></table>
+<table><tr><td>逆コンパイル：</td></tr>
+<tr><td><pre>
+Brainf*ck
+  ↓Step8(空白追加)       			{- indentation -}
+  ↓Step7(非記号化)       			{- desymbolization -}
+nouDarake
+  ↓Step654(逐語訳)       			{- reverse translation -}
+CompiledCamphorScript
 </pre></td></tr></table>
 <pre>
 Stepの数字が飛んでいるのは、空いている番号のところに将来処理を追加する予定だからである。
