@@ -8,6 +8,13 @@ A C-like language designed to help write brainf*ck
 - Haskell Platform (>= 7.10.2)
 
 ### Installing
+#### Windows
+- clone the repo
+- execute `!exec.bat`
+- run `ghc --make ccsc`
+- run `ghc --make ccsrc`
+
+#### Linux
 clone the repo and run:
 ```
 $ make
