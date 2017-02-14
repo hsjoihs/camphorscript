@@ -51,7 +51,7 @@ includeしているライブラリ：&lt;fixdecl&gt;<br>
 </table>
 <hr>
 
-<h3>1. &lt;stdcalc&gt;</h3>
+<h3>4. &lt;stdcalc&gt;</h3>
 includeしているライブラリ：&lt;fixdecl&gt;, &lt;eq_til&gt;, &lt;eq_bang_til&gt;<br>
 演算子優先順位宣言：無し<br>
 関数・演算子定義
@@ -61,7 +61,7 @@ includeしているライブラリ：&lt;fixdecl&gt;, &lt;eq_til&gt;, &lt;eq_ban
 <tr><td>void (=)(char& a;constant char N)</td><td>a=N;</td><td>aに定数Nを代入</td><td>a=N;</td></tr>
 <tr><td>void (+=)(char& a;char& b)</td><td>a+=b;</td><td>aにbを足す</td><td>a+=b;</td></tr>
 <tr><td>void (+=)(char& a;constant char N *~ char& z)</td><td>a+= N * ~z;</td><td>zを破壊しながら、Nをz回aに足す</td><td>a += N * z, z=0;</td></tr>
-<tr><td>void (-|=~)(char& a;char& b)</td><td>a -|= ~b;</td><td></td><td>a= (a&gt;b ? a-b : 0), b=0;</td></tr>
+<tr><td>void (-|=~)(char& a;char& b)</td><td>a -|= ~b;</td><td>bを破壊しながらそれをaから引くが、aがb以下ならaは0になる</td><td>a= (a&gt;b ? a-b : 0), b=0;</td></tr>
 </table>
 
 <hr>
