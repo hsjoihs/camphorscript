@@ -8,6 +8,7 @@ GPL付加
 dynamic_assert
 NouLittleのデザイン
 structとenumの実装
+a += !~z を定義したら (a,b,c,d,e,f) += !~zも自動でできると嬉しい気がした（要るか？）
 
 
 短期的To do
