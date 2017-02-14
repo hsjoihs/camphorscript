@@ -144,7 +144,7 @@ void (+=)(char&a;char&b){
 
 void (+=)(char&a;constant char N *~char&z){
 	while(z){a+=N;z-=1;}
-}	/* a+= ~z_star_N */
+}	/* a+= N_star_ ~z */
 
 void (-|=~)(char&a;char&b){
 	/* if(b>=a){b=0;a=0;}else{a-=b;b=0;} */
@@ -229,7 +229,7 @@ void (-|=~)(char&a;char&b){
 
 
 /*# LINE end   "lib\\stdcalc.txt" #*/
-infixr 5 (+<-~); infixr 5 (+<--~); infixr 5 (<-~); infixl 40 (/); infixr 5 (-|=);
+infixr 5 (+<-~); /*infixr 5 (+<--~);*/ infixr 5 (<-~); infixl 40 (/); infixr 5 (-|=);
 void (-|=) (char&a; const char N)
 {
 	char b; b+=N;
@@ -268,24 +268,26 @@ void sprint(char&x1,char&x2,char&x3 +<-~char&a)
 	(x1,x2)+<-~k/10;
 	delete k;
 }
-
-void (+<--~) (char&quot,char&rem; char&a /const char N)
+/*
+void (+<--~) (char& quot, char& rem; char& a / const char N)
 {
 	char orig; char a3; char not_; char tmp; char a2;
 	while(a)
 	{
-		(tmp,orig) +=~a; a +=~tmp;
-		a -|=N;
-		(a2,a3) +=a;
+		(tmp,orig) +=~ a; a +=~ tmp;
+		a -|= N;
+		(a2,a3) += a;
 		
-		not_ +=1;
+		not_ += 1;
 		while(a2){clear(a2); quot+=1;}
 		while(a3){clear(a3); clear(not_);}		
-		while(not_){not_-=1; rem+=orig;} 
+		while(not_){not_-=1; rem+= orig;} 
 		clear(orig);
 	}
 	delete orig; delete a3; delete not_; delete tmp; delete a2;
 }
+*/
+
 
 
 /*# LINE end   "lib\\div.txt" #*/

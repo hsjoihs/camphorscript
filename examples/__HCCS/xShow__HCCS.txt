@@ -102,7 +102,7 @@
 
 
 
-	/* a+= ~z_star_N */
+	/* a+= N_star_ ~z */
 
 
 
@@ -173,7 +173,7 @@
 
 
 /*# LINE end "lib\\stdcalc.txt" #*/
-    
+ /*infixr 5 (+<--~);*/   
 
 
 
@@ -181,7 +181,25 @@
 
 
 
-
+/*
+void (+<--~) (char& quot, char& rem; char& a / const char N)
+{
+	char orig; char a3; char not_; char tmp; char a2;
+	while(a)
+	{
+		(tmp,orig) +=~ a; a +=~ tmp;
+		a -|= N;
+		(a2,a3) += a;
+		
+		not_ += 1;
+		while(a2){clear(a2); quot+=1;}
+		while(a3){clear(a3); clear(not_);}		
+		while(not_){not_-=1; rem+= orig;} 
+		clear(orig);
+	}
+	delete orig; delete a3; delete not_; delete tmp; delete a2;
+}
+*/
 
 
 
