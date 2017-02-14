@@ -14,12 +14,15 @@ getHiddenChar :: IO Char
 getHiddenChar = fmap (chr.fromEnum) c_getch
 foreign import ccall unsafe "conio.h getch"
   c_getch :: IO CInt
+-- copied from http://stackoverflow.com/questions/2983974/haskell-read-input-character-from-console-immediately-not-after-newline    
   
 #else
 
 getHiddenChar = getChar
+{- **********************************************************************************
+   * FIXME: should read input character from console immediately, not after newline *
+   ********************************************************************************** -}
 
 #endif  
   
 
--- copied from http://stackoverflow.com/questions/2983974/haskell-read-input-character-from-console-immediately-not-after-newline  
