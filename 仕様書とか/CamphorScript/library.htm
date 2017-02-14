@@ -38,16 +38,16 @@ includeしているライブラリ：&lt;fixdecl&gt;
 </table>
 <hr>
 
-<h3>1. &lt;eq_bang_til&gt;</h3>
+<h3>3. &lt;eq_bang_til&gt;</h3>
 includeしているライブラリ：&lt;fixdecl&gt;<br>
 演算子優先順位宣言：無し<br>
 関数・演算子定義
 <table>
 <tr><td>定義</td><td>使い方</td><td>意味</td><td>同等の挙動をするC</td></tr>
-<tr><td>void (+=!~)(char& a;char& z)</td><td>a+= !~z;</td><td></td><td>a+= !z, z=0;</td></tr>
-<tr><td>void (+=!~)(char& a,char& b;char& z)</td><td>(a,b)+= !~z;</td><td></td><td>a+= !z, b+= !z, z=0;</td></tr>
-<tr><td>void (=!~)(char& a;char& z)</td><td>a= !~z;</td><td></td><td>a= !z, z=0;</td></tr>
-<tr><td>void (=!~)(char& a,char& b;char& z)</td><td>(a,b)= !~z;</td><td></td><td>a= !z, b= !z, z=0;</td></tr>
+<tr><td>void (+=!~)(char& a;char& z)</td><td>a+= !~z;</td><td>zを破壊しながら、zの論理否定をaに足し合わせる</td><td>a+= !z, z=0;</td></tr>
+<tr><td>void (+=!~)(char& a,char& b;char& z)</td><td>(a,b)+= !~z;</td><td>zを破壊しながら、zの論理否定をaとbに足し合わせる</td><td>a+= !z, b+= !z, z=0;</td></tr>
+<tr><td>void (=!~)(char& a;char& z)</td><td>a= !~z;</td><td>zを破壊しながら、zの論理否定をaに代入する</td><td>a= !z, z=0;</td></tr>
+<tr><td>void (=!~)(char& a,char& b;char& z)</td><td>(a,b)= !~z;</td><td>zを破壊しながら、zの論理否定をaとbに代入する</td><td>a= !z, b= !z, z=0;</td></tr>
 </table>
 <hr>
 
