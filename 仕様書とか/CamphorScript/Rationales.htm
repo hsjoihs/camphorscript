@@ -55,11 +55,35 @@
 C譲りのフリーフォーマットであって、改行やら空白やらはどこにでも入れられる。ただ、当然<code>char</code>を<code>ch ar</code>と書いたり、<code>char a</code>を<code>chara</code>と書くことはできない。
 <u>ただし、演算子だけは例外である。</u><code>+=</code>を<code>+ =</code>と表記することは、<u>Cなどとは異なり<b>許される。</b></u>そういう設計にした理由は後述する。
 
+現状のCamphorScriptには、変数と定数がある。
+変数はメモリを抽象化したものであり、Brainf*ckに翻訳する際にはメモリ上に割り当てられる。変数名の規則はCと同様である。
+Brainf*ckの<code>++++++++</code>を<code>char a; a += 8;</code>と書きたいわけで、その<code>8</code>を書くために定数が在る。
+現状では、非負整数リテラルと文字リテラルという2種類のリテラルが存在し、共に定数を表す。非負整数リテラルは<code>35</code>とか<code>114</code>とかであり、文字リテラルは<code>'z'</code>とか<code>'?'</code>とかである。
+エスケープシーケンスも用意されているが、Cの丸パクリなのでCamphorScriptには本来不要な<code>'\?'</code>とかまで無批判に採用している。
+</pre>
+<table style="font-family: monospace; text-align:right;">
+<tr><td>'\a'</td><td>7</td></tr>
+<tr><td>'\b'</td><td>8</td></tr>
+<tr><td>'\f'</td><td>12</td></tr>
+<tr><td>'\n'</td><td>10</td></tr>
+<tr><td>'\r'</td><td>13</td></tr>
+<tr><td>'\t'</td><td>9</td></tr>
+<tr><td>'\v'</td><td>11</td></tr>
+<tr><td>'\0'</td><td>0</td></tr>
+<tr><td>'\?'</td><td>63</td></tr>
+<tr><td>'\''</td><td>39</td></tr>
+<tr><td>'\"'</td><td>34</td></tr>
+<tr><td>'\\'</td><td>92</td></tr>
+</table>
+
+<pre>
 まず、Brainf*ckを吐き出せる以上、8命令のどれにも対応する処理が存在しなければならないはずだ。
 とはいえ、メモリの管理を変数に委託していることで、<code>&lt;</code>と<code>&gt;</code>は不要となる。
-<code>+</code>と<code>-</code>については、<code>+=</code>と<code>-=</code>という演算子を組み込むことで解決した。当然左オペランドは変数、右オペランドは定数である。Brainf*ckにおいて<code>++++++++</code>と表されるコードは、普通に<code>a+=8;</code>と表現される。
+<code>+</code>と<code>-</code>については、<code>+=</code>と<code>-=</code>という演算子を組み込むことで解決した。当然左オペランドは変数、右オペランドは定数である。
+前述のとおり、Brainf*ckにおいて<code>++++++++</code>と表されるコードは、普通に<code>a+=8;</code>などと表現される。
 なお、いちいち<code>char a; a += 8;</code>と書くのは鬱陶しいので、<code>char a = 8;</code>と書けるようにしてある。
-なお、これは<code>char a; a=8;</code>とは異なる意味なので注意が必要である。挙動は同じだが。
+この構文で登場する<code>=</code>は便宜上のものであり、デフォルトでは<code>char a; a=8;</code>というコードはコンパイルエラーであることに注意が必要である。
+（<code>&lt;stdcalc&gt;</code>をインクルードすれば同じ挙動を見せるが、非効率的である。）
 
 <code>.</code>と<code>,</code>はそれぞれ<code>write()</code>と<code>read()</code>という組み込み関数。引数は変数。
 さて、最大の問題児が<code>[</code>と<code>]</code>である。特に、逆翻訳時に問題を起こす。
@@ -1040,23 +1064,6 @@ PreprocessedCamphorScript → Half-CompiledCamphorScriptでは、CamphorScript�
 ライブラリは、Cと異なり関数定義を含む。これは、CamphorScriptの「関数」の実態が文字列置換であることを考えれば当然のことである。
 故に、ライブラリには基本的に二重インクルード防止イディオムを書く必要がある。というかこれを書くためだけに#ifndefやらを実装した。だって#pragma onceなんて実装するのめんどくさいじゃん
 
-現状では、非負整数リテラルと文字リテラルという2種類のリテラルが存在する。非負整数リテラルは<code>35</code>とか<code>114</code>とかであり、文字リテラルは<code>'z'</code>とか<code>'?'</code>とかである。
-エスケープシーケンスも用意されているが、Cの丸パクリなのでCamphorScriptには本来不要な<code>'\?'</code>とかまで無批判に採用している。
-</pre>
-<table style="font-family: monospace; text-align:right;">
-<tr><td>'\a'</td><td>7</td></tr>
-<tr><td>'\b'</td><td>8</td></tr>
-<tr><td>'\f'</td><td>12</td></tr>
-<tr><td>'\n'</td><td>10</td></tr>
-<tr><td>'\r'</td><td>13</td></tr>
-<tr><td>'\t'</td><td>9</td></tr>
-<tr><td>'\v'</td><td>11</td></tr>
-<tr><td>'\0'</td><td>0</td></tr>
-<tr><td>'\?'</td><td>63</td></tr>
-<tr><td>'\''</td><td>39</td></tr>
-<tr><td>'\"'</td><td>34</td></tr>
-<tr><td>'\\'</td><td>92</td></tr>
-</table>
 <pre>
 きっかけは、<a href="http://d.hatena.ne.jp/aike/20090209">難読プログラミング言語をサクサク書くためのマクロ機能付超簡易言語 - aikeの日記</a>という記事を読んだことである。
 </pre>
