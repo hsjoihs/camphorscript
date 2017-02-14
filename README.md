@@ -27,7 +27,8 @@ sprint(b,c,d + <-~ a);
 write(b);write(c);write(d);
 ```
 
-↓compile 
+↓compile (with `$ ./ccsc -C18 examples/__CS/xShow__CS.txt -o con`)
+
 
 Brainf*ck
 ```
@@ -43,7 +44,7 @@ Brainf*ck
 +++++++++[>++++++++>+++++++++++>+++++<<<-]>.>++.+++++++..+++.>-.------------.<++++++++.--------.+++.------.--------.>+.
 ```
 
-↓decompile
+↓decompile (with `./ccsrc -C84 examples/__BF_c/xHello__BF_c.txt -o con`)
 
 ```
 char v_0;char v_1;char v_2;char v_3;
