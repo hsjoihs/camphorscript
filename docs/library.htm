@@ -87,7 +87,8 @@ includeしているライブラリ：&lt;stdcalc&gt;<br>
 
 <h3>6. &lt;stdcalc2&gt;</h3>
 includeしているライブラリ：&lt;stdcalc&gt;<br>
-
+演算子優先順位宣言：無し<br>
+関数・演算子定義
 <table>
 <tr><td>定義</td><td>使い方</td><td>意味</td><td>同等の挙動をするC</td></tr>
 <tr><td>void (+=)(char&amp;a; constant char M * constant char N)</td><td>a += M*N;</td><td>定数Mと定数Nの積をaに加える</td><td>a += M*N;</td></tr>
@@ -97,7 +98,8 @@ includeしているライブラリ：&lt;stdcalc&gt;<br>
 
 <h3>7. &lt;conditional&gt;</h3>
 includeしているライブラリ：&lt;stdcalc2&gt;<br>
-
+演算子優先順位宣言：無し<br>
+構文定義
 <table>
 <tr><td>定義</td><td>使い方</td><td>意味</td><td>同等の挙動をするC</td></tr>
 <tr><td>syntax unless(~char& a){block}</td><td>unless(~a){/*block*/}</td><td>aを0にするのと並行して、元々aが0のときblockの中身を実行する。</td><td>if(!a){a=0; {/*block*/}}</td></tr><!-- aがどの位置で0になるかは未定としたい -->
