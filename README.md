@@ -93,6 +93,7 @@ v_3+=1;write(v_3);
 <br>
 <br>
 CamphorScript
+
 ```
 char a;char b;char c;char d;char e;char f;char g;char h;char i;char j;
 b+=10;while(b){a+=10;b-=1;}e+=3;f+=5;while(a){h+=1;while(h){c+=1;b+=1;
