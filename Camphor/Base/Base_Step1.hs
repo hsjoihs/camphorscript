@@ -243,11 +243,12 @@ c1 _ ELSE = do
    
 c1 _ (OTHER t) = do
  CS{ok = o,defMacro = table} <- get
- case o of
-  False -> return "\n"
-  True -> do 
+ if o 
+  then do 
    replaced <- lift $ lift $ replaceBy table t   
    return (replaced ++ "\n")
+  else return "\n"
+
 
 c1 i@(j,_,_) (INCLU  fil) = do 
  stat@CS{ok = o} <- get

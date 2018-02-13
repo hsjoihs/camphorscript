@@ -38,7 +38,14 @@ type SCMEP = StateT  (CollisionTable,Maybe TmpStat,CollisionTable) (Either Parse
    ***************************
    * definition of replacer3 *
    ***************************
-----------------------------------------------------------------------------------}  
+----------------------------------------------------------------------------------} 
+foobar :: ReplTable -> Ident2 -> RCMEP Value
+foobar table k = do
+ clt <- askFst
+ ust <- askTrd
+ let x = replaceSingle table clt ust(Var k)
+ return x
+
 replacer3 :: 
  UserState -> NonEmpty MacroId -> SourcePos -> SimpleSent2 -> ReplTable -> SCMEP [Sent]
 -- simple ones --
@@ -113,9 +120,7 @@ replacer3 stat narr pos (R_Call4 (x:xs) valuelist2) table = toState $ do
 
 replacer3 _ _ pos (R_Call5 (SepList(Constant _)[])) _      = return[Single pos Scolon]
 replacer3 _ _ pos (R_Call5 (SepList(Var ident )[])) table  = toState $ do
- clt <- askFst
- ust <- askTrd
- let x = replaceSingle table clt ust(Var ident)
+ x <- foobar table ident
  return[Single pos $ Call5(return x)]
 replacer3 stat narr pos (R_Call5 (SepList x (ov:ovs))) table = toState $ do
  (oper,vlist1,vlist2) <- lift $ getCall5Result pos (x,ov:|ovs) stat
@@ -123,17 +128,13 @@ replacer3 stat narr pos (R_Call5 (SepList x (ov:ovs))) table = toState $ do
  
 --- built-in (+=) & (-=) ---
 replacer3 _ _ pos (R_Pleq (Var v1) (Constant c)) table  = toState $ do
- clt <- askFst
- ust <- askTrd
- let x = replaceSingle table clt ust (Var v1)
+ x <- foobar table v1
  case x of
   Var v -> return[Single pos $ Pleq v c]
   _     -> err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Leftofbuiltin "+=" <!> Variab v1
 
 replacer3 _ _ pos (R_Mneq (Var v1) (Constant c)) table  = toState $ do
- clt <- askFst
- ust <- askTrd
- let x = replaceSingle table clt ust(Var v1)
+ x <- foobar table v1
  case x of
   Var v -> return[Single pos $ Mneq v c]
   _     -> err$toPE pos $ Step2 <!> Type <!> WrongCall <!> Leftofbuiltin "-=" <!> Variab v1
@@ -148,17 +149,13 @@ replacer3 stat ns pos (R_Rd  c@(Constant _)) table = replacer3 stat ns pos (R_Ca
 replacer3 stat ns pos (R_Wrt c@(Constant _)) table = replacer3 stat ns pos (R_Call1 writeI $return c ) table
 
 replacer3 stat ns pos (R_Rd (Var ident)) table = toState $ do
- clt <- askFst
- ust <- askTrd
- let x = replaceSingle table clt ust(Var ident)
+ x <- foobar table ident
  case x of
   Var v -> return[Single pos $ Rd v] 
   c     -> call1 stat ns pos (readI,return c) table 
 
 replacer3 stat ns pos (R_Wrt (Var ident)) table = toState $ do
- clt <- askFst
- ust <- askTrd
- let x = replaceSingle table clt ust (Var ident)
+ x <- foobar table ident
  case x of
   Var v -> return[Single pos $ Wrt v] 
   c     -> call1 stat ns pos (writeI,return c) table 

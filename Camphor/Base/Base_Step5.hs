@@ -21,7 +21,7 @@ data Com5_bot = WHI Ident | BLO deriving(Show)
 
 data OneOf a c = Null | Top a | Bot c deriving (Show)
 
-data Tree b d = Ns [OneOf d (b,Tree b d)] deriving(Show)
+newtype Tree b d = Ns [OneOf d (b,Tree b d)] deriving(Show)
 type Node b d =     OneOf d (b,Tree b d)
 
 type Set5 = Node Com5_bot Com5_top 
