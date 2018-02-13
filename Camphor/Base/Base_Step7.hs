@@ -20,7 +20,7 @@ convert7 :: [Chunk] -> Txt
 convert7 x = convert7' x 0
 
 convert7' :: [Chunk] -> Integer -> Txt
-convert7' c i = map2 (fmap pack . c7) c i
+convert7' = map2 (fmap pack . c7)
 
 map2 :: (Monoid b) => (a -> StateT n Identity b) -> [a] -> n -> b
 map2 f xs = evalState $ mconcat <$> mapM f xs

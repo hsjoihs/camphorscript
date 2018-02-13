@@ -275,7 +275,7 @@ inclus2 fil j (CS{defMacro = table, ifDepth = depth,lineNum = n,path = f},i) = c
   let inclfile = dirf
   sets   <- lift $ lift $ parse parser1 (inclfile ++ "--step1") (txt <+> "\n")
   (newtable,text)      <- lift $ conv1 i (initial table inclfile)sets
-  put (CS{defMacro = newtable,ifDepth = depth  ,lineNum = n+1,ok = True ,skipDepth = (-1),path = f})
+  put CS{defMacro = newtable,ifDepth = depth  ,lineNum = n+1,ok = True ,skipDepth = -1,path = f}
   return("/*# LINE start "++show inclfile++" #*/\n\n"++text++"\n\n/*# LINE end   "++show inclfile++" #*/\n")  
  
 
