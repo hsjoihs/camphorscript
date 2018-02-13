@@ -39,7 +39,7 @@ type SCMEP = StateT  (CollisionTable,Maybe TmpStat,CollisionTable) (Either Parse
    * definition of replacer3 *
    ***************************
 ----------------------------------------------------------------------------------} 
-foobar :: ReplTable -> Ident2 -> RCMEP Value
+foobar :: ReplTable -> Ident2 -> RCMEP Value -- FIXME: name
 foobar table k = do
  clt <- askFst
  ust <- askTrd

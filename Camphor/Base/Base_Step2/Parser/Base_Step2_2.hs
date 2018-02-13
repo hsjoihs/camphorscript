@@ -277,11 +277,17 @@ getTypeList :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Ident
 getTypeList = do
  g <- typ;      __;   
  h <- _ident;   __;   
- i <- many (do{ a <- _op; __; b <- typ; __; c <- _ident; __; return(a,(b,c))}); 
+ i <- many something; 
  return$SepList (g,h) i
- 
+
+something :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity (Oper, (Type, Ident2))
+something = do{ a <- _op; __; b <- typ; __; c <- _ident; __; return(a,(b,c))} -- FIXME: name
+
+something2 :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity (Oper, Value)
+something2 = do{a <- _op; __; b <- value; __; return(a,b)}
+
 getTailTypeList :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity TailTypeList
-getTailTypeList = TSL <$> many (do{ a <- _op; __; b <- typ; __; c <- _ident; __; return(a,(b,c))}); 
+getTailTypeList = TSL <$> many something; 
 
 eitherTL :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity (Between TailTypeList TypeList)
 eitherTL = West <$> try getTypeList <|> East <$> try getTailTypeList
@@ -292,11 +298,11 @@ value = (Var <$> _ident <?> "variable") <|> (Constant <$> _num <?> "unsigned int
 getValueList :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity ValueList
 getValueList = do
  g <- value;  __;
- h <- many(do{a <- _op; __; b <- value; __; return(a,b)})
+ h <- many something2
  return$SepList g h
   
 getTailValueList :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity TailValueList
-getTailValueList = TSL <$> many(do{a <- _op; __; b <- value; __; return(a,b)});
+getTailValueList = TSL <$> many something2
 
 eitherVL :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity (Between TailValueList ValueList)
 eitherVL = West <$> try getValueList <|> East <$> try getTailValueList  
