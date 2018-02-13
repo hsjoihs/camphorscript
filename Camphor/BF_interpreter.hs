@@ -25,7 +25,7 @@ interpreterIO str = case parse parseBF' "" str of
  Right xs -> runBF xs
  
 pureInterpreter :: Txt -> Either ParseError (String -> Maybe String)
-pureInterpreter str = unwrapVIO <$> runBF <$> parse parseBF' "" str 
+pureInterpreter str = unwrapVIO . runBF <$> parse parseBF' "" str 
  
 data Stat = Stat {
   notyet :: [BFComm],

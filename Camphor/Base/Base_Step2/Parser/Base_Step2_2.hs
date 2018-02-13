@@ -30,7 +30,7 @@ doWith p is nm = concat [ [Single p $ Char i,Single p $ Call2 (wrap "+=") (retur
 syntax_ :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity (SourcePos,Ident2,Sent,Between TailTypeList TypeList)
 syntax_ = do{
  p <- getPosition;
- try(_syntax);     __;  -- syntax
+ try _syntax;      __;  -- syntax
  name <- _ident;   __;  -- if
  _paren;           __;  -- (
  list <- eitherTL; __;  -- ~a
@@ -55,7 +55,7 @@ bLOCK = do{
  p <- getPosition;
  _BLOCK; __; 
  _scolon;
- return [Single p $ SynBlock]
+ return [Single p SynBlock]
  }
   
 def :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity [Sent]
@@ -69,7 +69,7 @@ def = do{
   return t;
   });              __;
  _scolon;               -- ;
- return $ concat[ doWith p is nm | (is,nm) <- (k:ks) ]
+ return $ concat[ doWith p is nm | (is,nm) <- k:ks ]
  }
 
 singleDef :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity ([Ident2],Integer)
@@ -140,7 +140,7 @@ block' = do{p <- getPosition; _brace; ss <- many sent;_ecarb; return(p,concat ss
 --           {      a; b; c;       }
 
 block :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity Sent
-block = (uncurry Block) <$> block'
+block = uncurry Block <$> block'
 
 block2 :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity [Sent]
 block2 = ((:[]) . uncurry Block) <$> block'
@@ -284,7 +284,7 @@ getTailTypeList :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState I
 getTailTypeList = TSL <$> many (do{ a <- _op; __; b <- typ; __; c <- _ident; __; return(a,(b,c))}); 
 
 eitherTL :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity (Between TailTypeList TypeList)
-eitherTL = West <$> try(getTypeList) <|> East <$> try(getTailTypeList) 
+eitherTL = West <$> try getTypeList <|> East <$> try getTailTypeList
 
 value :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity Value
 value = (Var <$> _ident <?> "variable") <|> (Constant <$> _num <?> "unsigned integer or character literal")
@@ -299,4 +299,4 @@ getTailValueList :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState 
 getTailValueList = TSL <$> many(do{a <- _op; __; b <- value; __; return(a,b)});
 
 eitherVL :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity (Between TailValueList ValueList)
-eitherVL = West <$> try(getValueList) <|> East <$> try(getTailValueList)  
+eitherVL = West <$> try getValueList <|> East <$> try getTailValueList  

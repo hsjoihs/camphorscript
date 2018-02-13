@@ -42,14 +42,16 @@ sentences4 = def <|> del <|> asser <|> add <|> sub <|> while <|> block <|> read_
 while :: Stream s m Char => ParsecT s u m [Set4] 
 while = try(do{
  string "while"; xs <- parId;
- spaces'; char '{';
- spaces'; ks <- parser4; spaces';
- char '}';
+ spaces'; ks <- curly;
  return[WHI xs(Ns ks)]})
  
 block :: Stream s m Char => ParsecT s u m [Set4]
 block = try(do{
- char '{';
- spaces'; ks <- parser4; spaces';
- char '}';
+ ks <- curly;
  return[BLO (Ns ks)]})
+
+curly :: Stream s m Char => ParsecT s u m [Set4]
+curly = do{char '{';
+ spaces'; ks <- parser4; spaces';
+ char '}';return ks}
+

@@ -65,9 +65,10 @@ convert4' m f((n ,s:|st ),DEL ide   :xs)
  | M.member ide s = ("delete "++unId ide++"; ") <+++$$> convert4' m f((n, M.delete ide s :| st),xs)
  | otherwise      = makeErr(msgIde ide "is not defined or is already deleted in this scope")(f++"--step4'") 0 0
    
-convert4' m f((n ,st    ),AS0 ide   :xs) = case lookup' ide (toList st) of
- True  -> ("assert_zero "++unId ide++"; ") <+++$$> convert4' m f((n, st),xs)
- False -> makeErr(msgIde ide "is not defined or is already deleted")(f++"--step4'") 0 0
+convert4' m f((n ,st    ),AS0 ide   :xs) = 
+ if lookup' ide (toList st) 
+  then ("assert_zero "++unId ide++"; ") <+++$$> convert4' m f((n, st),xs)
+  else makeErr(msgIde ide "is not defined or is already deleted")(f++"--step4'") 0 0
 
 convert4' m f(state      ,NUL sp    :xs) = sp <+++$$> convert4' m f(state,xs) 
 
@@ -81,29 +82,32 @@ convert4' m f((n ,st    ),ADD ide nm:xs) = case lookup' ide (toList st) of
    
 
 
-convert4' m f((n ,st    ),REA ide   :xs) = case lookup' ide (toList st) of
- True  -> ("read( "++unId ide++");") <+++$$> convert4'  m f((n,st),xs)
- False -> makeErr(msgIde ide "is not defined")(f++"--step4'") 0 0
+convert4' m f((n ,st    ),REA ide   :xs) = 
+ if lookup' ide (toList st)
+  then ("read( "++unId ide++");") <+++$$> convert4'  m f((n,st),xs)
+  else makeErr(msgIde ide "is not defined")(f++"--step4'") 0 0
 
-convert4' m f((n ,st    ),WRI ide   :xs) = case lookup' ide (toList st) of
- True  -> ("write("++unId ide++");") <+++$$> convert4' m f((n,st),xs)
- False -> makeErr(msgIde ide "is not defined")(f++"--step4'") 0 0
+convert4' m f((n ,st    ),WRI ide   :xs) = 
+ if lookup' ide (toList st)
+  then ("write("++unId ide++");") <+++$$> convert4' m f((n,st),xs)
+  else makeErr(msgIde ide "is not defined")(f++"--step4'") 0 0
 
 convert4' m f(state      ,Null      :xs) = " " <+++$$> convert4' m f(state,xs)
 convert4' m f(state      ,COM cm    :xs) = cm  <+++$$> convert4' m f(state,xs)
 
-convert4' m f((n ,st    ),WHI ide(Ns v):xs) = case lookup' ide (toList st) of
- True  -> do
-  (table1,res1) <- convert4'  m f((n+1,M.empty `cons` st),v ) -- inside the loop
-  if not(M.null table1) 
-   then let leftList = map fst $ _MtoList table1 in 
-   makeErr(Message$identMsg leftList)(f ++ "--step4'") 0 0 
-   else do
-  (table2,res2) <- convert4'  m f((n  ,st               ),xs) -- left
-  return (table2,"while(" <+> unId  ide <+> "){ " <+> res1 <+> "} " <+> res2)
- False -> makeErr(msgIde ide "is not defined")(f ++ "--step4'") 0 0
+convert4' m f((n ,st    ),WHI ide(Ns v):xs) = 
+ if lookup' ide (toList st)
+  then do
+   (table1,res1) <- convert4'  m f((n+1,M.empty `cons` st),v ) -- inside the loop
+   if not(M.null table1) 
+    then let leftList = map fst $ _MtoList table1 in 
+    makeErr(Message$identMsg leftList)(f ++ "--step4'") 0 0 
+    else do
+   (table2,res2) <- convert4'  m f((n  ,st               ),xs) -- left
+   return (table2,"while(" <+> unId  ide <+> "){ " <+> res1 <+> "} " <+> res2)
+  else makeErr(msgIde ide "is not defined")(f ++ "--step4'") 0 0
    
-convert4' m f((n ,st    ),BLO (Ns v):xs) =  do
+convert4' m f((n ,st    ),BLO (Ns v):xs) = do
  (table1,res1) <- convert4'  m f((n+1,M.empty `cons` st),v ) -- inside the loop
  if not(M.null table1) 
   then let leftList = map fst $ _MtoList table1 in 

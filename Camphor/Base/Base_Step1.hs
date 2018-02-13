@@ -120,7 +120,7 @@ makeErr' :: Message -> String -> Int -> Int -> WriterT Warnings (Either ParseErr
 makeErr' a b c d = lift(makeErr a b c d)
 
 convert1 :: FilePath -> Includers -> [Pre7] -> WriterT Warnings (Either ParseError) Txt
-convert1 file includers@(_,_,t) xs = pack <$> snd <$> conv1 includers (initial t file)xs -- fixme: txt
+convert1 file includers@(_,_,t) xs = pack . snd <$> conv1 includers (initial t file)xs -- fixme: txt
 
 
 map2 :: (Monad m,Functor m) => (s -> s) -> (s -> m s2) -> (r -> a -> StateT s m [b]) -> r -> s -> [a] -> m(s2,[b]) 
@@ -151,7 +151,7 @@ putFalse = do -- sink
 putTrue :: SCWWEP String
 putTrue = do 
  stat <- get
- put stat{skipDepth = (-1), ok = True}
+ put stat{skipDepth = -1, ok = True}
  return "\n"
 
 putTrueAndFloat :: SCWWEP String 
