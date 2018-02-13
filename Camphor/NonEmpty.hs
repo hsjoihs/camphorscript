@@ -2,14 +2,13 @@
 {-# OPTIONS -Wall #-}
 module Camphor.NonEmpty
 (NonEmpty(..)
-
 ,cons
 ,snoc2
-,last'
+,last
 ,shiftPair
 ,searchBy
 ,nE
-,init'
+,init
 )where
 import Camphor.SafePrelude 
 import Data.List.NonEmpty
@@ -25,12 +24,6 @@ searchBy f (x :| (x2:xs)) = case f x of
 snoc2 :: [a] -> a -> NonEmpty a
 [] `snoc2` a = a :| []
 (x:xs) `snoc2` a = x :| (xs++[a])
-
-last' :: NonEmpty a -> a
-last' = Data.List.NonEmpty.last
-
-init' :: NonEmpty a -> [a]
-init' = Data.List.NonEmpty.init
 
 shiftPair :: NonEmpty (a,b) -> (a, [(b,a)]      , b  )
 shiftPair ( (a,b) :| []    ) = (a, []           , b  )

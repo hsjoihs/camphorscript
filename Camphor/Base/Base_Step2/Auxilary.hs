@@ -37,7 +37,7 @@ import Text.Parsec
 getLastPos :: Sent -> SourcePos
 getLastPos (Single pos _) = pos
 getLastPos (Block  p [] ) = p
-getLastPos (Block  _ (x:xs)) = getLastPos $ last' (x :| xs)
+getLastPos (Block  _ (x:xs)) = getLastPos $ last (x :| xs)
 
 getOpContents2 :: SourcePos -> UserState -> Oper -> Either ParseError OpInfo
 getOpContents2 pos s o = case getOpContents s o of

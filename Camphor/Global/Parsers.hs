@@ -134,7 +134,7 @@ pragmaComm = try(
   case comm' of 
    [] -> return $ West('#':comm')
    (x:xs)
-    | last' (x:|xs) == '#' -> return $ (East . words . init') (x:|xs)
+    | last (x:|xs) == '#' -> return $ (East . words . init) (x:|xs)
     | otherwise            -> return $  West('#':comm')
  )
 

@@ -65,7 +65,7 @@ defaultStat = S{
 dispatch4 :: Options -> IO ()
 dispatch4 [] = outputInfo
 dispatch4 xs = case mapMaybe toDoubleOption xs of
- (o:os) -> case last' (o:|os) of -- double option overwrites everything
+ (o:os) -> case last (o:|os) of -- double option overwrites everything
   Version -> putStrLn $ "CHAtsFtD CamphorScript Compiler, version " ++ version_num
   Help    -> outputInfo
  []     -> do
