@@ -9,7 +9,7 @@ import qualified Data.Map as M
 import Camphor.Warn
 info :: [String]
 info = [
- "CHAtsFtD CamphorScript Compiler - Copyright (c) 2014- CHAtsFtD ",
+ "Camphoric CamphorScript Compiler - Copyright (c) 2014- hsjoihs ",
  "Usage: ccsc [options] [-o outfilepath] infile",
  "options: ",
  "-C<num>[<num>]  compile from step 'num' to step 'num'",

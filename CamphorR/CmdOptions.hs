@@ -6,7 +6,7 @@ import Camphor.Global.Synonyms
 
 info :: [String]
 info = [
- "CHAtsFtD CamphorScript Reverse Compiler - Copyright (c) 2014- CHAtsFtD ",
+ "Camphoric CamphorScript Reverse Compiler - Copyright (c) 2014- hsjoihs ",
  "Usage: ccsrc [options] [-o outfilepath] infile",
  "options: ",
  "-Cnum[num]  reverse compile from step 'num' to step 'num'",
