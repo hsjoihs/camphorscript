@@ -38,7 +38,7 @@ infixr 9 <!>
 (<!>) :: (a -> b) -> a -> b
 (<!>) = id
 
-data Err = Step2 Step2Err deriving(Show,Eq,Ord)
+newtype Err = Step2 Step2Err deriving(Show,Eq,Ord)
 data Step2Err = Type TypeErr | Fixity FixErr | Access AccErr | Finish FinErr | Prag PragErr | Impossible ImposErr deriving(Show,Eq,Ord)
 data TypeErr = WrongCall TCErr | WrongDef TDErr deriving(Show,Eq,Ord)
 data TCErr = Notypematch Kind | Manytypematches Int Kind | Notdefined Kind | Definedasvar Kind2 | Argoverlap Kind | Nulldefined Kind5 | Definedasarg Kind2 | Leftofbuiltin String Kind7 | Recursivecall MacroId MacroId | Infixconflict Fixity Fixity | Fixnotdefined_2 Kind3 | Smaller Oper Kind3 deriving(Show,Eq,Ord)
@@ -48,21 +48,21 @@ data Kind5 = Functi_4 Ident2 | Operat_4 Oper deriving(Show,Eq,Ord)
 data TDErr = Definedasvar_2 Kind2 | Fixnotdefined Kind3 | Typeoverlap Kind | Paramoverlap Kind | InsideCall Kind deriving(Show,Eq,Ord)
 data Kind7 = Variab Ident2 | Consta Integer deriving(Show,Eq,Ord)
 
-data FixErr = WrongDef_2 FDErr deriving(Show,Eq,Ord) -- errors about `infixl' and `infixr' 
+newtype FixErr = WrongDef_2 FDErr deriving(Show,Eq,Ord) -- errors about `infixl' and `infixr' 
 data FDErr = Conflictfixdef Kind3 | InsideCall_2 Kind3 deriving(Show,Eq,Ord)
-data Kind3 = Operat_3 Oper deriving(Show,Eq,Ord) 
+newtype Kind3 = Operat_3 Oper deriving(Show,Eq,Ord) 
  
 data AccErr = WrongDel ADelErr  | WrongDef_3 ADefErr | WrongRef ARErr deriving(Show,Eq,Ord)
 data ADefErr = Alreadydefined Kind4 | Definedasarg_3 Kind4 deriving(Show,Eq,Ord)
 data ADelErr = Notdefined_2 Kind4 | Notdefinedhere Kind4 | Definedasarg_2 Kind4 deriving(Show,Eq,Ord)
 data ARErr = Notdefined_3 Kind4 | Definedasfunsyn Kind4 deriving(Show,Eq,Ord)
-data Kind4 = Idn Ident2 deriving(Show,Eq,Ord)
+newtype Kind4 = Idn Ident2 deriving(Show,Eq,Ord)
 
-data FinErr = NotDel Kind6 deriving(Show,Eq,Ord)
-data Kind6 = Idns (NonEmpty Ident2) deriving(Show,Eq,Ord)
+newtype FinErr = NotDel Kind6 deriving(Show,Eq,Ord)
+newtype Kind6 = Idns (NonEmpty Ident2) deriving(Show,Eq,Ord)
 
-data PragErr = Memory PMErr deriving(Show,Eq,Ord)
-data PMErr = Using PMUErr deriving(Show,Eq,Ord)
+newtype PragErr = Memory PMErr deriving(Show,Eq,Ord)
+newtype PMErr = Using PMUErr deriving(Show,Eq,Ord)
 data PMUErr = NotValidIdent String | IsConstant (NonEmpty Integer) deriving(Show,Eq,Ord) 
 
 data ImposErr = Integerranout deriving(Show,Eq,Ord) 

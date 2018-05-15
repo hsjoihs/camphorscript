@@ -27,7 +27,7 @@ testSingle [opts,tFile] = testSingle'  opts tFile
 testSingle _            = mapM_ putStrLn info
 
 testSingle' :: String -> FilePath -> IO ()
-testSingle' opts tFile = d4 (words opts) tFile
+testSingle' opts = d4 (words opts)
 
 getJudgeFunc :: Options -> IO (String -> Maybe String)
 getJudgeFunc opts = do

@@ -14,7 +14,7 @@ data Expr c = Null
   | COM String | NUL String | AS0 Ident2 | ADD Ident2 Integer 
   | WHI Ident2 c | BLO c deriving (Show)
 
-data Tree = Ns [Expr Tree] deriving(Show)
+newtype Tree = Ns [Expr Tree] deriving(Show)
 type Set4 =     Expr Tree
 
 simple4 :: [Set4] -> [Set4]

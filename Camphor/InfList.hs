@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts ,NoImplicitPrelude, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE FlexibleContexts ,NoImplicitPrelude #-}
 {-# OPTIONS -Wall -fno-warn-unused-do-bind #-}
 module Camphor.InfList
 (InfList()

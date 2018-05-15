@@ -21,7 +21,7 @@ data Com5_bot = WHI Ident | BLO deriving(Show)
 
 data OneOf a c = Null | Top a | Bot c deriving (Show)
 
-data Tree b d = Ns [OneOf d (b,Tree b d)] deriving(Show)
+newtype Tree b d = Ns [OneOf d (b,Tree b d)] deriving(Show)
 type Node b d =     OneOf d (b,Tree b d)
 
 type Set5 = Node Com5_bot Com5_top 
@@ -60,19 +60,20 @@ sentences5 = def <|> del <|> asser <|> add <|> sub <|> while <|> block <|> read_
   emp   =     do{char ';';return[Null]}
   comm  = try(do{string "/*";xs<-many(noneOf "*");string "*/";return[Top(COM$"/*"++xs++"*/")]})
 
+curly :: Stream s m Char => ParsecT s u m [Set5]
+curly = do{char '{';
+ spaces'; ks <- parser5; spaces';
+ char '}';return ks;}
+
 while :: Stream s m Char => ParsecT s u m [Set5] 
 while = try(do{
  string "while"; xs <- parId;
- spaces'; char '{';
- spaces'; ks <- parser5; spaces';
- char '}';
+ spaces'; ks <- curly;
  return[Bot(WHI xs,Ns ks),Top(AS0 xs)]})
  
 block :: Stream s m Char => ParsecT s u m [Set5]
 block = try(do{
- char '{';
- spaces'; ks <- parser5; spaces';
- char '}';
+ ks <- curly;
  return[Bot(BLO,Ns ks)]})
 
 -- addAssert :: [Set5] -> [Set5]

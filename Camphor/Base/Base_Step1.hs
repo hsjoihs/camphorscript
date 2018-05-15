@@ -120,7 +120,7 @@ makeErr' :: Message -> String -> Int -> Int -> WriterT Warnings (Either ParseErr
 makeErr' a b c d = lift(makeErr a b c d)
 
 convert1 :: FilePath -> Includers -> [Pre7] -> WriterT Warnings (Either ParseError) Txt
-convert1 file includers@(_,_,t) xs = pack <$> snd <$> conv1 includers (initial t file)xs -- fixme: txt
+convert1 file includers@(_,_,t) xs = pack . snd <$> conv1 includers (initial t file)xs -- fixme: txt
 
 
 map2 :: (Monad m,Functor m) => (s -> s) -> (s -> m s2) -> (r -> a -> StateT s m [b]) -> r -> s -> [a] -> m(s2,[b]) 
@@ -151,7 +151,7 @@ putFalse = do -- sink
 putTrue :: SCWWEP String
 putTrue = do 
  stat <- get
- put stat{skipDepth = (-1), ok = True}
+ put stat{skipDepth = -1, ok = True}
  return "\n"
 
 putTrueAndFloat :: SCWWEP String 
@@ -243,11 +243,12 @@ c1 _ ELSE = do
    
 c1 _ (OTHER t) = do
  CS{ok = o,defMacro = table} <- get
- case o of
-  False -> return "\n"
-  True -> do 
+ if o 
+  then do 
    replaced <- lift $ lift $ replaceBy table t   
    return (replaced ++ "\n")
+  else return "\n"
+
 
 c1 i@(j,_,_) (INCLU  fil) = do 
  stat@CS{ok = o} <- get
@@ -274,7 +275,7 @@ inclus2 fil j (CS{defMacro = table, ifDepth = depth,lineNum = n,path = f},i) = c
   let inclfile = dirf
   sets   <- lift $ lift $ parse parser1 (inclfile ++ "--step1") (txt <+> "\n")
   (newtable,text)      <- lift $ conv1 i (initial table inclfile)sets
-  put (CS{defMacro = newtable,ifDepth = depth  ,lineNum = n+1,ok = True ,skipDepth = (-1),path = f})
+  put CS{defMacro = newtable,ifDepth = depth  ,lineNum = n+1,ok = True ,skipDepth = -1,path = f}
   return("/*# LINE start "++show inclfile++" #*/\n\n"++text++"\n\n/*# LINE end   "++show inclfile++" #*/\n")  
  
 
