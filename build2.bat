@@ -1,5 +1,5 @@
 @echo off
 pushd %0\..
-ghc --make ccsrc
+stack build :ccsrc --copy-bins --local-bin-path .
 echo finished
 pause

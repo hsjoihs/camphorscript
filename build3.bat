@@ -1,5 +1,5 @@
 @echo off
 pushd %0\..
-ghc --make orthotest
+stack build :orthotest --copy-bins --local-bin-path .
 echo finished
 pause

@@ -14,11 +14,11 @@ if not '%show%'=='' set show=%show:~0,1%
 
 
 echo ---Making ccsc.hs---
-ghc --make  ccsc
+stack build :ccsc --copy-bins --local-bin-path .
 echo ---Finished---
 echo.
 echo ---Making ccsrc.hs---
-ghc --make  ccsrc
+stack build :ccsrc --copy-bins --local-bin-path .
 echo ---Finished---
 echo.
 

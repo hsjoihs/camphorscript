@@ -6,7 +6,7 @@ for /F "usebackq" %%i in (`cd`) do (
 )
 call :a %BAT_DIR%
 
-ghc --make ccsc
+stack build :ccsc --copy-bins --local-bin-path .
 echo finished
 pause
 exit

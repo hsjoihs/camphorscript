@@ -103,8 +103,8 @@ convert4' m f((n ,st    ),WHI ide(Ns v):xs) =
     then let leftList = map fst $ _MtoList table1 in 
     makeErr(Message$identMsg leftList)(f ++ "--step4'") 0 0 
     else do
-   (table2,res2) <- convert4'  m f((n  ,st               ),xs) -- left
-   return (table2,"while(" <+> unId  ide <+> "){ " <+> res1 <+> "} " <+> res2)
+     (table2,res2) <- convert4'  m f((n  ,st               ),xs) -- left
+     return (table2,"while(" <+> unId  ide <+> "){ " <+> res1 <+> "} " <+> res2)
   else makeErr(msgIde ide "is not defined")(f ++ "--step4'") 0 0
    
 convert4' m f((n ,st    ),BLO (Ns v):xs) = do
@@ -113,8 +113,8 @@ convert4' m f((n ,st    ),BLO (Ns v):xs) = do
   then let leftList = map fst $ _MtoList table1 in 
   makeErr(Message$identMsg leftList)(f++"--step4'") 0 0
   else do
- (table2,res2) <- convert4'  m f((n  ,st               ),xs) -- left
- return (table2, "{" <+> res1 <+> "}" <+> res2)
+   (table2,res2) <- convert4'  m f((n  ,st               ),xs) -- left
+   return (table2, "{" <+> res1 <+> "}" <+> res2)
 
 identMsg :: [Ident2] -> String
 identMsg qs = case map unId qs of 

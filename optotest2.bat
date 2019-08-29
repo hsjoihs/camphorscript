@@ -7,7 +7,7 @@ pushd %0\..
 cls
 
 echo ---Making ccsc.hs---
-ghc --make  ccsc
+stack build :ccsc --copy-bins --local-bin-path .
 echo ---Finished---
 echo.
 

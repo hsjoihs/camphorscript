@@ -158,9 +158,9 @@ convert5' m f((n ,st    ,ls),Bot(WHI ide,Ns v):xs) = case lookup' ide (toList st
      then let leftList = map fst $ _MtoList table1 in 
      makeErr(Message$identMsg leftList)(f ++ "--step5'") 0 0
      else do
-    (table2,res2) <- convert5'  m f((n  ,st               ,ls),xs) -- left
-    return (table2,"mov " <+> show k <+> "; loop; " <+> res1 <+> "mov " <+> show k <+> "; pool; " <+> res2)
-    {-++ "begin_static_assert "++show k++"; "-}
+      (table2,res2) <- convert5'  m f((n  ,st               ,ls),xs) -- left
+      return (table2,"mov " <+> show k <+> "; loop; " <+> res1 <+> "mov " <+> show k <+> "; pool; " <+> res2)
+      {-++ "begin_static_assert "++show k++"; "-}
    Nothing                                      -> makeErr(msgIde ide "is not defined")(f ++ "--step5'") 0 0
    
 convert5' m f((n ,st    ,ls),Bot(BLO ,Ns v):xs) =  do
@@ -169,8 +169,8 @@ convert5' m f((n ,st    ,ls),Bot(BLO ,Ns v):xs) =  do
      then let leftList = map fst $ _MtoList table1 in 
      makeErr(Message$identMsg leftList)(f++"--step5'") 0 0
      else do
-    (table2,res2) <- convert5'  m f((n  ,st               ,ls),xs) -- left
-    return (table2,res1 <+> res2)
+      (table2,res2) <- convert5'  m f((n  ,st               ,ls),xs) -- left
+      return (table2,res1 <+> res2)
 
 identMsg :: [String] -> String
 identMsg qs = case qs of 

@@ -2,3 +2,6 @@
 *.exe
 *.hi
 *.o
+.stack-work/
+camphorscript.cabal
+*~
