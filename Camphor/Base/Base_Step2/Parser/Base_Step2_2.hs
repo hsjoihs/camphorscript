@@ -98,12 +98,15 @@ scl :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity [Sen
 scl = do{p <- getPosition; _scolon; return [Single p Scolon]}
 --                           ;
 
+posNegNum :: Stream s Identity (SourcePos, Tok) => Parsec s u Integer
+posNegNum = try(do{ o <- _op; if o /= wrap "-" then fail "" else do { __; n <- _num; return (-n); } }) <|>  do{ n <-_num; return n;}
+
 infl :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity [Sent]
-infl = do{p <- getPosition; _infixl; __; n <-_num; __; _paren; __; o <-_op; __; _nerap; __; _scolon; return[Single p$Infl n o]}
+infl = do{p <- getPosition; _infixl; __; n <- posNegNum; __; _paren; __; o <-_op; __; _nerap; __; _scolon; return[Single p$Infl n o]}
 --         infixl          15              (            &&              )           ;          
 
 infr :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity [Sent]
-infr = do{p <- getPosition; _infixr; __; n <-_num; __; _paren; __; o <-_op; __; _nerap; __; _scolon; return[Single p$Infr n o]}
+infr = do{p <- getPosition; _infixr; __; n <-posNegNum; __; _paren; __; o <-_op; __; _nerap; __; _scolon; return[Single p$Infr n o]}
 --         infixr          15              (            &&              )           ;          
 
 spac :: Stream s Identity (SourcePos, Tok) => ParsecT s ParserState Identity [Sent]
