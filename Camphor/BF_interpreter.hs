@@ -16,6 +16,7 @@ import Data.Word (Word8)
 import HiddenChar.HiddenChar
 import Camphor.VirtualIO
 import Data.Text.Lazy () -- Stream Txt m Char
+import Control.Monad.Fail
 
 type VIO = VirtualIO Char Char 
 
@@ -48,10 +49,10 @@ instance IOLike VIO where
  putChar' = putO
  liftIO' = lift
  
-runBF :: (IOLike io) => [BFComm] -> io () 
+runBF :: (IOLike io, Control.Monad.Fail.MonadFail io) => [BFComm] -> io () 
 runBF xs = evalStateT vm Stat{notyet = xs, mem = (0,initial)}
 
-vm :: (IOLike io) => StateT Stat io ()
+vm :: (IOLike io, Control.Monad.Fail.MonadFail io) => StateT Stat io ()
 vm = get >>= \stat -> case notyet stat of
  []        -> return ()
  (comm:cs) -> do

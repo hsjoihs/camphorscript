@@ -5,8 +5,9 @@ module Camphor.VirtualIO
 )where
 import Camphor.SafePrelude 
 import Camphor.Transformer
+import Control.Monad.Fail
 
-newtype VirtualIO i o a = VirtualIO {unVIO :: MaybeT (WriterT [o] (StateT [i] Identity)) a} deriving(Functor,Applicative,Monad) -- safe when failed
+newtype VirtualIO i o a = VirtualIO {unVIO :: MaybeT (WriterT [o] (StateT [i] Identity)) a} deriving(Functor,Applicative,Monad, MonadFail) -- safe when failed
 
 unwrapVIO :: VirtualIO i o () -> [i] -> Maybe [o]
 unwrapVIO vio is = case (evalState . runWriterT . runMaybeT . unVIO) vio is of
